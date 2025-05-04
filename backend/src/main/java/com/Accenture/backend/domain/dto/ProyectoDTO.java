@@ -1,7 +1,4 @@
-package com.Accenture.backend.dto;
-
-import com.Accenture.backend.model.Usuario;
-
+package com.Accenture.backend.domain.dto;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,11 +19,9 @@ public class ProyectoDTO {
     private LocalDate fechaFin;
     private LocalDate fechaFinReal;
     private String estado;
-
-    private Usuario cliente;
-    private Usuario gerenteProyecto;
-    private Usuario creadoPor;
-
+    private UsuarioDTO cliente;
+    private UsuarioDTO gerenteProyecto;
+    private UsuarioDTO creadoPor;
     private LocalDateTime fechaCreacion;
 }
 

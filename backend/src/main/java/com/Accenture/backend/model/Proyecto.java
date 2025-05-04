@@ -1,7 +1,5 @@
 package com.Accenture.backend.model;
 
-import com.Accenture.backend.model.Usuario;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
@@ -57,8 +55,6 @@ public class Proyecto {
     @ManyToOne
     @JoinColumn(name = "gerente_proyecto", referencedColumnName = "usuarioId")
     private Usuario gerenteProyecto;
-
-
 
     @ManyToOne
     @JoinColumn(name = "creado_por", referencedColumnName = "usuarioId")

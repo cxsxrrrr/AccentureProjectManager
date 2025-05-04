@@ -1,7 +1,7 @@
 package com.Accenture.backend.dao;
 
 import com.Accenture.backend.model.Proyecto;
-import com.Accenture.backend.repository.ProyectoRepository;
+import com.Accenture.backend.domain.repository.ProyectoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 

@@ -1,14 +1,16 @@
 package com.Accenture.backend.controller;
 
-import com.Accenture.backend.dto.ProyectoDTO;
-import com.Accenture.backend.service.ProyectoService;
+import com.Accenture.backend.domain.dto.ProyectoDTO;
+import com.Accenture.backend.domain.service.ProyectoService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
-@RequestMapping("/api/proyectos")
+@RequestMapping("/api/proyecto")
 public class ProyectoController {
     private final ProyectoService proyectoService;
 
