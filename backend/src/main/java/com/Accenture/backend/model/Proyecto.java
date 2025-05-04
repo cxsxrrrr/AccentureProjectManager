@@ -50,7 +50,7 @@ public class Proyecto {
     
     @ManyToOne
     @JoinColumn(name = "usuarioId", referencedColumnName = "usuarioId")
-    private Usuario cliente; //deberia ser Usuario
+    private Usuario cliente;
 
     @ManyToOne
     @JoinColumn(name = "gerente_proyecto", referencedColumnName = "usuarioId")

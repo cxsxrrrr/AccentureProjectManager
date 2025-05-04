@@ -4,13 +4,12 @@ import com.Accenture.backend.domain.dto.ProyectoDTO;
 import com.Accenture.backend.domain.service.ProyectoService;
 import org.springframework.http.ResponseEntity;
 
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
-@RequestMapping("/api/proyecto")
+@RequestMapping("/api/proyectos")
 public class ProyectoController {
     private final ProyectoService proyectoService;
 
@@ -24,4 +23,21 @@ public class ProyectoController {
         return ResponseEntity.ok(proyectoGuardado);
     }
 
+    @GetMapping
+    public ResponseEntity<List<ProyectoDTO>> getAllProyectos() {
+        List<ProyectoDTO> proyectos = (List<ProyectoDTO>) proyectoService.obtenerTodosLosProyectos();
+        return ResponseEntity.ok(proyectos);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteProyecto(@PathVariable("id") Long proyectoId) {
+        proyectoService.eliminarProyectoxId(proyectoId);
+        return ResponseEntity.ok("Proyecto eliminado exitosamente");
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ProyectoDTO> getProyectoById(@PathVariable("id") Long proyectoId) {
+       ProyectoDTO proyecto = proyectoService.obtenerProyectoxId(proyectoId);
+        return ResponseEntity.ok(proyecto);
+    }
 }

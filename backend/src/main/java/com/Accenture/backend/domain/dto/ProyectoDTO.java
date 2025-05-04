@@ -13,8 +13,8 @@ import lombok.Data;
 public class ProyectoDTO {
 
     private Long proyectoId;
-    private String nombreTitulo;
-    private String descripcion;
+    private String nombreProyecto;
+    private String descripcionProyecto;
     private LocalDate fechaInicio;
     private LocalDate fechaFin;
     private LocalDate fechaFinReal;

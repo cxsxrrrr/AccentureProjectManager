@@ -34,7 +34,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
     }
 
     @Override
-    public Proyecto buscarProyectoPorId(Long idProyecto) {
+    public Proyecto buscarProyectoxId(Long idProyecto) {
         return proyectoRepository.findById(idProyecto).orElse(null);
     }
 

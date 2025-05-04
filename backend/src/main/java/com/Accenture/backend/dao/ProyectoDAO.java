@@ -8,7 +8,7 @@ public interface ProyectoDAO {
     Proyecto guardarProyecto(Proyecto proyecto);
     Proyecto actualizarProyecto(Proyecto proyecto);
     void eliminarProyecto(Proyecto proyecto);
-    Proyecto buscarProyectoPorId(Long idProyecto);
+    Proyecto buscarProyectoxId(Long idProyecto);
 
     List<Proyecto> obtenerProyectos();
 }
