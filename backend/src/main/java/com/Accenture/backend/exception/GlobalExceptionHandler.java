@@ -52,6 +52,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorDetails> handleDataIntegrityViolation(
+        org.springframework.dao.DataIntegrityViolationException ex,
+        WebRequest req) {
+
+    ErrorDetails err = new ErrorDetails(
+            LocalDateTime.now(),
+            "Error de integridad de datos",
+            "No existe el dato proporcionado"
+    );
+    return new ResponseEntity<>(err, HttpStatus.BAD_REQUEST);
+}
+
     // Captura cualquier otra excepción
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDetails> handleAll(Exception ex, WebRequest req) {

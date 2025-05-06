@@ -74,4 +74,14 @@ public class ProyectoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado"));
         proyectoDAO.eliminarProyecto(proyecto);
     }
+
+    public ProyectoDTO actualizarProyectoxId(Long proyectoId, ProyectoDTO dto) {
+        Proyecto existing = Optional.ofNullable(proyectoDAO.buscarProyectoxId(proyectoId))
+            .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado"));
+            
+        // vuelca sólo los campos no nulos de dto sobre existing
+        proyectoMapper.updateProyectoFromDto(dto, existing);
+        Proyecto saved = proyectoDAO.actualizarProyecto(existing);
+        return proyectoMapper.toDTO(saved);
+    }
 }

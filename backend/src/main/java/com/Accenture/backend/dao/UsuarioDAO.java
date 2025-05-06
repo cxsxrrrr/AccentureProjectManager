@@ -6,8 +6,8 @@ import java.util.List;
 
 public interface UsuarioDAO {
     Usuario crearUsuario(Usuario usuario);
-    Usuario actualizarUsuario(Usuario proyecto);
-    void eliminarUsuario(Usuario proyecto);
-
+    Usuario actualizarUsuario(Usuario usuario);
+    void eliminarUsuario(Usuario usuario);
+    Usuario buscarUsuarioxId(Long usuarioId);
     List<Usuario> obtenerUsuarios();
 }

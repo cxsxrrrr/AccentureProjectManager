@@ -4,10 +4,17 @@ import com.Accenture.backend.domain.dto.ProyectoDTO;
 import com.Accenture.backend.domain.service.ProyectoService;
 import org.springframework.http.ResponseEntity;
 
-import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import java.util.List;
 
+// Ruta principal
 @RestController
 @RequestMapping("/api/proyectos")
 public class ProyectoController {
@@ -17,6 +24,7 @@ public class ProyectoController {
         this.proyectoService = proyectoService;
     }
 
+    // Crear Proyecto
     @PostMapping
     public ResponseEntity<ProyectoDTO> createProject(@RequestBody ProyectoDTO proyectoDTO) {
         ProyectoDTO proyectoGuardado = proyectoService.crearProyecto(proyectoDTO);
@@ -40,4 +48,14 @@ public class ProyectoController {
        ProyectoDTO proyecto = proyectoService.obtenerProyectoxId(proyectoId);
         return ResponseEntity.ok(proyecto);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProyectoDTO> updateProyectoById(
+            @PathVariable Long id,
+            @RequestBody ProyectoDTO proyectoDTO) {
+
+        ProyectoDTO actualizado = proyectoService.actualizarProyectoxId(id, proyectoDTO);
+        return ResponseEntity.ok(actualizado);
+    }
+
 }

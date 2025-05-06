@@ -34,7 +34,15 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
     @Override
+    public Usuario buscarUsuarioxId(Long idUsuario) {
+        return usuarioRepository.findById(idUsuario).orElse(null);
+    }
+
+    @Override
     public List<Usuario> obtenerUsuarios() {
         return usuarioRepository.findAll();
     }
+
+
+
 }
