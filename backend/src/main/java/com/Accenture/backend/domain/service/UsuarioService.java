@@ -1,11 +1,10 @@
 package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.UsuarioDAO;
-import com.Accenture.backend.domain.dto.ProyectoDTO;
+
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.exception.ResourceNotFoundException;
 
-import com.Accenture.backend.model.Proyecto;
 import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.UsuarioMapper;
 import org.springframework.stereotype.Service;
@@ -36,24 +35,27 @@ public class UsuarioService {
         return usuarioMapper.toDTO(usuario);
     }
 
+    // Obtienes un Usuario por Id
     public UsuarioDTO obtenerUsuarioxId(Long usuarioId) {
         Usuario usuario = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         return usuarioMapper.toDTO(usuario);
     }
-
+    // Obtienes todos los Usuarios
     public List<UsuarioDTO> obtenerUsuarios() {
         return usuarioDAO.obtenerUsuarios().stream()
                 .map(usuarioMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
+    // Eliminas un Usuario por Id
     public void eliminarUsuario(Long usuarioId) {
     Usuario usuario = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
             .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado"));
         usuarioDAO.eliminarUsuario(usuario);
     }
 
+    // Actualizas un Usuario por Id
     public UsuarioDTO actualizarUsuarioxId(Long usuarioId, UsuarioDTO dto) {
         Usuario existing = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));

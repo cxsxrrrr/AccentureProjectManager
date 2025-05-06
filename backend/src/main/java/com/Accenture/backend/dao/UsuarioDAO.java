@@ -4,6 +4,11 @@ import com.Accenture.backend.model.Usuario;
 
 import java.util.List;
 
+/*
+ *  SE ESPECIFICAN LAS FUNCIONES QUE SERÁN IMPLEMENTADAS
+ *  POSTERIORMENTE EN UsuarioDAOImpl
+ * */
+
 public interface UsuarioDAO {
     Usuario crearUsuario(Usuario usuario);
     Usuario actualizarUsuario(Usuario usuario);

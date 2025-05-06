@@ -18,6 +18,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/*
+* Entidad: Proyectos
+ */
+
 @Entity
 @Table(name = "Proyectos")
 @Data
@@ -26,6 +30,9 @@ import java.time.LocalDateTime;
 @Builder
 public class Proyecto {
 
+    // Columnas
+
+    // Primary Key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long proyectoId;
@@ -47,7 +54,9 @@ public class Proyecto {
 
 
     private LocalDateTime fechaCreacion;
-    
+
+    // Foreign Keys
+
     @ManyToOne
     @JoinColumn(name = "usuarioId", referencedColumnName = "usuarioId")
     private Usuario cliente;

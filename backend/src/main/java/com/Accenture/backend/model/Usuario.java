@@ -17,6 +17,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/*
+ * Entidad: Usuarios
+ */
+
 @Entity
 @Table(name = "Usuarios")
 @Data
@@ -24,7 +28,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Usuario {
+    // Columnas
 
+    // Primary Key
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long usuarioId;

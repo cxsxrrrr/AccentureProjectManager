@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
+// Detalles del error
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

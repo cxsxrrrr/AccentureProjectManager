@@ -6,6 +6,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
+/*
+* MAPPER DE ENTIDAD A DTO
+*/
 @Mapper(
     componentModel = "spring",
     uses = UsuarioMapper.class,

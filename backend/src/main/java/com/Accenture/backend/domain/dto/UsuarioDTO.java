@@ -12,11 +12,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+// Datos visibles en la petición
 public class UsuarioDTO {
 
     private Long usuarioId;
     private String nombre;
     private String apellido;
+
     //JsonProperty para no mostrar datos delicados en la peticion
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String numeroTelefono;

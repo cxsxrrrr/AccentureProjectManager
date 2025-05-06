@@ -9,6 +9,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import java.time.LocalDateTime;
 
+// Manejador de errores GLOBAL
+
 @ControllerAdvice
 public class GlobalExceptionHandler {
 

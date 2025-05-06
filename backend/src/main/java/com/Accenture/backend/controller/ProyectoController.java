@@ -31,24 +31,28 @@ public class ProyectoController {
         return ResponseEntity.ok(proyectoGuardado);
     }
 
+    // Obtener todos los Proyectos
     @GetMapping
     public ResponseEntity<List<ProyectoDTO>> getAllProyectos() {
         List<ProyectoDTO> proyectos = (List<ProyectoDTO>) proyectoService.obtenerTodosLosProyectos();
         return ResponseEntity.ok(proyectos);
     }
 
+    // Eliminar Proyecto por Id
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteProyecto(@PathVariable("id") Long proyectoId) {
         proyectoService.eliminarProyectoxId(proyectoId);
         return ResponseEntity.ok("Proyecto eliminado exitosamente");
     }
 
+    // Obtener Proyecto por Id
     @GetMapping("/{id}")
     public ResponseEntity<ProyectoDTO> getProyectoById(@PathVariable("id") Long proyectoId) {
        ProyectoDTO proyecto = proyectoService.obtenerProyectoxId(proyectoId);
         return ResponseEntity.ok(proyecto);
     }
 
+    // Actualizar Proyecto por Id
     @PutMapping("/{id}")
     public ResponseEntity<ProyectoDTO> updateProyectoById(
             @PathVariable Long id,
