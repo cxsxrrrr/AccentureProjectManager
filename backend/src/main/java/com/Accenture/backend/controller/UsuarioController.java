@@ -1,6 +1,5 @@
 package com.Accenture.backend.controller;
 
-import com.Accenture.backend.domain.dto.ProyectoDTO;
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.domain.service.UsuarioService;
 
