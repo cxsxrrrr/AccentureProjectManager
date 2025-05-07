@@ -5,7 +5,6 @@ package com.Accenture.backend.util;
  */
 
 import com.Accenture.backend.domain.dto.HistorialCambiosDTO;
-import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.model.HistorialCambios;
 import org.mapstruct.Mapper;
 import org.mapstruct.NullValuePropertyMappingStrategy;
@@ -17,6 +16,6 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface HistorialCambiosMapper {
 
     HistorialCambiosDTO toDTO(HistorialCambios historialCambios);
-    HistorialCambios toEntity(UsuarioDTO HistorialCambiosDTO);
+    HistorialCambios toEntity(HistorialCambiosDTO historialCambiosDTO);
 
 }

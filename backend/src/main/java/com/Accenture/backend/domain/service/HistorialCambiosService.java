@@ -2,7 +2,6 @@ package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.HistorialCambiosDAO;
 import com.Accenture.backend.domain.dto.HistorialCambiosDTO;
-import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.domain.repository.HistorialCambiosRepository;
 import com.Accenture.backend.domain.repository.UsuarioRepository;
 import com.Accenture.backend.exception.ResourceNotFoundException;
@@ -34,7 +33,7 @@ public class HistorialCambiosService {
         this.usuarioMapper = usuarioMapper;
     }
 
-    public HistorialCambiosDTO crearProyecto(UsuarioDTO dto) {
+    public HistorialCambiosDTO guardarHistorial(HistorialCambiosDTO dto) {
         // Manejadores de Error
         Usuario usuario = usuarioRepository.findById(dto.getUsuario().getUsuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
