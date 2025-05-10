@@ -22,7 +22,7 @@ public class HistorialCambiosDAOImpl implements HistorialCambiosDAO {
     @Transactional
     @Override
     public HistorialCambios guardarCambio(HistorialCambios historial) {
-        return null;
+        return historialRepository.save(historial);
     }
 
     @Override

@@ -54,6 +54,6 @@ public class HistorialCambios {
     private String descripcionCambio;
 
     @ManyToOne
-    @JoinColumn(name = "usuario_id", referencedColumnName = "usuarioId", nullable = false)
+    @JoinColumn(name = "usuario_cedula", referencedColumnName = "usuarioCedula", nullable = false)
     private Usuario usuario;
 }
