@@ -58,15 +58,15 @@ public class Proyecto {
     // Foreign Keys
 
     @ManyToOne
-    @JoinColumn(name = "cliente_cedula", referencedColumnName = "usuarioId")
+    @JoinColumn(name = "cliente_id", referencedColumnName = "usuarioId")
     private Usuario cliente;
 
     @ManyToOne
-    @JoinColumn(name = "gerente_proyecto_cedula", referencedColumnName = "usuarioId")
+    @JoinColumn(name = "gerente_proyecto_id", referencedColumnName = "usuarioId")
     private Usuario gerenteProyecto;
 
     @ManyToOne
-    @JoinColumn(name = "creado_por_cedula", referencedColumnName = "usuarioId")
+    @JoinColumn(name = "creado_por_id", referencedColumnName = "usuarioId")
     private Usuario creadoPor;
 
 

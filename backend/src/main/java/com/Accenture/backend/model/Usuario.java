@@ -41,6 +41,9 @@ public class Usuario {
     @Column(length = 255)
     private String apellido;
 
+    @Column(length = 30)
+    private Long cedula;
+
     @Column(length = 255)
     private String numeroTelefono;
 
