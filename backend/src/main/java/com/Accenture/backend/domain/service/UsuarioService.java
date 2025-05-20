@@ -24,16 +24,23 @@ public class UsuarioService {
         this.usuarioMapper = usuarioMapper;
     }
 
-    public UsuarioDTO crearUsuario(UsuarioDTO dto) {
-        // UsuarioDTO a Usuario
-        Usuario usuario = usuarioMapper.toEntity(dto);
+public UsuarioDTO crearUsuario(UsuarioDTO dto) {
+    // UsuarioDTO a Usuario
+    Usuario usuario = usuarioMapper.toEntity(dto);
 
-        // Guardar usuario en la base de datos
-        usuario = usuarioDAO.crearUsuario(usuario);
-
-        // Se convierte a DTO otra vez
-        return usuarioMapper.toDTO(usuario);
+    // Validar y obtener el rol
+    if (dto.getRolUsuario() != null && dto.getRolUsuario().getRolId() != null) {
+        Rol rol = rolRepository.findById(dto.getRolUsuario().getRolId())
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
+        usuario.setRol(rol);
     }
+
+    // Guardar usuario en la base de datos
+    usuario = usuarioDAO.crearUsuario(usuario);
+
+    // Se convierte a DTO otra vez
+    return usuarioMapper.toDTO(usuario);
+}
 
     // Obtienes un Usuario por Id
     public UsuarioDTO obtenerUsuarioxId(Long usuarioId) {

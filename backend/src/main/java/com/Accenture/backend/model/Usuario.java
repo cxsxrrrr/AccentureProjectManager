@@ -1,12 +1,6 @@
 package com.Accenture.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +35,9 @@ public class Usuario {
     @Column(length = 255)
     private String apellido;
 
+    @Column(length = 30)
+    private Long cedula;
+
     @Column(length = 255)
     private String numeroTelefono;
 
@@ -58,6 +55,10 @@ public class Usuario {
 
     @Column(length = 255)
     private LocalDateTime ultimoAcceso;
+
+    @ManyToOne
+    @JoinColumn(name = "rol_id", referencedColumnName = "rol_id")
+    private Rol rol;
 
     @OneToMany(mappedBy = "cliente")
     private List<Proyecto> proyectosComoCliente;
