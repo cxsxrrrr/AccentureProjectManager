@@ -18,10 +18,12 @@ public class UsuarioDTO {
     private Long usuarioId;
     private String nombre;
     private String apellido;
-
+    private RolDTO rolUsuario;
     //JsonProperty para no mostrar datos delicados en la peticion
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Long cedula;
+
+
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String numeroTelefono;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
