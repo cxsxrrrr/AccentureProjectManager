@@ -20,7 +20,7 @@ public class Rol {
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UsuarioRol> usuarios = new HashSet<>();
 
-    // Relación con RolPermiso (uno a muchos)
+    // Relación con RolPermiso (uno a muchos) 
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolPermiso> permisos = new HashSet<>();
 
