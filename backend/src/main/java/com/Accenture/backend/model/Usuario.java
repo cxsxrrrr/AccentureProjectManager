@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -35,8 +36,13 @@ public class Usuario {
     @Column(length = 255)
     private String apellido;
 
-    @Column(length = 30)
+    @Column(length = 30, unique = true)
     private Long cedula;
+
+    private LocalDate fechaNacimiento;
+
+    @Column(length = 1)
+    private char genero;
 
     @Column(length = 255)
     private String numeroTelefono;
@@ -55,6 +61,8 @@ public class Usuario {
 
     @Column(length = 255)
     private LocalDateTime ultimoAcceso;
+
+
 
     @ManyToOne
     @JoinColumn(name = "rol_id", referencedColumnName = "rol_id")

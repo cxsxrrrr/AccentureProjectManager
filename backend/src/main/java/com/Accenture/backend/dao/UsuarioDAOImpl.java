@@ -50,6 +50,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findAll();
     }
 
+
     @Override
     public Optional<Usuario> buscarUsuarioxCedula(Long cedula) {
         if (cedula == null) {
