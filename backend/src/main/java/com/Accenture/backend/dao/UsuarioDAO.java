@@ -3,6 +3,7 @@ package com.Accenture.backend.dao;
 import com.Accenture.backend.model.Usuario;
 
 import java.util.List;
+import java.util.Optional;
 
 /*
  *  SE ESPECIFICAN LAS FUNCIONES QUE SERÁN IMPLEMENTADAS
@@ -15,4 +16,5 @@ public interface UsuarioDAO {
     void eliminarUsuario(Usuario usuario);
     Usuario buscarUsuarioxId(Long usuarioId);
     List<Usuario> obtenerUsuarios();
+    Optional<Usuario> buscarUsuarioxCedula(Long cedula);
 }

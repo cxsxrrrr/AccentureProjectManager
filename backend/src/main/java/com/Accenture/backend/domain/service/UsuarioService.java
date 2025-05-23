@@ -27,12 +27,16 @@ public class UsuarioService {
 public UsuarioDTO crearUsuario(UsuarioDTO dto) {
     // UsuarioDTO a Usuario
     Usuario usuario = usuarioMapper.toEntity(dto);
-
+    /*
     // Validar y obtener el rol
     if (dto.getRolUsuario() != null && dto.getRolUsuario().getRolId() != null) {
         Rol rol = rolRepository.findById(dto.getRolUsuario().getRolId())
                 .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
         usuario.setRol(rol);
+    }
+     */
+    if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
+        throw new IllegalArgumentException("La cédula ya está registrada");
     }
 
     // Guardar usuario en la base de datos
