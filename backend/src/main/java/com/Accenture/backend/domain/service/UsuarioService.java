@@ -6,11 +6,13 @@ import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.exception.ResourceNotFoundException;
 
 import com.Accenture.backend.model.Usuario;
+import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,33 +20,36 @@ public class UsuarioService {
 
     private final UsuarioDAO usuarioDAO;
     private final UsuarioMapper usuarioMapper;
+    private final MailSender mailSender;
 
-    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper) {
+    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper, MailSender mailSender) {
         this.usuarioDAO = usuarioDAO;
         this.usuarioMapper = usuarioMapper;
+        this.mailSender = mailSender;
     }
 
-public UsuarioDTO crearUsuario(UsuarioDTO dto) {
-    // UsuarioDTO a Usuario
-    Usuario usuario = usuarioMapper.toEntity(dto);
-    /*
-    // Validar y obtener el rol
-    if (dto.getRolUsuario() != null && dto.getRolUsuario().getRolId() != null) {
-        Rol rol = rolRepository.findById(dto.getRolUsuario().getRolId())
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado"));
-        usuario.setRol(rol);
-    }
-     */
-    if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
-        throw new IllegalArgumentException("La cédula ya está registrada");
-    }
+    public UsuarioDTO crearUsuario(UsuarioDTO dto) {
+        // Verificar si la cédula ya existe
+        if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
+            throw new IllegalArgumentException("La cédula ya está registrada");
+        }
 
-    // Guardar usuario en la base de datos
-    usuario = usuarioDAO.crearUsuario(usuario);
+        // UsuarioDTO a Usuario
+        Usuario usuario = usuarioMapper.toEntity(dto);
 
-    // Se convierte a DTO otra vez
-    return usuarioMapper.toDTO(usuario);
-}
+        // Guardar usuario en la base de datos con contraseña encriptada
+        final String rawPassword = dto.getPassword(); // Guardar la contraseña en texto plano para el correo
+
+        final Usuario savedUsuario = usuarioDAO.crearUsuario(usuario);
+
+        // Enviar correo de bienvenida de forma asíncrona
+        CompletableFuture.runAsync(() -> {
+            mailSender.sendWelcomeEmail(savedUsuario.getEmail(), String.valueOf(savedUsuario.getCedula()), rawPassword);
+        });
+
+        // Se convierte a DTO otra vez
+        return usuarioMapper.toDTO(savedUsuario);
+    }
 
     // Obtienes un Usuario por Id
     public UsuarioDTO obtenerUsuarioxId(Long usuarioId) {
