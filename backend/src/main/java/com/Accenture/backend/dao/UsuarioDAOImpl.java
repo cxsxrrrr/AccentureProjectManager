@@ -58,5 +58,4 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         }
         return usuarioRepository.findByCedula(cedula);
     }
-
 }
