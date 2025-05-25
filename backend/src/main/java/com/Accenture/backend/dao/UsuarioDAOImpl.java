@@ -50,7 +50,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findAll();
     }
 
-
+    // Obtener usuario por cedula
     @Override
     public Optional<Usuario> buscarUsuarioxCedula(Long cedula) {
         if (cedula == null) {
@@ -59,11 +59,13 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findByCedula(cedula);
     }
 
+    // Obtener lista de usuarios por nombre
     @Override
     public List<Usuario> buscarUsuariosPorNombre(String nombre) {
         return usuarioRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
+    // Obtener usuario por email
     @Override
     public Optional<Usuario> buscarUsuarioPorEmail(String email) {
         if (email == null || email.isEmpty()) {
@@ -72,6 +74,7 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findByEmail(email);
     }
 
+    // Buscar usuario por estado (ACTIVO/INACTIVO)
     @Override
     public List<Usuario> buscarUsuariosPorEstado(String estado) {
         if (estado == null || estado.isEmpty()) {
