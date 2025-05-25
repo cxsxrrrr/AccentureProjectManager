@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UsuarioDAOImpl implements UsuarioDAO {
@@ -50,5 +51,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
     }
 
 
-
+    @Override
+    public Optional<Usuario> buscarUsuarioxCedula(Long cedula) {
+        if (cedula == null) {
+            throw new IllegalArgumentException("La cédula no puede ser nula");
+        }
+        return usuarioRepository.findByCedula(cedula);
+    }
 }
