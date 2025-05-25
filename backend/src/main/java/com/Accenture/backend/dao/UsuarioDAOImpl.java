@@ -58,4 +58,25 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         }
         return usuarioRepository.findByCedula(cedula);
     }
+
+    @Override
+    public List<Usuario> buscarUsuariosPorNombre(String nombre) {
+        return usuarioRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    @Override
+    public Optional<Usuario> buscarUsuarioPorEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+        }
+        return usuarioRepository.findByEmail(email);
+    }
+
+    @Override
+    public List<Usuario> buscarUsuariosPorEstado(String estado) {
+        if (estado == null || estado.isEmpty()) {
+            throw new IllegalArgumentException("El estado no puede ser nulo o vacío");
+        }
+        return usuarioRepository.findByEstado(estado);
+    }
 }

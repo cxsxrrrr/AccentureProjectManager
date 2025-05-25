@@ -104,4 +104,18 @@ public class HitosProyectoService {
         // Eliminamos el hito usando el DAO
         hitoDAO.eliminarHitoxId(hitoId);
     }
+
+    public HitosProyectoDTO actualizarHitoById(Long id, HitosProyectoDTO dto) {
+        // Validamos que el hito exista y obtenemos la entidad
+        HitosProyecto existing = hitoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Hito no encontrado"));
+        // Actualizamos campos desde el DTO ignorando valores nulos
+        hitoMapper.updateHitoFromDto(dto, existing);
+        // Aseguramos que el ID permanezca igual
+        existing.setHitoId(id);
+        // Guardamos la entidad actualizada
+        HitosProyecto saved = hitoDAO.actualizarHito(existing);
+        // Convertimos a DTO y retornamos
+        return hitoMapper.toDTO(saved);
+    }
 }
