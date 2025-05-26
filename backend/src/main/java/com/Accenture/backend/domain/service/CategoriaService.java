@@ -3,18 +3,13 @@ package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.CategoriaDAO;
 import com.Accenture.backend.domain.dto.CategoriaDTO;
-import com.Accenture.backend.domain.dto.SkillsDTO;
 import com.Accenture.backend.domain.repository.CategoriaRepository;
 import com.Accenture.backend.exception.ResourceNotFoundException;
 import com.Accenture.backend.model.Categoria;
-import com.Accenture.backend.model.HitosProyecto;
-import com.Accenture.backend.model.Proyecto;
-import com.Accenture.backend.model.Skills;
 import com.Accenture.backend.util.CategoriaMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,15 +42,15 @@ public class CategoriaService {
     }
 
     public void eliminarCategoria(Long categoriaId){
-        Categoria existing = categoriaRepository.findById(categoriaId)
-                .orElseThrow(() -> new ResourceNotFoundException("Skill no encontrado"));
+        Categoria existing = categoriaDAO.buscarCategoriaPorId(categoriaId)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada"));
 
         categoriaDAO.eliminarCategoria(existing);
     }
 
     public CategoriaDTO actualizarCategoriaxId(Long id, CategoriaDTO dto) {
-        Categoria existing = categoriaRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Skill no encontrado"));
+        Categoria existing = categoriaDAO.buscarCategoriaPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada"));
         categoriaMapper.updateCategoriaFromDto(dto, existing);
         existing.setCategoriaId(id);
         Categoria saved = categoriaDAO.modificarCategoria(existing);

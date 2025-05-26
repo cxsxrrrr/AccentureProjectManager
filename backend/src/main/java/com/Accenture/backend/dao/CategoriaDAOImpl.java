@@ -5,11 +5,16 @@ import com.Accenture.backend.model.Categoria;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class CategoriaDAOImpl implements CategoriaDAO {
 
     private CategoriaRepository categoriaRepository;
+
+    public CategoriaDAOImpl(CategoriaRepository categoriaRepository) {
+        this.categoriaRepository = categoriaRepository;
+    }
 
     @Override
     public Categoria crearCategoria(Categoria categoria) {
@@ -29,5 +34,10 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     @Override
     public List<Categoria> listarCategorias() {
         return categoriaRepository.findAll();
+    }
+
+    @Override
+    public Optional<Categoria> buscarCategoriaPorId(Long id) {
+        return categoriaRepository.findById(id);
     }
 }

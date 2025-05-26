@@ -29,7 +29,6 @@ public class SkillsService {
     // Crear Skill
     public SkillsDTO crearSkill(SkillsDTO dto) {
         Skills entity = skillsMapper.toEntity(dto);
-        // Reset ID to null so that JPA generates a new identity value
         entity.setSkillId(null);
         Skills saved = skillsDAO.guardarSkill(entity);
         return skillsMapper.toDTO(saved);
