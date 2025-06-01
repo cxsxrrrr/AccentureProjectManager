@@ -1,4 +1,30 @@
-:root {
+/* Estilos para el login */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .bg-accenture {
+    background-color: #A100FF;
+  }
+
+  .text-accenture {
+    color: #A100FF;
+  }
+}
+
+/* src/index.css */
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+
+
+/* Estilos predeterminados */
+/* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -65,4 +91,4 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
-}
+} */
