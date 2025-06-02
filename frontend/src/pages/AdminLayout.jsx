@@ -42,7 +42,7 @@ function AdminLayout() {
       case "help":
         return <Help />;
       default:
-        return <div>Selecciona una opción del menú</div>;
+        return <Dashboard />;
     }
   };
 
