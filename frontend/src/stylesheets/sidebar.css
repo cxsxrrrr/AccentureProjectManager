@@ -8,9 +8,9 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  border-left: 6px solid #8E8686; 
   box-shadow: 6px 0 4px rgba(0, 0, 0, 0.05); 
   padding: 10px;
+  padding-left: 0;
 }
 
 .Contenedor-Identificador {
@@ -55,6 +55,7 @@
 }
 
 .boton-sidebar.activo {
+  border-left: 8px solid #A100FF;
   background-color: #F8F8F8;
   color: #A100FF;
 }
