@@ -1,29 +1,15 @@
-/* Estilos para el login */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-@layer utilities {
-  .bg-accenture {
-    background-color: #A100FF;
-  }
 
-  .text-accenture {
-    color: #A100FF;
-  }
-}
 
-/* src/index.css */
+
+/* Esto sirve para que el panel ocupe toda la mitad de la pantalla */
 html,
 body,
 #root {
   height: 100%;
   margin: 0;
 }
-
-
-
-/* Estilos predeterminados */
 /* :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -37,9 +23,9 @@ body,
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+} */
 
-a {
+/* a {
   font-weight: 500;
   color: #646cff;
   text-decoration: inherit;
@@ -59,9 +45,9 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
-}
+} */
 
-button {
+/* button {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
