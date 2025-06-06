@@ -20,7 +20,7 @@ export default function LoginForm() {
     >
       {/* User */}
       <div>
-        <label htmlFor="user" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="user" className="text-3xl  block mb-2 font-medium text-gray-700">
           User
         </label>
         <input
@@ -30,13 +30,13 @@ export default function LoginForm() {
           value={user}
           onChange={(e) => setEmail(e.target.value)}
           required
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5"
+          className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5"
         />
       </div>
 
       {/* Password */}
       <div>
-        <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700">
+        <label htmlFor="password" className="text-3xl block mb-2 font-medium text-gray-700">
           Password
         </label>
         <input
@@ -46,7 +46,7 @@ export default function LoginForm() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5"
+          className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5"
         />
       </div>
 
@@ -72,7 +72,7 @@ export default function LoginForm() {
       {/* Submit button */}
       <button
         type="submit"
-        className="w-full text-white bg-accenture hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-accenture font-medium rounded-lg text-sm px-5 py-2.5 text-center"
+        className="w-full text-white bg-purple-600 hover:bg-purple-800 focus:ring-4 focus:outline-none focus:ring-accenture font-medium rounded-lg text-sm px-5 py-2.5 text-center"
       >
         Log in
       </button>
