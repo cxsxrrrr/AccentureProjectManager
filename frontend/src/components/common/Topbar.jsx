@@ -1,6 +1,6 @@
 import React from "react";
-import "../../../stylesheets/topbar.css";
-import notificationIcon from "../../../assets/icons/notification.svg";
+import "../../stylesheets/topbar.css";
+import notificationIcon from "../../assets/icons/notification.svg";
 
 function Topbar({ title, showSearch = true, children }) {
   return (
