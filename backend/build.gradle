@@ -32,6 +32,12 @@ dependencies {
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// Jakarta Mail para SMTP
+	implementation 'com.sun.mail:jakarta.mail:2.0.1'
+
+	//Variables de entorno
+	implementation 'io.github.cdimascio:java-dotenv:5.2.2'
 }
 tasks.named('test') {
 	useJUnitPlatform()
