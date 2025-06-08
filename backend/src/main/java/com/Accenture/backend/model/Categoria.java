@@ -29,4 +29,8 @@ public class Categoria {
     @Column(length = 255)
     private String descripcion;
 
+    public Categoria(Long categoriaId) {
+        this.categoriaId = categoriaId;
+    }
+
 }
