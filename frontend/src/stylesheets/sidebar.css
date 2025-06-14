@@ -8,9 +8,15 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+<<<<<<< HEAD
   box-shadow: 6px 0 4px rgba(0, 0, 0, 0.05); 
   padding: 10px;
   padding-left: 0;
+=======
+  border-left: 6px solid #8E8686; 
+  box-shadow: 6px 0 4px rgba(0, 0, 0, 0.05); 
+  padding: 10px;
+>>>>>>> 5d62941 (Revert "ss")
 }
 
 .Contenedor-Identificador {
@@ -55,7 +61,10 @@
 }
 
 .boton-sidebar.activo {
+<<<<<<< HEAD
   border-left: 8px solid #A100FF;
+=======
+>>>>>>> 5d62941 (Revert "ss")
   background-color: #F8F8F8;
   color: #A100FF;
 }
