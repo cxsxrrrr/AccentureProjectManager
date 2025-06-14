@@ -18,7 +18,6 @@ function AdminLayout() {
         vista={vista}
         menuItems={adminMenu}
         logo={accentureLogo}
-        title="Accenture"
       />
       <div style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
         <Component />

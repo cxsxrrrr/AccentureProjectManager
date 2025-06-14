@@ -7,7 +7,7 @@ function Sidebar({ menuItems, vista, logo, title }) {
     <div className="Contenedor-Principal">
       <div className="Contenedor-Identificador">
         <img src={logo} alt="Logo" />
-        <h2>{title}</h2>
+        <h2>Accenture</h2>
       </div>
 
       <div className="Contenedor-Botones">

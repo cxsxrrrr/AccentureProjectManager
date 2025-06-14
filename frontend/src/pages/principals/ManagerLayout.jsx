@@ -18,7 +18,6 @@ function ManagerLayout() {
         vista={vista}
         menuItems={managerMenu}
         logo={accentureLogo}
-        title="Accenture"
       />
       <div style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
         <Component />
