@@ -6,36 +6,58 @@ import newIcon from "../../assets/icons/new.svg";
 import updateIcon from "../../assets/icons/update.svg";
 import disableIcon from "../../assets/icons/disable.svg";
 import assignRoleIcon from "../../assets/icons/assign-role.svg";
-import addPermissionIcon from "../../assets/icons/add-permission.svg";
 import assignTask from "../../assets/icons/assign_task.svg";
 import assignResource from "../../assets/icons/assign_resource.svg";
 
-function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
-  const renderButtons = () => {
-    const common = [
-      <button key="new" className="control-button" onClick={onCreate}>
-        <img src={newIcon} alt="" className="button-icon" />
-        New
-      </button>,
-      <button
-        key="update"
-        className="control-button"
-        onClick={onUpdate}
-        disabled={!onUpdate}
-      >
-        <img src={updateIcon} alt="" className="button-icon" />
-        Update
-      </button>,
-      <button
-        key="disable"
-        className="control-button"
-        onClick={onDisable}
-      >
-        <img src={disableIcon} alt="" className="button-icon" />
-        Disable
-      </button>,
-    ];
+function TopControls({
+  module,
+  onCreate,
+  onUpdate,
+  onDisable,
+  onAssign,
+  onAssignResource,
+  // Filtros empleados
+  search = "",
+  setSearch = () => {},
+  role = "",
+  setRole = () => {},
+  roles = [],
+  status = "",
+  setStatus = () => {},
+  statuses = [],
+  gender = "",
+  setGender = () => {},
+  genders = [],
+  category = "",
+  setCategory = () => {},
+  categories = []
+}) {
+  // Botones
+  const common = [
+    <button key="new" className="control-button" onClick={onCreate}>
+      <img src={newIcon} alt="" className="button-icon" />
+      New
+    </button>,
+    <button
+      key="update"
+      className="control-button"
+      onClick={onUpdate}
+      disabled={!onUpdate}
+    >
+      <img src={updateIcon} alt="" className="button-icon" />
+      Update
+    </button>,
+    <button
+      key="disable"
+      className="control-button"
+      onClick={onDisable}
+    >
+      <img src={disableIcon} alt="" className="button-icon" />
+      Disable
+    </button>,
+  ];
 
+  const renderButtons = () => {
     if (module === "user") {
       return [
         ...common,
@@ -59,12 +81,13 @@ function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
     }
 
     if (module === "resource") {
+      // Solo update y delete para resources (como lo quieres)
       return [
-        ...common,
-        <button key="assign-resource" className="control-button">
+        <button key="assign-resource" className="control-button" onClick={onAssignResource}>
           <img src={assignResource} alt="" className="button-icon" />
           Assign Resource
         </button>,
+        ...common.slice(1, 3),
       ];
     }
 
@@ -76,20 +99,26 @@ function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
 
     if (module === "employees") {
       return (
-        <>
-          <select className={inputClass}>
-            <option>Role</option>
+        <div className="flex gap-2 items-center">
+          <input
+            className={inputClass}
+            placeholder="Search Employees..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select className={inputClass} value={role} onChange={e => setRole(e.target.value)}>
+            {roles.map(r => <option key={r}>{r}</option>)}
           </select>
-          <select className={inputClass}>
-            <option>Status</option>
+          <select className={inputClass} value={status} onChange={e => setStatus(e.target.value)}>
+            {statuses.map(s => <option key={s}>{s}</option>)}
           </select>
-          <select className={inputClass}>
-            <option>Gender</option>
+          <select className={inputClass} value={gender} onChange={e => setGender(e.target.value)}>
+            {genders.map(g => <option key={g}>{g}</option>)}
           </select>
-          <select className={inputClass}>
-            <option>Category</option>
+          <select className={inputClass} value={category} onChange={e => setCategory(e.target.value)}>
+            {categories.map(c => <option key={c}>{c}</option>)}
           </select>
-        </>
+        </div>
       );
     }
 

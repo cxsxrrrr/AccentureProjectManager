@@ -1,111 +1,145 @@
 import React, { useState } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
-import CreateUserModal from "../../components/admin/modals/CreateUserModal"; // Asegúrate de crear este componente
+import CreateUserModal from "../../components/admin/modals/Users/CreateUserModals/CreateUserModal";
 import "../../stylesheets/page.css";
-import UpdateUserModal from "../../components/admin/modals/UpdateUserModal";
-import DisableUserModal from "../../components/admin/modals/DisableUserModal";
-import AssignRoleModal from "../../components/admin/modals/AssignRoleModal";
+import UpdateUserModal from "../../components/admin/modals/Users/UpdateUserModal/UpdateUserModal";
+import DisableUserModal from "../../components/admin/modals/Users/DisableUserModal";
+import AssignRoleModal from "../../components/admin/modals/Users/AssignRoleModal";
+
+const usersMock = [
+  {
+    id: 1,
+    firstName: "Cesar",
+    lastName: "Moran",
+    email: "JustinLipshutz@gmail.com",
+    phone: "+1 (555) 234-5678",
+    gender: "Male",
+    birthDate: "5/19/25",
+    role: "Admin",
+    status: "Active",
+    avatar: null,
+    category: "Developer",
+    skills: ["Java Script", "React", "Python"],
+  },
+  {
+    id: 2,
+    firstName: "Luis",
+    lastName: "Solarte",
+    email: "JustinLipshutz@gmail.com",
+    phone: "+1 (555) 234-5678",
+    gender: "Male",
+    birthDate: "5/19/25",
+    role: "Manager",
+    status: "Active",
+    avatar: null,
+    category: "Developer",
+    skills: ["Java Script", "React", "Python"],
+  },
+  {
+    id: 3,
+    firstName: "Valentina",
+    lastName: "Moran",
+    email: "JustinLipshutz@gmail.com",
+    phone: "+1 (555) 234-5678",
+    gender: "Female",
+    birthDate: "5/19/25",
+    role: "Customer",
+    status: "Disabled",
+    avatar: null,
+    category: "Developer",
+    skills: ["Java Script", "React"],
+  },
+  {
+    id: 4,
+    firstName: "Enmanuel",
+    lastName: "Fuenmayor",
+    email: "JustinLipshutz@gmail.com",
+    phone: "+1 (555) 234-5678",
+    gender: "Male",
+    birthDate: "5/19/25",
+    role: "Admin",
+    status: "Active",
+    avatar: null,
+    category: "Developer",
+    skills: ["Java Script"],
+  },
+];
 
 function UserManagement() {
-  // 1. Agrega el estado del modal
   const [isCreateOpen, setCreateOpen] = useState(false);
-
-  // 2. Función para abrir/cerrar el modal
   const handleOpenCreateModal = () => setCreateOpen(true);
   const handleCloseCreateModal = () => setCreateOpen(false);
 
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const openUpdateModal = () => {
-    // Aquí puedes poner el usuario seleccionado, o por ahora un mock:
-    setSelectedUser({
-      firstName: "Claudio",
-      lastName: "Martins",
-      birthDate: "2005-12-16",
-      gender: "Male",
-      docType: "ID - National identity document",
-      docNumber: "32082355",
-    });
-    setIsUpdateOpen(true);
-  };
+  // Selección visual en tabla
+  const [selectedUserId, setSelectedUserId] = useState(null);
 
+  // Actualizar usuario
+  const openUpdateModal = (user) => {
+    setSelectedUser(user);
+    setIsUpdateOpen(true);
+    setSelectedUserId(user.id);
+  };
   const closeUpdateModal = () => {
     setIsUpdateOpen(false);
     setSelectedUser(null);
   };
-
   const handleUpdateUser = (userData) => {
-    // Aquí va la lógica para actualizar el usuario (backend o estado)
+    // lógica para actualizar
     closeUpdateModal();
   };
 
   const [isDisableOpen, setIsDisableOpen] = useState(false);
-
   const openDisableModal = (user) => {
     setSelectedUser(user);
     setIsDisableOpen(true);
+    setSelectedUserId(user.id);
   };
-
   const closeDisableModal = () => {
-    // Aquí puedes poner el usuario seleccionado, o por ahora un mock:
-    setSelectedUser({
-      firstName: "Claudio",
-      lastName: "Martins",
-      birthDate: "2005-12-16",
-      gender: "Male",
-      docType: "ID - National identity document",
-      docNumber: "32082355",
-    });
     setIsDisableOpen(false);
     setSelectedUser(null);
   };
-
   const handleDisableUser = (userWithReason) => {
-    // Aquí haces la lógica de deshabilitar el usuario (por ejemplo, llamar a tu API)
+    // lógica deshabilitar
     closeDisableModal();
   };
 
   const [isAssignOpen, setIsAssignOpen] = useState(false);
-
   const openAssignRoleModal = (user) => {
     setSelectedUser(user);
     setIsAssignOpen(true);
+    setSelectedUserId(user.id);
   };
-
   const closeAssignRoleModal = () => {
     setIsAssignOpen(false);
     setSelectedUser(null);
   };
-
   const handleAssignRole = (newRole) => {
-    // Aquí puedes actualizar el usuario con el nuevo rol
-    // Por ejemplo, actualizar el estado o llamar a tu backend
+    // lógica rol
     closeAssignRoleModal();
   };
+
+  // Puedes reemplazar por tu propio estado si tienes usuarios dinámicos
+  const users = usersMock;
 
   return (
     <div className="admin-page">
       <Topbar title="User Management">
-        {/* 3. Pasa la función como prop a TopControls */}
         <TopControls
           module="user"
           onCreate={handleOpenCreateModal}
-          onUpdate={openUpdateModal}
-          onDisable={openDisableModal}
-          onAssign={openAssignRoleModal}
+          onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
+          onDisable={() => selectedUser && openDisableModal(selectedUser)}
+          onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
         />
       </Topbar>
 
-      {/* 4. Renderiza el modal fuera del admin-content */}
       <CreateUserModal
         isOpen={isCreateOpen}
         toggle={handleCloseCreateModal}
-        // onCreate={(data) => {
-        //   // Aquí puedes manejar el nuevo usuario (guardar en estado, backend, etc.)
-        //   setCreateOpen(false);
-        // }}
       />
 
       <UpdateUserModal
@@ -130,20 +164,89 @@ function UserManagement() {
       />
 
       <div className="admin-content">
-        <table>
+        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
           <thead>
             <tr>
-              <th>Username</th>
-              <th>Email</th>
-              <th>Role</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">USER</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">CONTACT</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">CATEGORY & SKILL</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">ROLE</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">STATUS</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td>admin</td>
-              <td>admin@company.com</td>
-              <td>Admin</td>
-            </tr>
+            {users.map((user, idx) => (
+              <tr
+                key={user.id}
+                onClick={() => {
+                  setSelectedUser(user);
+                  setSelectedUserId(user.id);
+                }}
+                className={`
+                  cursor-pointer transition
+                  ${selectedUserId === user.id
+                    ? "bg-gray-100 ring-2 ring-purple-200"
+                    : idx % 2 === 1
+                    ? "bg-gray-50"
+                    : ""
+                  }
+                `}
+              >
+                {/* USER CELL */}
+                <td className="flex items-center gap-3 py-4 px-6">
+                  <span className="inline-block rounded-full bg-gray-200 p-2">
+                    <svg width="30" height="30" fill="none"><circle cx="15" cy="15" r="14" stroke="#888" strokeWidth="2"/><circle cx="15" cy="13" r="6" stroke="#888" strokeWidth="2"/><ellipse cx="15" cy="22" rx="8" ry="5" stroke="#888" strokeWidth="2"/></svg>
+                  </span>
+                  <div>
+                    <span className="font-bold">{user.firstName} {user.lastName}</span>
+                    <div className="text-xs text-gray-500">{user.gender} • {user.birthDate}</div>
+                  </div>
+                </td>
+                {/* CONTACT CELL */}
+                <td className="py-4 px-6">
+                  <div className="flex items-center gap-2">
+                    <span className="material-icons text-gray-500 text-base">mail</span>
+                    <span className="text-sm">{user.email}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="material-icons text-gray-500 text-base">phone</span>
+                    <span className="text-sm">{user.phone}</span>
+                  </div>
+                </td>
+                {/* CATEGORY & SKILL */}
+                <td className="py-4 px-6">
+                  <span className="font-bold text-sm">{user.category}</span>
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {user.skills.map((skill, i) => (
+                      <span key={i} className="bg-gray-200 text-xs px-2 py-1 rounded-lg font-medium">{skill}</span>
+                    ))}
+                  </div>
+                </td>
+                {/* ROLE */}
+                <td className="py-4 px-6">
+                  <span className={`
+                    px-3 py-1 rounded-full font-bold text-xs
+                    ${user.role === "Admin" ? "bg-purple-100 text-purple-700"
+                      : user.role === "Manager" ? "bg-purple-100 text-purple-500"
+                      : user.role === "Customer" ? "bg-purple-100 text-purple-400"
+                      : "bg-gray-100 text-gray-500"}
+                  `}>
+                    {user.role}
+                  </span>
+                </td>
+                {/* STATUS */}
+                <td className="py-4 px-6">
+                  <span className={`
+                    px-4 py-1 rounded-full font-bold text-sm
+                    ${user.status === "Active"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-600"}
+                  `}>
+                    {user.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

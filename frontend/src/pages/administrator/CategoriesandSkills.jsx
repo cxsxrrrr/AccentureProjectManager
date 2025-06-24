@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Topbar from "../../components/admin/layout/Topbar";
-import TopControls from "../../components/admin/layout/TopControls";
+import Topbar from "../../components/common/Topbar";
+import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
 import CreateCategoryModal from "../../components/admin/modals/CategorySkills/CreateCategoryModal";
 import CreateSkillModal from "../../components/admin/modals/CategorySkills/CreateSkillModal";

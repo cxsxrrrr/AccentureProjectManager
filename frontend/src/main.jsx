@@ -9,7 +9,7 @@ import AdminLayout from './pages/principals/AdminLayout';
 import ManagerLayout from './pages/principals/ManagerLayout';
 import TeamMembersLayout from './pages/principals/TeamMembersLayout';
 // import ClientLayout from './pages/principals/ClientLayout';
-//import Login from './pages/principals/Login';
+import Login from './pages/Login';
 // import App from './App';
 
 
@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
       {/* <ClientLayout /> */}
       {/*<TeamMembersLayout />
       <ManagerLayout />
-      {/* <Login /> */}
+      {/* <Login />
       {/* <App /> */}
     </BrowserRouter>
   </StrictMode>
