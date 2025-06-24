@@ -1,7 +1,22 @@
 import React from "react";
+import Topbar from "../../components/admin/layout/Topbar";
+import TopControls from "../../components/admin/layout/TopControls";
+import "../../stylesheets/page.css";
 
 function Employees() {
-  return <h1>Employees</h1>;
+  return (
+    <div className="admin-page">
+      <Topbar title="Employees">
+        <TopControls module="employees" />
+      </Topbar>
+      <div className="admin-content">
+        <table>
+          <thead><tr><th>Name</th><th>Role</th><th>Status</th><th>Gender</th><th>Category</th></tr></thead>
+          <tbody><tr><td>Juan</td><td>Dev</td><td>Active</td><td>M</td><td>A</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 export default Employees;

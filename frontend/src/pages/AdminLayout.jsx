@@ -5,7 +5,7 @@ import Dashboard from "./admin/Dashboard";
 import Employees from "./admin/Employees";
 import UserManagement from "./admin/UserManagement";
 import RoleManagement from "./admin/RoleManagement";
-import PermissionManagement from "./admin/PermissionManagement";
+import CategoriesandSkills from "./admin/CategoriesandSkills";
 import AllocateResources from "./admin/AllocateResources";
 import Help from "./admin/Help";
 
@@ -17,7 +17,7 @@ function AdminLayout() {
     if (path.includes("/admin/employees")) return "employees";
     if (path.includes("/admin/usermanagement")) return "user";
     if (path.includes("/admin/rolemanagement")) return "role";
-    if (path.includes("/admin/permissionmanagement")) return "permission";
+    if (path.includes("/admin/categoriesandskills")) return "categoriesandskills";
     if (path.includes("/admin/allocateresources")) return "allocate";
     if (path.includes("/admin/help")) return "help";
     return null;
@@ -35,14 +35,14 @@ function AdminLayout() {
         return <UserManagement />;
       case "role":
         return <RoleManagement />;
-      case "permission":
-        return <PermissionManagement />;
+      case "categoriesandskills":
+        return <CategoriesandSkills />;
       case "allocate":
         return <AllocateResources />;
       case "help":
         return <Help />;
       default:
-        return <div>Selecciona una opción del menú</div>;
+        return <Dashboard />;
     }
   };
 

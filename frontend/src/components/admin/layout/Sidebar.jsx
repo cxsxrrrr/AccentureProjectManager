@@ -22,7 +22,7 @@ function Sidebar({ setVista, vista }) {
         <Boton texto="Employees" icon={employeesIcon} path="/admin/employees" />
         <Boton texto="User Management" icon={userIcon} path="/admin/usermanagement" />
         <Boton texto="Role Management" icon={roleIcon} path="/admin/rolemanagement" />
-        <Boton texto="Permission Management" icon={permissionIcon} path="/admin/permissionmanagement" />
+        <Boton texto="Categories and Skills" icon={permissionIcon} path="/admin/categoriesandskills" />
         <Boton texto="Allocate Resources" icon={allocateIcon} path="/admin/allocateresources" />
         <Boton texto="Help" icon={helpIcon} path="/admin/help" />
       </div>
