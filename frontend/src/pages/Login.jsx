@@ -1,7 +1,7 @@
 import React from "react";
 import accentureLogo from "../assets/accenture-logo.svg";
-import LoginForm from "../components/LoginForm";
 import "../index.css";
+import LoginForm from "../components/LoginForm";
 
 export default function Login() {
   return (

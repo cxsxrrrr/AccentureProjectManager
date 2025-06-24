@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import Topbar from "../../components/admin/layout/Topbar";
 import TopControls from "../../components/admin/layout/TopControls";
-import CreateUserModal from "../../components/admin/modals/CreateUserModal"; // Asegúrate de crear este componente
+import CreateUserModal from "../../components/admin/modals/Users/CreateUserModals/CreateUserModal"; // Asegúrate de crear este componente
 import "../../stylesheets/page.css";
-import UpdateUserModal from "../../components/admin/modals/UpdateUserModal";
-import DisableUserModal from "../../components/admin/modals/DisableUserModal";
-import AssignRoleModal from "../../components/admin/modals/AssignRoleModal";
+import UpdateUserModal from "../../components/admin/modals/Users/UpdateUserModal/UpdateUserModal";
+import DisableUserModal from "../../components/admin/modals/Users/DisableUserModal";
+import AssignRoleModal from "../../components/admin/modals/Users/AssignRoleModal";
 
 function UserManagement() {
   // 1. Agrega el estado del modal
