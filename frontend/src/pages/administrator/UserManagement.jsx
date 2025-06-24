@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Topbar from "../../components/admin/layout/Topbar";
-import TopControls from "../../components/admin/layout/TopControls";
+import Topbar from "../../components/common/Topbar";
+import TopControls from "../../components/common/TopControls";
 import CreateUserModal from "../../components/admin/modals/CreateUserModal"; // Asegúrate de crear este componente
 import "../../stylesheets/page.css";
 import UpdateUserModal from "../../components/admin/modals/UpdateUserModal";

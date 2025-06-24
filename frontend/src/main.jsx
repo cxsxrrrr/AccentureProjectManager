@@ -8,7 +8,7 @@ import './index.css';
 import AdminLayout from './pages/principals/AdminLayout';
 import ManagerLayout from './pages/principals/ManagerLayout';
 import TeamMembersLayout from './pages/principals/TeamMembersLayout';
-import ClientLayout from './pages/principals/ClientLayout';
+// import ClientLayout from './pages/principals/ClientLayout';
 //import Login from './pages/principals/Login';
 // import App from './App';
 
@@ -16,10 +16,10 @@ import ClientLayout from './pages/principals/ClientLayout';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <ClientLayout />
+    <AdminLayout />
+      {/* <ClientLayout /> */}
       {/*<TeamMembersLayout />
       <ManagerLayout />
-      <AdminLayout />
       {/* <Login /> */}
       {/* <App /> */}
     </BrowserRouter>

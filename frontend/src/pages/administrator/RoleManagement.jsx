@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Topbar from "../../components/admin/layout/Topbar";
-import TopControls from "../../components/admin/layout/TopControls";
+import Topbar from "../../components/common/Topbar";
+import TopControls from "../../components/common/TopControls";
 import CreateRoleModal from "../../components/admin/modals/Roles/CreateRoleModal";
 import UpdateRoleModal from "../../components/admin/modals/Roles/UpdateRoleModal";
 import DisableRoleModal from "../../components/admin/modals/Roles/DisableRoleModal";
