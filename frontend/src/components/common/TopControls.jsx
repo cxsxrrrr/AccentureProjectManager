@@ -1,11 +1,14 @@
 import React from "react";
-import "../../../stylesheets/topbar.css";
-import "../../../stylesheets/topcontrols.css";
+import "../../stylesheets/topbar.css";
+import "../../stylesheets/topcontrols.css";
 
-import newIcon from "../../../assets/icons/new.svg";
-import updateIcon from "../../../assets/icons/update.svg";
-import disableIcon from "../../../assets/icons/disable.svg";
-import assignRoleIcon from "../../../assets/icons/assign-role.svg";
+import newIcon from "../../assets/icons/new.svg";
+import updateIcon from "../../assets/icons/update.svg";
+import disableIcon from "../../assets/icons/disable.svg";
+import assignRoleIcon from "../../assets/icons/assign-role.svg";
+import addPermissionIcon from "../../assets/icons/add-permission.svg";
+import assignTask from "../../assets/icons/assign_task.svg";
+import assignResource from "../../assets/icons/assign_resource.svg";
 
 function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
   const renderButtons = () => {
@@ -43,8 +46,28 @@ function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
       ];
     }
 
-    if (module === "employees" || module === "help" || module === "dashboard")
-      return null;
+    if (module === "employees" || module === "help" || module === "dashboard") return null;
+
+    if (module === "task") {
+      return [
+        ...common,
+        <button key="assign-task" className="control-button">
+          <img src={assignTask} alt="" className="button-icon" />
+          Assign Task
+        </button>,
+      ];
+    }
+
+    if (module === "resource") {
+      return [
+        ...common,
+        <button key="assign-resource" className="control-button">
+          <img src={assignResource} alt="" className="button-icon" />
+          Assign Resource
+        </button>,
+      ];
+    }
+
     return common;
   };
 
