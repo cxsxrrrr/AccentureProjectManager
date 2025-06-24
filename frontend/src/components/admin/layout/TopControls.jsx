@@ -6,20 +6,28 @@ import newIcon from "../../../assets/icons/new.svg";
 import updateIcon from "../../../assets/icons/update.svg";
 import disableIcon from "../../../assets/icons/disable.svg";
 import assignRoleIcon from "../../../assets/icons/assign-role.svg";
-import addPermissionIcon from "../../../assets/icons/add-permission.svg";
 
-function TopControls({ module }) {
+function TopControls({ module, onCreate, onUpdate, onDisable, onAssign }) {
   const renderButtons = () => {
     const common = [
-      <button key="new" className="control-button">
+      <button key="new" className="control-button" onClick={onCreate}>
         <img src={newIcon} alt="" className="button-icon" />
         New
       </button>,
-      <button key="update" className="control-button">
+      <button
+        key="update"
+        className="control-button"
+        onClick={onUpdate}
+        disabled={!onUpdate}
+      >
         <img src={updateIcon} alt="" className="button-icon" />
         Update
       </button>,
-      <button key="disable" className="control-button">
+      <button
+        key="disable"
+        className="control-button"
+        onClick={onDisable}
+      >
         <img src={disableIcon} alt="" className="button-icon" />
         Disable
       </button>,
@@ -28,18 +36,15 @@ function TopControls({ module }) {
     if (module === "user") {
       return [
         ...common,
-        <button key="assign-role" className="control-button">
+        <button key="assign-role" className="control-button" onClick={onAssign}>
           <img src={assignRoleIcon} alt="" className="button-icon" />
           Assign Role
-        </button>,
-        <button key="add-permission" className="control-button">
-          <img src={addPermissionIcon} alt="" className="button-icon" />
-          Add Permission
         </button>,
       ];
     }
 
-    if (module === "employees" || module === "help" || module === "dashboard") return null;
+    if (module === "employees" || module === "help" || module === "dashboard")
+      return null;
     return common;
   };
 
@@ -49,16 +54,28 @@ function TopControls({ module }) {
     if (module === "employees") {
       return (
         <>
-          <select className={inputClass}><option>Role</option></select>
-          <select className={inputClass}><option>Status</option></select>
-          <select className={inputClass}><option>Gender</option></select>
-          <select className={inputClass}><option>Category</option></select>
+          <select className={inputClass}>
+            <option>Role</option>
+          </select>
+          <select className={inputClass}>
+            <option>Status</option>
+          </select>
+          <select className={inputClass}>
+            <option>Gender</option>
+          </select>
+          <select className={inputClass}>
+            <option>Category</option>
+          </select>
         </>
       );
     }
 
     if (module === "allocate") {
-      return <select className={`${inputClass} category-filter`}><option>Category</option></select>
+      return (
+        <select className={`${inputClass} category-filter`}>
+          <option>Category</option>
+        </select>
+      );
     }
 
     return null;
