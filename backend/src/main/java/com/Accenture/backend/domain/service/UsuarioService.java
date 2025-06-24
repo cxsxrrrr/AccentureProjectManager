@@ -4,11 +4,13 @@ import com.Accenture.backend.dao.UsuarioDAO;
 
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.exception.ResourceNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
-import org.springframework.stereotype.Service;
+
 
 import java.text.Normalizer;
 import java.util.List;
@@ -16,17 +18,22 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+
+
+
 @Service
 public class UsuarioService {
 
     private final UsuarioDAO usuarioDAO;
     private final UsuarioMapper usuarioMapper;
     private final MailSender mailSender;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper, MailSender mailSender) {
+    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper, MailSender mailSender, PasswordEncoder passwordEncoder) {
         this.usuarioDAO = usuarioDAO;
         this.usuarioMapper = usuarioMapper;
         this.mailSender = mailSender;
+        this.passwordEncoder = passwordEncoder; // Inicialización de passwordEncoder
     }
 
     public UsuarioDTO crearUsuario(UsuarioDTO dto) {
@@ -40,6 +47,9 @@ public class UsuarioService {
 
         // Guardar usuario en la base de datos con contraseña encriptada
         final String rawPassword = dto.getPassword(); // Guardar la contraseña en texto plano para el correo
+        // Guardar usuario en la base de datos con contraseña encriptada
+        usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
+        usuario = usuarioDAO.crearUsuario(usuario);
 
         final Usuario savedUsuario = usuarioDAO.crearUsuario(usuario);
 
