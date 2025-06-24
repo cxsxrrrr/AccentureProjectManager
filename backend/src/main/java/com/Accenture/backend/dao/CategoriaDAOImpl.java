@@ -16,6 +16,7 @@ public class CategoriaDAOImpl implements CategoriaDAO {
         this.categoriaRepository = categoriaRepository;
     }
 
+    // Crear una nueva categoría
     @Override
     public Categoria crearCategoria(Categoria categoria) {
         return categoriaRepository.save(categoria);
