@@ -6,25 +6,31 @@ const EmployeeStatusTable = ({ data }) => (
     <div className="flex items-center justify-between mb-4">
       <h3 className="font-semibold text-lg">Employee Status</h3>
     </div>
-    <table className="w-full text-sm">
+    <table className="w-full border-separate border-spacing-y-3">
       <thead>
         <tr>
-          <th className="text-left">Employee Name</th>
-          <th className="text-left">Department</th>
-          <th className="text-left">Age</th>
-          <th className="text-left">Discipline</th>
-          <th className="text-left">Status</th>
+          <th className="px-6">Employee Name</th>
+          <th className="px-6">Department</th>
+          <th className="px-6">Age</th>
+          <th className="px-6">Discipline</th>
+          <th className="px-6">Status</th>
         </tr>
       </thead>
       <tbody>
         {data.map((e, i) => (
-          <tr key={i} className="border-t">
-            <td>{e.name}</td>
-            <td>{e.dept}</td>
-            <td>{e.age}</td>
-            <td className={e.discipline.startsWith('-') ? "text-red-500" : "text-green-600"}>{e.discipline}</td>
-            <td>
-              <span className={`px-3 py-1 rounded-full text-xs font-semibold
+          <tr key={i}>
+            <td className="py-3">{e.name}</td>
+            <td className="py-3">{e.dept}</td>
+            <td className="py-3">{e.age}</td>
+            <td
+              className={`py-3 ${
+                e.discipline.startsWith("-") ? "text-red-500" : "text-green-600"
+              }`}
+            >
+              {e.discipline}
+            </td>
+                        <td className="px-6 py-4">
+              <span className={`px-4 py-2 rounded-full text-base font-bold
                 ${e.status === "Permanent" ? "bg-green-100 text-green-700" :
                   e.status === "Contract" ? "bg-gray-200 text-gray-800" :
                     "bg-yellow-100 text-yellow-600"}`}>
@@ -33,6 +39,7 @@ const EmployeeStatusTable = ({ data }) => (
             </td>
           </tr>
         ))}
+        ;
       </tbody>
     </table>
   </div>

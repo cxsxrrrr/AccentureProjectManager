@@ -27,7 +27,7 @@ export default function EmployeeDonutChart({ data }) {
         </Pie>
         <Legend verticalAlign="bottom" />
       </PieChart>
-      <div className="text-xs text-gray-500 text-center">{data.total} employee total</div>
+      <div className="text-2xl text-gray-500 text-center">{data.total} employee total</div>
     </div>
   );
 }

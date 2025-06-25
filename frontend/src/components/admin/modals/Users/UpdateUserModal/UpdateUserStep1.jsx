@@ -6,7 +6,6 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
     lastName: values.lastName || "",
     birthDate: values.birthDate || "",
     gender: values.gender || "",
-    docType: values.docType || "",
     docNumber: values.docNumber || "",
   });
 
@@ -102,40 +101,22 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
         </div>
       </div>
       {/* Identity Document */}
-      <div className="mt-4">
+      <div className="">
         <h3 className="text-md font-semibold text-purple-600 flex items-center gap-2 mb-3">
           <span className="text-lg"><i className="material-icons">description</i></span> Identity Document
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Document Type *
-              <select
-                name="docType"
-                value={local.docType}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="">Select Document</option>
-                <option>ID - National identity document</option>
-                <option>Passport</option>
-                <option>Driver's License</option>
-              </select>
-            </label>
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Document Number *
-              <input
-                name="docNumber"
-                value={local.docNumber}
-                onChange={handleChange}
-                required
-                className="mt-1 w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-purple-500"
-              />
-            </label>
-          </div>
+        <div className="grid grid-cols-1 gap-3">
+          <label className="block text-sm font-medium mb-1">Document Number *</label>
+          <input
+            name="docNumber"
+            value={local.docNumber}
+            onChange={handleChange}
+            required
+            placeholder="Enter document number"
+            className="mb-2 border rounded w-full px-3 py-2"
+          />
+        </div>
         </div>
       </div>
       {/* Footer */}
