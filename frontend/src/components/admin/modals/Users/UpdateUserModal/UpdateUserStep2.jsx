@@ -11,7 +11,6 @@ export default function UpdateUserStep2({
   const [local, setLocal] = useState({
     email: values.email || "",
     phone: values.phone || "",
-    address: values.address || "",
     category: values.category || "",
     selectedSkills: values.selectedSkills || [],
   });
@@ -86,15 +85,6 @@ export default function UpdateUserStep2({
             onChange={handleChange}
             required
             placeholder="+1 (555) 123-4456"
-            className="mb-2 border rounded w-full px-3 py-2"
-          />
-          <label className="font-semibold text-sm">Address *</label>
-          <input
-            name="address"
-            value={local.address}
-            onChange={handleChange}
-            required
-            placeholder="Ciudad, Calle, Numero Casa"
             className="mb-2 border rounded w-full px-3 py-2"
           />
         </div>
