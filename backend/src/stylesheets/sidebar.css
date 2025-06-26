@@ -1,0 +1,71 @@
+@font-face {
+  font-family: "Sansation";
+  src: url("../assets/fonts/Sansation-Regular.ttf") format("truetype");
+}
+
+.Contenedor-Principal {
+  width: 20%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 6px 0 4px rgba(0, 0, 0, 0.05); 
+  padding: 10px;
+  padding-left: 0;
+}
+
+.Contenedor-Identificador {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+}
+
+.Contenedor-Identificador img {
+  width: 32px;    
+  height: 32px;
+  border-radius: 50%; 
+  object-fit: cover;
+}
+
+.Contenedor-Identificador h2 {
+  font-size: 1.5rem;
+  font-family: 'Sansation', sans-serif;
+}
+
+.Contenedor-Botones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.boton-sidebar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #0C0C0D;
+  background: transparent;
+  border: none;
+  padding: 15px 15px;
+  font-family: 'Sansation', sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.2s ease;
+}
+
+.boton-sidebar.activo {
+  border-left: 8px solid #A100FF;
+  background-color: #F8F8F8;
+  color: #A100FF;
+}
+
+.boton-sidebar.activo .icono-boton {
+  filter: brightness(0) saturate(100%) invert(20%) sepia(80%) saturate(7490%) hue-rotate(267deg) brightness(95%) contrast(97%);
+}
+
+.icono-boton {
+  width: 20px;
+  height: 20px;
+  transition: filter 0.2s ease;
+}
