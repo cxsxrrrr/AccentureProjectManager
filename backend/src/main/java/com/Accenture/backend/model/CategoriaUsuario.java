@@ -1,11 +1,6 @@
 package com.Accenture.backend.model;
 
-import com.Accenture.backend.domain.dto.CategoriaDTO;
-import com.Accenture.backend.domain.dto.UsuarioDTO;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,5 +16,15 @@ public class CategoriaUsuario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoriaUsuarioId;
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
+    private Usuario usuario;
+
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
+
+    private String experiencia;
 
 }
