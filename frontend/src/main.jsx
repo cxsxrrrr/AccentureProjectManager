@@ -17,12 +17,13 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
 
-    <Login />
+    {/* <Login /> */}
       {/* <ClientLayout /> /}
       {/<TeamMembersLayout />
-      <ManagerLayout />
+      
       {/*  <AdminLayout />
       {/* <App /> */}
+      <ManagerLayout />
     </BrowserRouter>
   </StrictMode>
 );
