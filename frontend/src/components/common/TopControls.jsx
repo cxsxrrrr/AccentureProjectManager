@@ -93,11 +93,11 @@ function TopControls({
 
     if (module === "task") {
       return [
-        ...common,
-        <button key="assign-task" className="control-button">
+        <button key="assign-task" className="control-button" onClick={onAssign} disabled={!onAssign}>
           <img src={assignTask} alt="" className="button-icon" />
           Assign Task
         </button>,
+        ...common,
       ];
     }
 
