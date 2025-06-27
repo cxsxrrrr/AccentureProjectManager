@@ -12,8 +12,8 @@ import helpIcon from "../../assets/icons/help.svg";
 
 const teamMemberMenu = [
   { texto: "Dashboard", icon: dashboardIcon, path: "/team/dashboard", component: Dashboard },
-  { texto: "Assigned Tasks", icon: tasksIcon, path: "/team/tasks", component: AssignedTasks },
-  { texto: "Assigned Project", icon: projectIcon, path: "/team/project", component: AssignedProject },
+  { texto: "Assigned Tasks", icon: tasksIcon, path: "/team/assignedtasks", component: AssignedTasks },
+  { texto: "Assigned Project", icon: projectIcon, path: "/team/assignedproject", component: AssignedProject },
   { texto: "Documents Management", icon: documentsIcon, path: "/team/documents", component: DocumentsManagement },
   { texto: "Help", icon: helpIcon, path: "/team/help", component: Help },
 ];

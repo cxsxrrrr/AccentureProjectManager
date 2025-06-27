@@ -69,3 +69,40 @@
   height: 20px;
   transition: filter 0.2s ease;
 }
+
+.Sidebar-Usuario {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 1rem;
+}
+
+.Sidebar-UserIcon {
+  width: 32px;
+  height: 32px;
+  margin-right: 0.75rem;
+}
+
+.Sidebar-UserInfo {
+  display: flex;
+  flex-direction: column;
+  color: #1a1a1a; /* Negro oscuro */
+  font-size: 0.85rem;
+}
+
+.Sidebar-UserName {
+  font-weight: bold;
+}
+
+.Sidebar-UserRole {
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.Sidebar-Logout {
+  margin-top: auto; /* Empuja hacia abajo */
+  padding: 1rem;
+}
+
+

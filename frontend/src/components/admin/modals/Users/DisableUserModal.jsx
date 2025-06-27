@@ -6,13 +6,35 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (reason) {
-      onDisable({ ...user, reason });
+      // Armamos el body como lo espera tu API (solo español)
+      onDisable({
+        ...user,
+        estado: "Inactivo", // Al deshabilitar, el estado debe pasar a Inactivo
+        motivo: reason      // El motivo (puedes cambiar la key si tu backend espera "reason" en inglés)
+      });
       toggle();
       setReason("");
     }
   };
 
   if (!isOpen) return null;
+
+  // Helper para roles y campos en español -> inglés en UI
+  const getUserFullName = (u) =>
+    u ? `${u.nombre || u.firstName || ""} ${u.apellido || u.lastName || ""}` : "";
+
+  const getUserRole = (u) =>
+    u?.rol?.nombre || u?.role || "";
+
+  const getUserEmail = (u) =>
+    u?.email || "";
+
+  const getUserEstado = (u) => {
+    const estado = u?.estado;
+    return estado === "Activo"
+      ? <span className="font-semibold text-green-600 bg-green-100 px-3 py-0.5 rounded-full text-xs">Active</span>
+      : <span className="font-semibold text-red-600 bg-red-100 px-3 py-0.5 rounded-full text-xs">Inactive</span>;
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -38,19 +60,19 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
         <div className="bg-gray-50 rounded-xl p-5 mb-7 flex flex-col gap-2 text-sm">
           <div className="flex">
             <span className="flex-1 text-gray-500">Name:</span>
-            <span className="font-medium">{user?.firstName} {user?.lastName}</span>
+            <span className="font-medium">{getUserFullName(user)}</span>
           </div>
           <div className="flex">
             <span className="flex-1 text-gray-500">Email:</span>
-            <span className="font-medium">{user?.email}</span>
+            <span className="font-medium">{getUserEmail(user)}</span>
           </div>
           <div className="flex">
             <span className="flex-1 text-gray-500">Role:</span>
-            <span className="font-medium">{user?.role}</span>
+            <span className="font-medium">{getUserRole(user)}</span>
           </div>
           <div className="flex">
             <span className="flex-1 text-gray-500">Current Status:</span>
-            <span className="font-semibold text-green-600 bg-green-100 px-3 py-0.5 rounded-full text-xs">Active</span>
+            {getUserEstado(user)}
           </div>
         </div>
 
@@ -101,7 +123,7 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
               type="submit"
               className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 flex items-center gap-2 transition"
             >
-              <span className="text-lg">🗑️</span> Disable Role
+              <span className="text-lg">🗑️</span> Disable User
             </button>
           </div>
         </form>

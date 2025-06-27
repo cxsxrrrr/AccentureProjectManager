@@ -6,59 +6,56 @@ export default function CreateUserModal({
   isOpen,
   toggle,
   onCreate,
-  categories = [],
-  skills = [],
 }) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    birthDate: "",
-    gender: "",
-    docType: "",
-    docNumber: "",
+    nombre: "",
+    apellido: "",
+    cedula: "",
+    genero: "",
+    fechaNacimiento: "",
+    password: "",
+    numeroTelefono: "",
     email: "",
-    phone: "",
-    address: "",
-    category: "",
-    selectedSkills: [],
+    // campos internos para el backend
+    estado: "Active",
+    fechaCreacion: new Date().toISOString(),
+    ultimoAcceso: new Date().toISOString(),
+    rol: { rolId: 1, nombre: "Administrador" }, // puedes hacer dinámico si quieres
   });
 
-  // Reset form and step when closing
   const handleClose = () => {
     setStep(1);
     setForm({
-      firstName: "",
-      lastName: "",
-      birthDate: "",
-      gender: "",
-      docType: "",
-      docNumber: "",
+      nombre: "",
+      apellido: "",
+      cedula: "",
+      genero: "",
+      fechaNacimiento: "",
+      password: "",
+      numeroTelefono: "",
       email: "",
-      phone: "",
-      address: "",
-      category: "",
-      selectedSkills: [],
+      estado: "Active",
+      fechaCreacion: new Date().toISOString(),
+      ultimoAcceso: new Date().toISOString(),
+      rol: { rolId: 1, nombre: "Admin" },
     });
     toggle();
   };
 
-  // Siguiente paso
   const handleNext = (data) => {
     setForm((prev) => ({ ...prev, ...data }));
     setStep(2);
   };
 
-  // Atrás al paso 1
   const handleBack = (data) => {
     setForm((prev) => ({ ...prev, ...data }));
     setStep(1);
   };
 
-  // Guardar usuario (finalizar wizard)
   const handleSave = (data) => {
     const finalUser = { ...form, ...data };
-    onCreate(finalUser); // Tu lógica de crear
+    onCreate(finalUser); // <<--- este objeto ya va con la estructura que pide tu backend
     handleClose();
   };
 
@@ -66,10 +63,7 @@ export default function CreateUserModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-0 relative animate-fade-in
-                max-h-[90vh] overflow-y-auto"
-      >
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-0 relative animate-fade-in max-h-[90vh] overflow-y-auto">
         {step === 1 && (
           <CreateUserStep1
             values={form}
@@ -80,8 +74,6 @@ export default function CreateUserModal({
         {step === 2 && (
           <CreateUserStep2
             values={form}
-            categories={categories}
-            skills={skills}
             onBack={handleBack}
             onSave={handleSave}
             onCancel={handleClose}

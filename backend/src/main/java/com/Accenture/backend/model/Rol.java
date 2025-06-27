@@ -1,6 +1,13 @@
 package com.Accenture.backend.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -16,6 +23,8 @@ public class Rol {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
+   @Column(name = "descripcion", length = 500, nullable = false)
+    private String descripcion;
 
     // Relación con RolPermiso (uno a muchos) 
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -44,6 +53,14 @@ public class Rol {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
+    }
+
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
+    }
+
+    public String getDescripcion() {
+        return descripcion;
     }
 
     public Set<RolPermiso> getPermisos() {

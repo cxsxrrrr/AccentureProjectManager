@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 
 export default function UpdateUserStep2({
   values,
@@ -9,28 +9,52 @@ export default function UpdateUserStep2({
   onCancel,
 }) {
   const [local, setLocal] = useState({
-    email: values.email || "",
-    phone: values.phone || "",
-    category: values.category || "",
-    selectedSkills: values.selectedSkills || [],
+    email: "",
+    numeroTelefono: "",
+    categoria: "",
+    habilidades: [],
   });
 
-  const handleChange = (e) => {
-    setLocal((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-  };
+  // Precargar datos cuando abres la modal (body en español)
+  useEffect(() => {
+    setLocal({
+      email: values.email || "",
+      numeroTelefono: values.numeroTelefono || "",
+      categoria: values.categoria || "",
+      habilidades: values.habilidades || [],
+    });
+  }, [values]);
 
-  const handleSkillToggle = (skill) => {
+  // Filtrar skills según la categoría seleccionada (igual que en create)
+  const filteredSkills = useMemo(() => {
+    const catObj = categories?.find((c) => c.name === local.categoria);
+    if (!catObj) return [];
+    return skills?.filter((sk) => sk.categoryId === catObj.id) || [];
+  }, [local.categoria, categories, skills]);
+
+  // Cambios en campos simples
+  const handleChange = (e) => {
     setLocal((prev) => ({
       ...prev,
-      selectedSkills: prev.selectedSkills.includes(skill)
-        ? prev.selectedSkills.filter((s) => s !== skill)
-        : [...prev.selectedSkills, skill],
+      [e.target.name]: e.target.value,
+      ...(e.target.name === "categoria" ? { habilidades: [] } : {}),
     }));
   };
 
+  // Skills (habilidades)
+  const handleSkillToggle = (skillId) => {
+    setLocal((prev) => ({
+      ...prev,
+      habilidades: prev.habilidades.includes(skillId)
+        ? prev.habilidades.filter((id) => id !== skillId)
+        : [...prev.habilidades, skillId],
+    }));
+  };
+
+  // Guardar
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(local);
+    onSave(local); // body en español
   };
 
   return (
@@ -41,8 +65,7 @@ export default function UpdateUserStep2({
       {/* Header */}
       <div className="flex items-center mb-3 gap-3">
         <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-          {" "}
-          <i className="material-icons">person</i>{" "}
+          <i className="material-icons">person</i>
         </span>
         <div>
           <h2 className="text-2xl font-bold">Update User</h2>
@@ -64,7 +87,7 @@ export default function UpdateUserStep2({
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
             <i className="material-icons">mail</i>
-          </span>{" "}
+          </span>
           Contact Information
         </h3>
         <div className="grid grid-cols-1 gap-3">
@@ -80,8 +103,8 @@ export default function UpdateUserStep2({
           />
           <label className="font-semibold text-sm">Phone number *</label>
           <input
-            name="phone"
-            value={local.phone}
+            name="numeroTelefono"
+            value={local.numeroTelefono}
             onChange={handleChange}
             required
             placeholder="+1 (555) 123-4456"
@@ -94,14 +117,14 @@ export default function UpdateUserStep2({
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
             <i className="material-icons">check_circle</i>
-          </span>{" "}
+          </span>
           Category & Skills
         </h3>
         <div className="grid grid-cols-1 gap-3">
           <label className="font-semibold text-sm">Category *</label>
           <select
-            name="category"
-            value={local.category}
+            name="categoria"
+            value={local.categoria}
             onChange={handleChange}
             required
             className="mb-2 border rounded w-full px-3 py-2"
@@ -115,18 +138,21 @@ export default function UpdateUserStep2({
           </select>
           <label className="font-semibold text-sm">Skills *</label>
           <div className="flex flex-wrap gap-2">
-            {(skills || []).map((skill) => (
+            {filteredSkills.length === 0 && (
+              <span className="text-gray-400 italic">Select a category first</span>
+            )}
+            {filteredSkills.map((skill) => (
               <button
                 type="button"
-                key={skill}
-                onClick={() => handleSkillToggle(skill)}
+                key={skill.id}
+                onClick={() => handleSkillToggle(skill.id)}
                 className={`px-3 py-1 rounded-lg border font-semibold text-sm transition ${
-                  local.selectedSkills.includes(skill)
+                  local.habilidades.includes(skill.id)
                     ? "bg-purple-600 text-white border-purple-500"
                     : "bg-gray-100 text-gray-700 border-gray-300"
                 }`}
               >
-                {skill}
+                {skill.name}
               </button>
             ))}
           </div>

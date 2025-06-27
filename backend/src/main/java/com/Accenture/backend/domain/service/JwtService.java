@@ -6,6 +6,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
@@ -13,7 +14,9 @@ import java.util.function.Function;
 @Service
 public class JwtService {
 
-    private final Key SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256); // Genera una clave segura automáticamente
+    private final Key SECRET_KEY = Keys.hmacShaKeyFor(
+            "01234567890123456789012345678901".getBytes(StandardCharsets.UTF_8)
+    );
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
