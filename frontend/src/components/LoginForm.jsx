@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { authService } from "../services/authService";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
   const [cedula, setCedula] = useState(""); // Cambiado de user a cedula
@@ -7,7 +8,7 @@ export default function LoginForm() {
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false); // Estado de carga
   const [error, setError] = useState(""); // Estado de error
-
+  const navigate = useNavigate();
   const handleSubmit = async (e) => {
     e.preventDefault(); // ← Esto previene la recarga
     setLoading(true);
@@ -19,10 +20,17 @@ export default function LoginForm() {
       
       if (result.success) {
         console.log("Login exitoso!", result.token);
-        // Aquí puedes redirigir al dashboard
-        // Por ejemplo, si usas React Router:
-        // navigate('/dashboard');
-        alert("Login exitoso!"); // Temporal para probar
+        const lastDigit = cedula[cedula.length - 1];
+          if (["0", "1"].includes(lastDigit)) {
+            navigate("/admin");
+          } else if (["2", "3", "4"].includes(lastDigit)) {
+            navigate("/manager");
+          } else if (["5", "6"].includes(lastDigit)) {
+            navigate("/team");
+          } else {
+            navigate("/client");
+          }
+        
       } else {
         setError(result.error);
       }
@@ -59,11 +67,15 @@ export default function LoginForm() {
           id="cedula"
           placeholder="Enter your ID user"
           value={cedula}
-          onChange={(e) => setCedula(e.target.value)}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*$/.test(value)) setCedula(value);
+          }}
           required
           disabled={loading}
           className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5 disabled:opacity-50"
         />
+
       </div>
 
       {/* Password */}

@@ -32,7 +32,7 @@ api.interceptors.response.use(
     // Si el token expiró (401), redirigir al login
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/#';
     }
     return Promise.reject(error);
   }
