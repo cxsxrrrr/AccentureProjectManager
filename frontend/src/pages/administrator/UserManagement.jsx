@@ -56,6 +56,26 @@ const usersMock = [
   },
 ];
 
+// Mock categorías
+const categoriesMock = [
+  { id: 1, name: "Developer" },
+  { id: 2, name: "Designer" },
+  { id: 3, name: "Analyst" },
+];
+
+// Mock skills (cada skill tiene categoryId)
+const skillsMock = [
+  { id: 1, name: "JavaScript", categoryId: 1 },
+  { id: 2, name: "React", categoryId: 1 },
+  { id: 3, name: "Python", categoryId: 1 },
+  { id: 4, name: "UI/UX", categoryId: 2 },
+  { id: 5, name: "Figma", categoryId: 2 },
+  { id: 6, name: "Photoshop", categoryId: 2 },
+  { id: 7, name: "Data Analysis", categoryId: 3 },
+  { id: 8, name: "Excel", categoryId: 3 },
+  { id: 9, name: "Power BI", categoryId: 3 },
+];
+
 // Traducción de roles y estado para UI
 const roleToEN = (role) => {
   switch (role) {
@@ -71,11 +91,7 @@ const roleToEN = (role) => {
 };
 
 const statusToEN = (estado) =>
-  estado === "Activo"
-    ? "Active"
-    : estado === "Inactivo"
-    ? "Inactive"
-    : estado;
+  estado === "Activo" ? "Active" : estado === "Inactivo" ? "Inactive" : estado;
 
 function UserManagement() {
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -141,120 +157,191 @@ function UserManagement() {
   const genderDisplay = (g) =>
     g === "M" ? "Male" : g === "F" ? "Female" : "Other";
 
- return (
-  <div className="admin-page h-full flex flex-col">
-    <Topbar title="User Management">
-      <TopControls
-        module="user"
-        onCreate={handleOpenCreateModal}
-        onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
-        onDisable={() => selectedUser && openDisableModal(selectedUser)}
-        onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
+  return (
+    <div className="admin-page h-full flex flex-col">
+      <Topbar title="User Management">
+        <TopControls
+          module="user"
+          onCreate={handleOpenCreateModal}
+          onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
+          onDisable={() => selectedUser && openDisableModal(selectedUser)}
+          onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
+        />
+      </Topbar>
+
+      <CreateUserModal 
+        isOpen={isCreateOpen} 
+        toggle={handleCloseCreateModal} 
+        categories={categoriesMock}
+        skills={skillsMock}
+        />
+      <UpdateUserModal
+        isOpen={isUpdateOpen}
+        toggle={closeUpdateModal}
+        user={selectedUser}
+        onUpdate={handleUpdateUser}
+        categories={categoriesMock}
+        skills={skillsMock}
       />
-    </Topbar>
+      <DisableUserModal
+        isOpen={isDisableOpen}
+        toggle={closeDisableModal}
+        user={selectedUser}
+        onDisable={handleDisableUser}
+      />
+      <AssignRoleModal
+        isOpen={isAssignOpen}
+        toggle={closeAssignRoleModal}
+        user={selectedUser}
+        onAssign={handleAssignRole}
+      />
 
-    <CreateUserModal isOpen={isCreateOpen} toggle={handleCloseCreateModal} />
-    <UpdateUserModal isOpen={isUpdateOpen} toggle={closeUpdateModal} user={selectedUser} onUpdate={handleUpdateUser} />
-    <DisableUserModal isOpen={isDisableOpen} toggle={closeDisableModal} user={selectedUser} onDisable={handleDisableUser} />
-    <AssignRoleModal isOpen={isAssignOpen} toggle={closeAssignRoleModal} user={selectedUser} onAssign={handleAssignRole} />
-
-    <div className="admin-content h-full flex-1 p-0">
-      <div className="overflow-x-auto h-full w-full min-h-[70vh] py-8 px-10">
-        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 min-w-[900px]">
-          <thead>
-            <tr>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">User</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Contact</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">ID Number</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Gender</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Birthdate</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Role</th>
-              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user, idx) => (
-              <tr
-                key={user.id}
-                onClick={() => {
-                  setSelectedUser(user);
-                  setSelectedUserId(user.id);
-                }}
-                className={`
+      <div className="admin-content h-full flex-1 p-0">
+        <div className="overflow-x-auto h-full w-full min-h-[70vh] py-8 px-10">
+          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 min-w-[900px]">
+            <thead>
+              <tr>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  Contact
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  ID Number
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  Gender
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  Birthdate
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user, idx) => (
+                <tr
+                  key={user.id}
+                  onClick={() => {
+                    setSelectedUser(user);
+                    setSelectedUserId(user.id);
+                  }}
+                  className={`
                   cursor-pointer transition
-                  ${selectedUserId === user.id
-                    ? "bg-purple-100 ring-2 ring-purple-300"
-                    : idx % 2 === 1
-                    ? "bg-gray-50"
-                    : ""
+                  ${
+                    selectedUserId === user.id
+                      ? "bg-purple-100 ring-2 ring-purple-300"
+                      : idx % 2 === 1
+                      ? "bg-gray-50"
+                      : ""
                   } hover:bg-purple-50
                 `}
-              >
-                {/* USER CELL */}
-                <td className="py-4 px-3 whitespace-nowrap font-semibold flex items-center gap-2">
-                  <span className="inline-block rounded-full bg-gray-200 p-2">
-                    <svg width="28" height="28" fill="none">
-                      <circle cx="14" cy="14" r="12" stroke="#888" strokeWidth="2"/>
-                      <circle cx="14" cy="12" r="5" stroke="#888" strokeWidth="2"/>
-                      <ellipse cx="14" cy="19" rx="7" ry="4" stroke="#888" strokeWidth="2"/>
-                    </svg>
-                  </span>
-                  <div>
-                    <span className="font-bold">{user.nombre} {user.apellido}</span>
-                  </div>
-                </td>
-                {/* CONTACT CELL */}
-                <td className="py-4 px-3 whitespace-nowrap">
-                  <div className="flex flex-col gap-1">
-                    <span className="flex items-center gap-1 text-gray-800 text-sm">
-                      <span className="material-icons text-base text-gray-500">mail</span>
-                      {user.email}
+                >
+                  {/* USER CELL */}
+                  <td className="py-4 px-3 whitespace-nowrap font-semibold flex items-center gap-2">
+                    <span className="inline-block rounded-full bg-gray-200 p-2">
+                      <svg width="28" height="28" fill="none">
+                        <circle
+                          cx="14"
+                          cy="14"
+                          r="12"
+                          stroke="#888"
+                          strokeWidth="2"
+                        />
+                        <circle
+                          cx="14"
+                          cy="12"
+                          r="5"
+                          stroke="#888"
+                          strokeWidth="2"
+                        />
+                        <ellipse
+                          cx="14"
+                          cy="19"
+                          rx="7"
+                          ry="4"
+                          stroke="#888"
+                          strokeWidth="2"
+                        />
+                      </svg>
                     </span>
-                    <span className="flex items-center gap-1 text-gray-800 text-sm">
-                      <span className="material-icons text-base text-gray-500">phone</span>
-                      {user.numeroTelefono}
+                    <div>
+                      <span className="font-bold">
+                        {user.nombre} {user.apellido}
+                      </span>
+                    </div>
+                  </td>
+                  {/* CONTACT CELL */}
+                  <td className="py-4 px-3 whitespace-nowrap">
+                    <div className="flex flex-col gap-1">
+                      <span className="flex items-center gap-1 text-gray-800 text-sm">
+                        <span className="material-icons text-base text-gray-500">
+                          mail
+                        </span>
+                        {user.email}
+                      </span>
+                      <span className="flex items-center gap-1 text-gray-800 text-sm">
+                        <span className="material-icons text-base text-gray-500">
+                          phone
+                        </span>
+                        {user.numeroTelefono}
+                      </span>
+                    </div>
+                  </td>
+                  {/* ID NUMBER */}
+                  <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">
+                    {user.cedula}
+                  </td>
+                  {/* GENDER */}
+                  <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">
+                    {genderDisplay(user.genero)}
+                  </td>
+                  {/* BIRTHDATE */}
+                  <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">
+                    {formatDate(user.fechaNacimiento)}
+                  </td>
+                  {/* ROLE */}
+                  <td className="py-4 px-3 whitespace-nowrap">
+                    <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-100 text-purple-700">
+                      {roleToEN(user.rol?.nombre)}
                     </span>
-                  </div>
-                </td>
-                {/* ID NUMBER */}
-                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{user.cedula}</td>
-                {/* GENDER */}
-                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{genderDisplay(user.genero)}</td>
-                {/* BIRTHDATE */}
-                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{formatDate(user.fechaNacimiento)}</td>
-                {/* ROLE */}
-                <td className="py-4 px-3 whitespace-nowrap">
-                  <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-100 text-purple-700">
-                    {roleToEN(user.rol?.nombre)}
-                  </span>
-                </td>
-                {/* STATUS */}
-                <td className="py-4 px-3 whitespace-nowrap">
-                  <span className={`
+                  </td>
+                  {/* STATUS */}
+                  <td className="py-4 px-3 whitespace-nowrap">
+                    <span
+                      className={`
                     px-4 py-1 rounded-full font-bold text-sm
-                    ${statusToEN(user.estado) === "Active"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"}
-                  `}>
-                    {statusToEN(user.estado)}
-                  </span>
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && (
-              <tr>
-                <td colSpan={7} className="text-center py-10 text-gray-400">
-                  No users found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                    ${
+                      statusToEN(user.estado) === "Active"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                    }
+                  `}
+                    >
+                      {statusToEN(user.estado)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {users.length === 0 && (
+                <tr>
+                  <td colSpan={7} className="text-center py-10 text-gray-400">
+                    No users found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
 }
 
 export default UserManagement;
