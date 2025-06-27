@@ -39,7 +39,7 @@ const EmployeeStatusTable = ({ data }) => (
             </td>
           </tr>
         ))}
-        ;
+        
       </tbody>
     </table>
   </div>
