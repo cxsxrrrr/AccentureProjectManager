@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 export default function UpdateUserStep2({
   values,
@@ -9,27 +9,41 @@ export default function UpdateUserStep2({
   onCancel,
 }) {
   const [local, setLocal] = useState({
-    email: values.email || "",
-    phone: values.phone || "",
-    category: values.category || "",
-    selectedSkills: values.selectedSkills || [],
+    email: "",
+    numeroTelefono: "",
+    categoria: "",
+    habilidades: [],
   });
 
+  // Precargar datos cuando abres la modal (con body en español)
+  useEffect(() => {
+    setLocal({
+      email: values.email || "",
+      numeroTelefono: values.numeroTelefono || "",
+      categoria: values.categoria || "",
+      habilidades: values.habilidades || [],
+    });
+  }, [values]);
+
+  // Manejar cambios de campos
   const handleChange = (e) => {
     setLocal((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  // Skills (habilidades)
   const handleSkillToggle = (skill) => {
     setLocal((prev) => ({
       ...prev,
-      selectedSkills: prev.selectedSkills.includes(skill)
-        ? prev.selectedSkills.filter((s) => s !== skill)
-        : [...prev.selectedSkills, skill],
+      habilidades: prev.habilidades.includes(skill)
+        ? prev.habilidades.filter((s) => s !== skill)
+        : [...prev.habilidades, skill],
     }));
   };
 
+  // Guardar
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Devuelve body en español
     onSave(local);
   };
 
@@ -41,8 +55,7 @@ export default function UpdateUserStep2({
       {/* Header */}
       <div className="flex items-center mb-3 gap-3">
         <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-          {" "}
-          <i className="material-icons">person</i>{" "}
+          <i className="material-icons">person</i>
         </span>
         <div>
           <h2 className="text-2xl font-bold">Update User</h2>
@@ -64,7 +77,7 @@ export default function UpdateUserStep2({
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
             <i className="material-icons">mail</i>
-          </span>{" "}
+          </span>
           Contact Information
         </h3>
         <div className="grid grid-cols-1 gap-3">
@@ -80,8 +93,8 @@ export default function UpdateUserStep2({
           />
           <label className="font-semibold text-sm">Phone number *</label>
           <input
-            name="phone"
-            value={local.phone}
+            name="numeroTelefono"
+            value={local.numeroTelefono}
             onChange={handleChange}
             required
             placeholder="+1 (555) 123-4456"
@@ -94,14 +107,14 @@ export default function UpdateUserStep2({
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
             <i className="material-icons">check_circle</i>
-          </span>{" "}
+          </span>
           Category & Skills
         </h3>
         <div className="grid grid-cols-1 gap-3">
           <label className="font-semibold text-sm">Category *</label>
           <select
-            name="category"
-            value={local.category}
+            name="categoria"
+            value={local.categoria}
             onChange={handleChange}
             required
             className="mb-2 border rounded w-full px-3 py-2"
@@ -121,7 +134,7 @@ export default function UpdateUserStep2({
                 key={skill}
                 onClick={() => handleSkillToggle(skill)}
                 className={`px-3 py-1 rounded-lg border font-semibold text-sm transition ${
-                  local.selectedSkills.includes(skill)
+                  local.habilidades.includes(skill)
                     ? "bg-purple-600 text-white border-purple-500"
                     : "bg-gray-100 text-gray-700 border-gray-300"
                 }`}

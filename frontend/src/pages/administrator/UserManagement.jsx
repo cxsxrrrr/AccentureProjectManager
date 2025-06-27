@@ -7,64 +7,75 @@ import UpdateUserModal from "../../components/admin/modals/Users/UpdateUserModal
 import DisableUserModal from "../../components/admin/modals/Users/DisableUserModal";
 import AssignRoleModal from "../../components/admin/modals/Users/AssignRoleModal";
 
+// Mock users using body fields in Spanish but English UI
 const usersMock = [
   {
     id: 1,
-    firstName: "Cesar",
-    lastName: "Moran",
-    email: "JustinLipshutz@gmail.com",
-    phone: "+1 (555) 234-5678",
-    gender: "Male",
-    birthDate: "5/19/25",
-    role: "Admin",
-    status: "Active",
-    avatar: null,
-    category: "Developer",
-    skills: ["Java Script", "React", "Python"],
+    nombre: "Cesar",
+    apellido: "Moran",
+    email: "cesar.moran@email.com",
+    numeroTelefono: "1234567890",
+    cedula: 12345678,
+    genero: "M",
+    fechaNacimiento: "2025-05-19T12:00:00",
+    password: "contraseña1",
+    estado: "Activo",
+    fechaCreacion: "2025-05-03T12:00:00",
+    ultimoAcceso: "2025-05-03T12:00:00",
+    rol: { rolId: 1, nombre: "Administrador" },
   },
   {
     id: 2,
-    firstName: "Luis",
-    lastName: "Solarte",
-    email: "JustinLipshutz@gmail.com",
-    phone: "+1 (555) 234-5678",
-    gender: "Male",
-    birthDate: "5/19/25",
-    role: "Manager",
-    status: "Active",
-    avatar: null,
-    category: "Developer",
-    skills: ["Java Script", "React", "Python"],
+    nombre: "Luis",
+    apellido: "Solarte",
+    email: "luis.solarte@email.com",
+    numeroTelefono: "1234567899",
+    cedula: 87654321,
+    genero: "M",
+    fechaNacimiento: "2025-06-01T12:00:00",
+    password: "contraseña2",
+    estado: "Activo",
+    fechaCreacion: "2025-05-04T12:00:00",
+    ultimoAcceso: "2025-06-25T12:00:00",
+    rol: { rolId: 2, nombre: "Gerente" },
   },
   {
     id: 3,
-    firstName: "Valentina",
-    lastName: "Moran",
-    email: "JustinLipshutz@gmail.com",
-    phone: "+1 (555) 234-5678",
-    gender: "Female",
-    birthDate: "5/19/25",
-    role: "Customer",
-    status: "Disabled",
-    avatar: null,
-    category: "Developer",
-    skills: ["Java Script", "React"],
-  },
-  {
-    id: 4,
-    firstName: "Enmanuel",
-    lastName: "Fuenmayor",
-    email: "JustinLipshutz@gmail.com",
-    phone: "+1 (555) 234-5678",
-    gender: "Male",
-    birthDate: "5/19/25",
-    role: "Admin",
-    status: "Active",
-    avatar: null,
-    category: "Developer",
-    skills: ["Java Script"],
+    nombre: "Valentina",
+    apellido: "Moran",
+    email: "valen.moran@email.com",
+    numeroTelefono: "0987654321",
+    cedula: 54321678,
+    genero: "F",
+    fechaNacimiento: "2025-02-12T12:00:00",
+    password: "contraseña3",
+    estado: "Inactivo",
+    fechaCreacion: "2025-04-29T12:00:00",
+    ultimoAcceso: "2025-06-10T12:00:00",
+    rol: { rolId: 3, nombre: "Cliente" },
   },
 ];
+
+// Traducción de roles y estado para UI
+const roleToEN = (role) => {
+  switch (role) {
+    case "Administrador":
+      return "Admin";
+    case "Gerente":
+      return "Manager";
+    case "Cliente":
+      return "Customer";
+    default:
+      return role;
+  }
+};
+
+const statusToEN = (estado) =>
+  estado === "Activo"
+    ? "Active"
+    : estado === "Inactivo"
+    ? "Inactive"
+    : estado;
 
 function UserManagement() {
   const [isCreateOpen, setCreateOpen] = useState(false);
@@ -73,11 +84,8 @@ function UserManagement() {
 
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-
-  // Selección visual en tabla
   const [selectedUserId, setSelectedUserId] = useState(null);
 
-  // Actualizar usuario
   const openUpdateModal = (user) => {
     setSelectedUser(user);
     setIsUpdateOpen(true);
@@ -125,53 +133,43 @@ function UserManagement() {
   // Puedes reemplazar por tu propio estado si tienes usuarios dinámicos
   const users = usersMock;
 
-  return (
-    <div className="admin-page">
-      <Topbar title="User Management">
-        <TopControls
-          module="user"
-          onCreate={handleOpenCreateModal}
-          onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
-          onDisable={() => selectedUser && openDisableModal(selectedUser)}
-          onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
-        />
-      </Topbar>
+  // Formatea la fecha al estilo YYYY-MM-DD (solo para visual)
+  const formatDate = (str) =>
+    str ? new Date(str).toLocaleDateString("en-GB") : "-";
 
-      <CreateUserModal
-        isOpen={isCreateOpen}
-        toggle={handleCloseCreateModal}
+  // Traduce género
+  const genderDisplay = (g) =>
+    g === "M" ? "Male" : g === "F" ? "Female" : "Other";
+
+ return (
+  <div className="admin-page h-full flex flex-col">
+    <Topbar title="User Management">
+      <TopControls
+        module="user"
+        onCreate={handleOpenCreateModal}
+        onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
+        onDisable={() => selectedUser && openDisableModal(selectedUser)}
+        onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
       />
+    </Topbar>
 
-      <UpdateUserModal
-        isOpen={isUpdateOpen}
-        toggle={closeUpdateModal}
-        user={selectedUser}
-        onUpdate={handleUpdateUser}
-      />
+    <CreateUserModal isOpen={isCreateOpen} toggle={handleCloseCreateModal} />
+    <UpdateUserModal isOpen={isUpdateOpen} toggle={closeUpdateModal} user={selectedUser} onUpdate={handleUpdateUser} />
+    <DisableUserModal isOpen={isDisableOpen} toggle={closeDisableModal} user={selectedUser} onDisable={handleDisableUser} />
+    <AssignRoleModal isOpen={isAssignOpen} toggle={closeAssignRoleModal} user={selectedUser} onAssign={handleAssignRole} />
 
-      <DisableUserModal
-        isOpen={isDisableOpen}
-        toggle={closeDisableModal}
-        user={selectedUser}
-        onDisable={handleDisableUser}
-      />
-
-      <AssignRoleModal
-        isOpen={isAssignOpen}
-        toggle={closeAssignRoleModal}
-        user={selectedUser}
-        onAssign={handleAssignRole}
-      />
-
-      <div className="admin-content">
-        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
+    <div className="admin-content h-full flex-1 p-0">
+      <div className="overflow-x-auto h-full w-full min-h-[70vh] py-8 px-10">
+        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 min-w-[900px]">
           <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">USER</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">CONTACT</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">CATEGORY & SKILL</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">ROLE</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">STATUS</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">User</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Contact</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">ID Number</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Gender</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Birthdate</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Role</th>
+              <th className="px-3 py-3 text-left text-gray-500 font-bold uppercase tracking-wider">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -185,73 +183,78 @@ function UserManagement() {
                 className={`
                   cursor-pointer transition
                   ${selectedUserId === user.id
-                    ? "bg-gray-100 ring-2 ring-purple-200"
+                    ? "bg-purple-100 ring-2 ring-purple-300"
                     : idx % 2 === 1
                     ? "bg-gray-50"
                     : ""
-                  }
+                  } hover:bg-purple-50
                 `}
               >
                 {/* USER CELL */}
-                <td className="flex items-center gap-3 py-4 px-6">
+                <td className="py-4 px-3 whitespace-nowrap font-semibold flex items-center gap-2">
                   <span className="inline-block rounded-full bg-gray-200 p-2">
-                    <svg width="30" height="30" fill="none"><circle cx="15" cy="15" r="14" stroke="#888" strokeWidth="2"/><circle cx="15" cy="13" r="6" stroke="#888" strokeWidth="2"/><ellipse cx="15" cy="22" rx="8" ry="5" stroke="#888" strokeWidth="2"/></svg>
+                    <svg width="28" height="28" fill="none">
+                      <circle cx="14" cy="14" r="12" stroke="#888" strokeWidth="2"/>
+                      <circle cx="14" cy="12" r="5" stroke="#888" strokeWidth="2"/>
+                      <ellipse cx="14" cy="19" rx="7" ry="4" stroke="#888" strokeWidth="2"/>
+                    </svg>
                   </span>
                   <div>
-                    <span className="font-bold">{user.firstName} {user.lastName}</span>
-                    <div className="text-xs text-gray-500">{user.gender} • {user.birthDate}</div>
+                    <span className="font-bold">{user.nombre} {user.apellido}</span>
                   </div>
                 </td>
                 {/* CONTACT CELL */}
-                <td className="py-4 px-6">
-                  <div className="flex items-center gap-2">
-                    <span className="material-icons text-gray-500 text-base">mail</span>
-                    <span className="text-sm">{user.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="material-icons text-gray-500 text-base">phone</span>
-                    <span className="text-sm">{user.phone}</span>
-                  </div>
-                </td>
-                {/* CATEGORY & SKILL */}
-                <td className="py-4 px-6">
-                  <span className="font-bold text-sm">{user.category}</span>
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {user.skills.map((skill, i) => (
-                      <span key={i} className="bg-gray-200 text-xs px-2 py-1 rounded-lg font-medium">{skill}</span>
-                    ))}
+                <td className="py-4 px-3 whitespace-nowrap">
+                  <div className="flex flex-col gap-1">
+                    <span className="flex items-center gap-1 text-gray-800 text-sm">
+                      <span className="material-icons text-base text-gray-500">mail</span>
+                      {user.email}
+                    </span>
+                    <span className="flex items-center gap-1 text-gray-800 text-sm">
+                      <span className="material-icons text-base text-gray-500">phone</span>
+                      {user.numeroTelefono}
+                    </span>
                   </div>
                 </td>
+                {/* ID NUMBER */}
+                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{user.cedula}</td>
+                {/* GENDER */}
+                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{genderDisplay(user.genero)}</td>
+                {/* BIRTHDATE */}
+                <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{formatDate(user.fechaNacimiento)}</td>
                 {/* ROLE */}
-                <td className="py-4 px-6">
-                  <span className={`
-                    px-3 py-1 rounded-full font-bold text-xs
-                    ${user.role === "Admin" ? "bg-purple-100 text-purple-700"
-                      : user.role === "Manager" ? "bg-purple-100 text-purple-500"
-                      : user.role === "Customer" ? "bg-purple-100 text-purple-400"
-                      : "bg-gray-100 text-gray-500"}
-                  `}>
-                    {user.role}
+                <td className="py-4 px-3 whitespace-nowrap">
+                  <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-100 text-purple-700">
+                    {roleToEN(user.rol?.nombre)}
                   </span>
                 </td>
                 {/* STATUS */}
-                <td className="py-4 px-6">
+                <td className="py-4 px-3 whitespace-nowrap">
                   <span className={`
                     px-4 py-1 rounded-full font-bold text-sm
-                    ${user.status === "Active"
+                    ${statusToEN(user.estado) === "Active"
                       ? "bg-green-100 text-green-700"
                       : "bg-red-100 text-red-600"}
                   `}>
-                    {user.status}
+                    {statusToEN(user.estado)}
                   </span>
                 </td>
               </tr>
             ))}
+            {users.length === 0 && (
+              <tr>
+                <td colSpan={7} className="text-center py-10 text-gray-400">
+                  No users found.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
     </div>
-  );
+  </div>
+);
+
 }
 
 export default UserManagement;

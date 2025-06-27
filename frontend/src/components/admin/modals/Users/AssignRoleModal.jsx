@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from "react";
 
 const ROLES = [
-  { name: "Admin", desc: "Full access to the system", color: "text-purple-600", border: "border-purple-400", shadow: "shadow-purple-200" },
-  { name: "Manager", desc: "Team and project management", color: "text-purple-500", border: "border-purple-400", bg: "bg-purple-50" },
-  { name: "Team Member", desc: "Development and maintenance", color: "text-green-600", border: "border-green-400", bg: "bg-green-50" },
-  { name: "Customer", desc: "Limited client access", color: "text-red-500", border: "border-red-400", bg: "bg-red-50" },
+  { name: "Admin", desc: "Full access to the system", color: "text-purple-600", border: "border-purple-400", shadow: "shadow-purple-200", rolId: 1, nombre: "Administrador" },
+  { name: "Manager", desc: "Team and project management", color: "text-purple-500", border: "border-purple-400", bg: "bg-purple-50", rolId: 2, nombre: "Gerente" },
+  { name: "Team Member", desc: "Development and maintenance", color: "text-green-600", border: "border-green-400", bg: "bg-green-50", rolId: 3, nombre: "Miembro de Equipo" },
+  { name: "Customer", desc: "Limited client access", color: "text-red-500", border: "border-red-400", bg: "bg-red-50", rolId: 4, nombre: "Cliente" },
 ];
 
 export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
@@ -18,16 +18,32 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
     ), [search]
   );
 
+  // Asignar el rol en formato español
   const handleAssign = (e) => {
     e.preventDefault();
     if (selectedRole) {
-      onAssign(selectedRole);
+      // Aquí el adaptador al body esperado por la API:
+      onAssign({
+        rol: {
+          rolId: selectedRole.rolId,
+          nombre: selectedRole.nombre, // nombre en español
+        }
+      });
       setSelectedRole(null);
       toggle();
     }
   };
 
   if (!isOpen) return null;
+
+  // Muestra el rol actual correctamente (si es objeto o string)
+  const getCurrentRole = (user) => {
+    if (!user) return "";
+    if (user.rol && typeof user.rol === "object") return user.rol.nombre;
+    if (user.rol) return user.rol;
+    if (user.role) return user.role;
+    return "";
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -82,10 +98,10 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
           <div className="bg-gray-50 border rounded-lg p-4 mb-6 text-sm">
             <div><span className="font-semibold">Summary of the change:</span></div>
             <div>
-              {user.firstName} {user.lastName} (<span className="text-gray-500">{user.email}</span>)
+              {user.nombre} {user.apellido} (<span className="text-gray-500">{user.email}</span>)
             </div>
             <div>
-              Current role: <span className="font-bold">{user.role}</span>
+              Current role: <span className="font-bold">{getCurrentRole(user)}</span>
               <span className="mx-2">⟶</span>
               New role: <span className="font-bold text-purple-600">{selectedRole.name}</span>
             </div>
