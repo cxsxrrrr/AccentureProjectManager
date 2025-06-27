@@ -19,10 +19,10 @@ export default function Login() {
           className="w-110 h-auto"
           data-element="login-logo"
         /> */}
-        <div class="rounded-box">
-          <div class="accenture-logo">
-            <div class="bar bottom"></div>
-            <div class="bar top"></div></div>
+        <div className="rounded-box">
+          <div className="accenture-logo">
+            <div className="bar bottom"></div>
+            <div className="bar top"></div></div>
 
         </div>
         <h3 className="absolute text-white text-2xl font-medium pt-225 pr-190">
