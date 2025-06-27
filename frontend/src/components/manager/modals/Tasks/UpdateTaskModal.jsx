@@ -6,10 +6,9 @@ const STATUS_OPTIONS = [
   { value: "Completed", label: "Completed" },
 ];
 
-function UpdateTaskModal({ isOpen, onClose, onSave, initialData, users = [] }) {
+function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
   const [form, setForm] = useState({
     task: "",
-    assignedTo: "",
     status: "To Do",
   });
 
@@ -18,7 +17,6 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData, users = [] }) {
     if (isOpen && initialData) {
       setForm({
         task: initialData.task || "",
-        assignedTo: initialData.assignedTo || "",
         status: initialData.status || "To Do",
       });
     }
@@ -30,8 +28,8 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData, users = [] }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form);
-    // Puedes cerrar aquí o desde el padre
+    onSave({ ...initialData, ...form }); // Para mantener el ID y el assignedTo actual
+    // Puedes cerrar aquí o desde el parent
     // onClose();
   };
 
@@ -81,21 +79,6 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData, users = [] }) {
                   placeholder="Enter task name"
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
-              </label>
-              <label className="font-semibold text-sm">
-                Assigned To *
-                <select
-                  name="assignedTo"
-                  value={form.assignedTo}
-                  onChange={handleChange}
-                  required
-                  className="mt-1 border rounded w-full px-3 py-2"
-                >
-                  <option value="">Select user</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.name}>{u.name}</option>
-                  ))}
-                </select>
               </label>
               <label className="font-semibold text-sm">
                 Status *

@@ -16,14 +16,14 @@ import Login from './pages/Login';
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-
+  <ManagerLayout />
     {/* <Login /> */}
       {/* <ClientLayout /> /}
       {/<TeamMembersLayout />
       
-      {/*  <AdminLayout />
+      <AdminLayout />
       {/* <App /> */}
-      <ManagerLayout />
+      {/* <AdminLayout /> */}
     </BrowserRouter>
   </StrictMode>
 );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import taskIcon from "../../../../assets/icons/task.svg"; // O el icono que prefieras
 
-function NewTaskModal({ isOpen, onClose, onSave, users = [] }) {
+function NewTaskModal({ isOpen, onClose, onSave }) {
   const [form, setForm] = useState({
     task: "",
     assignedTo: "",
