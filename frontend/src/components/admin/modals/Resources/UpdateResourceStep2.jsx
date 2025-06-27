@@ -1,13 +1,17 @@
-import React, { useState } from "react";
-
-const availabilityOptions = ["Available", "Disabled"];
+import React, { useState, useEffect } from "react";
 
 const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
   const [local, setLocal] = useState({
-    availability: values.availability || "",
     unit: values.unit || "",
     description: values.description || "",
   });
+
+  useEffect(() => {
+    setLocal({
+      unit: values.unit || "",
+      description: values.description || "",
+    });
+  }, [values]);
 
   const handleChange = (e) => {
     setLocal({ ...local, [e.target.name]: e.target.value });
@@ -16,23 +20,6 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
   return (
     <div>
       <h2 className="text-3xl font-bold mb-7">Update Resource</h2>
-
-      {/* Resource Availability */}
-      <label className="block font-semibold text-lg mb-1">
-        Resource availability <span className="text-purple-600">*</span>
-      </label>
-      <select
-        name="availability"
-        value={local.availability}
-        onChange={handleChange}
-        className="w-full mb-4 px-4 py-2 border rounded-lg text-base outline-none focus:ring-2 focus:ring-purple-400"
-      >
-        <option value="">Select resource Status</option>
-        {availabilityOptions.map((a) => (
-          <option key={a}>{a}</option>
-        ))}
-      </select>
-
       {/* Resource Unit */}
       <label className="block font-semibold text-lg mb-1">
         Resource Unit <span className="text-purple-600">*</span>

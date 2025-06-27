@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const typeOptions = ["Human", "Material", "Financial"];
 const availabilityOptions = ["Available", "Disabled"];
@@ -10,6 +10,16 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
     cost: values.cost || "",
     availability: values.availability || "",
   });
+
+  // Sync local state when values change (on resource change or modal open)
+  useEffect(() => {
+    setLocal({
+      name: values.name || "",
+      type: values.type || "",
+      cost: values.cost || "",
+      availability: values.availability || "",
+    });
+  }, [values]);
 
   const handleChange = (e) => {
     setLocal({ ...local, [e.target.name]: e.target.value });
@@ -31,9 +41,7 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
       />
 
       {/* Resource Type */}
-      <label className="block font-semibold text-lg mb-1">
-        Resource Type
-      </label>
+      <label className="block font-semibold text-lg mb-1">Resource Type</label>
       <select
         name="type"
         value={local.type}
