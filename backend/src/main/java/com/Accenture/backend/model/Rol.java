@@ -1,11 +1,18 @@
 package com.Accenture.backend.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Column;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.CascadeType;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "roles")
+@Table(name = "roles") 
 public class Rol {
 
     @Id
@@ -16,11 +23,10 @@ public class Rol {
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
-    // Relación con UsuarioRol (uno a muchos)
-    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UsuarioRol> usuarios = new HashSet<>();
+   @Column(name = "descripcion", length = 500, nullable = false)
+    private String descripcion;
 
-    // Relación con RolPermiso (uno a muchos)
+    // Relación con RolPermiso (uno a muchos) 
     @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<RolPermiso> permisos = new HashSet<>();
 
@@ -49,12 +55,12 @@ public class Rol {
         this.nombre = nombre;
     }
 
-    public Set<UsuarioRol> getUsuarios() {
-        return usuarios;
+    public void setDescripcion(String descripcion) {
+        this.descripcion = descripcion;
     }
 
-    public void setUsuarios(Set<UsuarioRol> usuarios) {
-        this.usuarios = usuarios;
+    public String getDescripcion() {
+        return descripcion;
     }
 
     public Set<RolPermiso> getPermisos() {
