@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 export default function LoginForm() {
   const [cedula, setCedula] = useState(""); // Cambiado de user a cedula
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false); // Estado de carga
   const [error, setError] = useState(""); // Estado de error
   const navigate = useNavigate();
+
   const handleSubmit = async (e) => {
     e.preventDefault(); // ← Esto previene la recarga
     setLoading(true);
@@ -17,20 +18,19 @@ export default function LoginForm() {
     try {
       // Llamada al servicio de autenticación
       const result = await authService.login(cedula, password);
-      
+
       if (result.success) {
         console.log("Login exitoso!", result.token);
         const lastDigit = cedula[cedula.length - 1];
-          if (["0", "1"].includes(lastDigit)) {
-            navigate("/admin");
-          } else if (["2", "3", "4"].includes(lastDigit)) {
-            navigate("/manager");
-          } else if (["5", "6"].includes(lastDigit)) {
-            navigate("/team");
-          } else {
-            navigate("/client");
-          }
-        
+        if (["0", "1"].includes(lastDigit)) {
+          navigate("/admin");
+        } else if (["2", "3", "4"].includes(lastDigit)) {
+          navigate("/manager");
+        } else if (["5", "6"].includes(lastDigit)) {
+          navigate("/team");
+        } else {
+          navigate("/client");
+        }
       } else {
         setError(result.error);
       }
@@ -48,16 +48,14 @@ export default function LoginForm() {
       className="flex flex-col space-y-6"
       data-element="login-form"
     >
-
-    {/* Mostrar errores */}
+      {/* Mostrar errores */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-
-    {/* Cédula */}
+      {/* Cédula */}
       <div>
         <label htmlFor="cedula" className="text-3xl block mb-2 font-medium text-gray-700">
           ID user
@@ -75,7 +73,6 @@ export default function LoginForm() {
           disabled={loading}
           className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5 disabled:opacity-50"
         />
-
       </div>
 
       {/* Password */}
@@ -83,37 +80,48 @@ export default function LoginForm() {
         <label htmlFor="password" className="text-3xl block mb-2 font-medium text-gray-700">
           Password
         </label>
-        <input
-          type="password"
-          id="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5"
-        />
+        <div className="relative">
+          <input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="bg-gray-50 border mt-5 border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-accenture focus:border-accenture block w-full p-2.5 pr-12"
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword((v) => !v)}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-purple-600 focus:outline-none"
+            tabIndex={-1}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              // 👁️ Ojo abierto
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+            ) : (
+              // 👁️‍🗨️ Ojo cerrado (slash)
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path d="M17.94 17.94C16.12 19.2 14.14 20 12 20 5 20 1.5 12 1.5 12c.95-1.9 2.32-4.15 4.33-6.06M10.12 6.13C10.72 6.04 11.35 6 12 6c7 0 10.5 7 10.5 7-.6 1.21-1.39 2.57-2.41 3.88M9.59 9.59a3 3 0 0 1 4.24 4.24" />
+                <path d="M3 3l18 18" />
+              </svg>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Remember me + Forgot password */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <input
-            id="remember"
-            type="checkbox"
-            checked={remember}
-            onChange={() => setRemember(!remember)}
-            className="w-4 h-4 text-accenture bg-gray-100 border-gray-300 rounded focus:ring-accenture"
-          />
-          <label htmlFor="remember" className="ml-2 text-sm text-gray-500">
-            Remember me
-          </label>
-        </div>
+      {/* Forgot password (solo) */}
+      <div className="flex justify-end">
         <a href="#" className="text-sm hover:underline">
           Forgot password?
         </a>
       </div>
 
-       {/* Submit button */}
+      {/* Submit button */}
       <button
         type="submit"
         disabled={loading}
