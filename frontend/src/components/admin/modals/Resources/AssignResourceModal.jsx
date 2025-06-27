@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const AssignResourceModal = ({
   isOpen,
@@ -9,23 +9,30 @@ const AssignResourceModal = ({
 }) => {
   const [resourceName, setResourceName] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [search, setSearch] = useState("");
 
   // Reinicia estado cuando se abre/cierra
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) {
       setResourceName("");
       setSelectedProjectId(null);
+      setSearch("");
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
+  // Filtrado de proyectos
+  const filteredProjects = projects.filter((proj) =>
+    proj.name.toLowerCase().includes(search.trim().toLowerCase())
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="bg-white rounded-xl p-8 w-[500px]">
+      <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg mx-2 shadow-2xl animate-fade-in">
         <h2 className="text-2xl font-bold mb-6">Assign Resource</h2>
 
-        <label className="block mb-3 font-semibold text-lg">
+        <label className="block mb-3 font-semibold text-base">
           Resource Name *
           <input
             type="text"
@@ -36,24 +43,25 @@ const AssignResourceModal = ({
           />
         </label>
 
-        <div className="mb-2 font-semibold text-lg">Select Project *</div>
-        <div className="mb-3">
-          <input
-            className="w-full border rounded-lg px-4 py-2 mb-2"
-            placeholder="Search project..."
-            // Bonus: Agrega lógica de búsqueda si tienes muchos proyectos
-            disabled
-          />
-        </div>
+        <div className="mb-2 font-semibold text-base">Select Project *</div>
+        <input
+          className="w-full border rounded-lg px-4 py-2 mb-3 focus:outline-purple-500"
+          placeholder="Search project..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
         <div className="space-y-2 max-h-40 overflow-y-auto mb-6">
-          {projects.map((proj) => (
+          {filteredProjects.length === 0 && (
+            <div className="text-gray-400 px-4 py-3">No projects found.</div>
+          )}
+          {filteredProjects.map((proj) => (
             <div
               key={proj.id}
-              className={`px-4 py-3 rounded border cursor-pointer text-base font-bold flex items-center ${
-                selectedProjectId === proj.id
+              className={`px-4 py-3 rounded border cursor-pointer text-base font-bold flex items-center transition
+                ${selectedProjectId === proj.id
                   ? "bg-purple-100 border-purple-400"
-                  : "hover:bg-gray-50"
-              }`}
+                  : "hover:bg-gray-50 border-gray-300"
+                }`}
               onClick={() => setSelectedProjectId(proj.id)}
             >
               {proj.name}
@@ -61,11 +69,15 @@ const AssignResourceModal = ({
           ))}
         </div>
         <div className="flex justify-end gap-2">
-          <button className="px-4 py-2 rounded bg-gray-100" onClick={onClose}>
+          <button
+            className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 transition"
+            onClick={onClose}
+            type="button"
+          >
             Cancel
           </button>
           <button
-            className="px-4 py-2 rounded bg-purple-600 text-white"
+            className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
             disabled={!resourceName || !selectedProjectId}
             onClick={() => {
               onAssign({
@@ -73,6 +85,7 @@ const AssignResourceModal = ({
                 projectId: selectedProjectId,
               });
             }}
+            type="button"
           >
             Assign
           </button>
