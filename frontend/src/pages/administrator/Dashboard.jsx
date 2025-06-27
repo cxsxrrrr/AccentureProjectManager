@@ -53,7 +53,7 @@ function Dashboard() {
   ];
 
   // Composición empleados
-  const employeeComposition = { men: 65, women: 35, total: 856 };
+  const employeeComposition = { men: 3, women: 1, total: 4 };
 
   // Mock de proyectos para la tabla de abajo
   const projects = [

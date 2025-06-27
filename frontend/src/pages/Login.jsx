@@ -1,7 +1,8 @@
 import React from "react";
-import accentureLogo from "../assets/accenture-logo.svg";
+// import accentureLogo from "../assets/accenture-logo.svg";
 import "../index.css";
 import LoginForm from "../components/LoginForm";
+import "../stylesheets/logo.css"
 
 export default function Login() {
   return (
@@ -12,12 +13,18 @@ export default function Login() {
         className="w-1/2 bg-purple-600 flex justify-center items-center relative rounded-r-2xl shadow-[8px_0_16px_-4px_rgba(0,0,0,0.5)]"
         data-section="login-left-panel"
       >
-        <img
+        {/* <img
           src={accentureLogo}
           alt="Accenture Logo"
           className="w-110 h-auto"
           data-element="login-logo"
-        />
+        /> */}
+        <div className="rounded-box">
+          <div className="accenture-logo">
+            <div className="bar bottom"></div>
+            <div className="bar top"></div></div>
+
+        </div>
         <h3 className="absolute text-white text-2xl font-medium pt-225 pr-190">
           © Accenture Inc.
         </h3>

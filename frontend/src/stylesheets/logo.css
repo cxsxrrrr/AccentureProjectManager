@@ -1,0 +1,42 @@
+ .accenture-logo {
+      align-items: center;
+      display:flex;
+      justify-content:center;
+      position: relative;
+      
+      margin-top: 150px;
+      transform: rotateY(140deg); /* Apunta a la izquierda */
+    }
+
+    .bar {
+      position: absolute;
+      width: 200px;
+      height: 40px;
+      transform-origin: left center;
+      clip-path: polygon(0 0, 100% 6, 100% 100%, 0% 100%);
+    }
+
+    .bar.top {
+      margin-left:-22.95px;
+      height: 40px;
+      top: 0;
+      transform: rotate(-20deg);
+      background: linear-gradient(to right, #cc00ff, #a020f0);
+      z-index: 2;
+    }
+
+    .bar.bottom {
+ 
+      top: 0px;
+      margin-left:4px;
+      transform: rotate(20deg);
+      background: linear-gradient(to right, #5f00b5, #8000ff);
+      z-index: 1;
+    }
+
+    .rounded-box {
+      width: 300px;
+      height: 350px;
+      background-color: #fff;
+      border-radius: 20px;
+    }
