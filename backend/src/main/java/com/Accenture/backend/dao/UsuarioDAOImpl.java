@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class UsuarioDAOImpl implements UsuarioDAO {
@@ -49,6 +50,43 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findAll();
     }
 
+    // Obtener usuario por cedula
+    @Override
+    public Optional<Usuario> buscarUsuarioxCedula(Long cedula) {
+        if (cedula == null) {
+            throw new IllegalArgumentException("La cédula no puede ser nula");
+        }
+        return usuarioRepository.findByCedula(cedula);
+    }
 
+    @Override
+    public Optional<Usuario> buscarUsuarioxTelefono(String telefono) {
+        return usuarioRepository.findByNumeroTelefono(telefono);
+    }
 
+    // Obtener lista de usuarios por nombre
+    @Override
+    public List<Usuario> buscarUsuariosPorNombre(String nombre) {
+        return usuarioRepository.findByNombreContainingIgnoreCase(nombre);
+    }
+
+    // Obtener usuario por email
+    @Override
+    public Optional<Usuario> buscarUsuarioPorEmail(String email) {
+        if (email == null || email.isEmpty()) {
+            throw new IllegalArgumentException("El email no puede ser nulo o vacío");
+        }
+        return usuarioRepository.findByEmail(email);
+    }
+
+    // Buscar usuario por estado (ACTIVO/INACTIVO)
+    @Override
+    public List<Usuario> buscarUsuariosPorEstado(String estado) {
+        if (estado == null || estado.isEmpty()) {
+            throw new IllegalArgumentException("El estado no puede ser nulo o vacío");
+        }
+        return usuarioRepository.findByEstado(estado);
+    }
 }
+
+
