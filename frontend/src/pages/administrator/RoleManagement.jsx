@@ -1,83 +1,72 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import CreateRoleModal from "../../components/admin/modals/Roles/CreateRoleModal";
 import UpdateRoleModal from "../../components/admin/modals/Roles/UpdateRoleModal";
 import DisableRoleModal from "../../components/admin/modals/Roles/DisableRoleModal";
 
-// --- MOCK: lista inicial de roles
-const initialRoles = [
-  {
-    id: 1,
-    name: "Admin",
-    description: "Full access to the system.",
-  },
-  {
-    id: 2,
-    name: "Manager",
-    description: "Manage users and projects.",
-  },
-  {
-    id: 3,
-    name: "Customer",
-    description: "Limited client access.",
-  },
-];
-
 function RoleManagement() {
-  // Estado para la lista de roles
-  const [roles, setRoles] = useState(initialRoles);
-
-  // Estado para seleccionar los registro que aparecen en la tabla
+  const [roles, setRoles] = useState([]);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
+  const [isCreateOpen, setCreateOpen] = useState(false);
+  const [isUpdateOpen, setUpdateOpen] = useState(false);
+  const [isDisableOpen, setDisableOpen] = useState(false);
+  const [roleToEdit, setRoleToEdit] = useState(null);
+  const [error, setError] = useState(null);
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
-  // Crear rol
-  const [isCreateOpen, setCreateOpen] = useState(false);
-  const handleOpenCreateModal = () => setCreateOpen(true);
-  const handleCloseCreateModal = () => setCreateOpen(false);
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:8080/api/roles", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Roles cargados:", response.data);
+        setRoles(response.data || []);
+      } catch (err) {
+        console.error("Error loading roles", err);
+        setError("Error loading roles.");
+      }
+    };
 
-  const handleCreateRole = (roleData) => {
-    setRoles((prev) => [
-      ...prev,
-      {
-        ...roleData,
-        id: prev.length ? Math.max(...prev.map((r) => r.id)) + 1 : 1,
-      },
-    ]);
-    handleCloseCreateModal();
-  };
+    fetchRoles();
+  }, []);
 
-  // Editar rol
-  const [isUpdateOpen, setUpdateOpen] = useState(false);
-  const [roleToEdit, setRoleToEdit] = useState(null);
-
-  const openUpdateModal = (role) => {
-    setRoleToEdit(role);
-    setUpdateOpen(true);
-  };
-
-  const closeUpdateModal = () => {
-    setUpdateOpen(false);
-    setRoleToEdit(null);
+  const handleCreateRole = async (roleData) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.post(
+        "http://localhost:8080/api/roles",
+        { ...roleData, status: "Active" },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setRoles((prev) => [...prev, response.data]);
+    } catch (err) {
+      console.error("Error creating role", err);
+      setError("Error creating role.");
+    } finally {
+      setCreateOpen(false);
+    }
   };
 
   const handleUpdateRole = (updatedRole) => {
     setRoles((prev) =>
       prev.map((r) => (r.id === roleToEdit.id ? { ...r, ...updatedRole } : r))
     );
-    closeUpdateModal();
+    setUpdateOpen(false);
+    setRoleToEdit(null);
   };
 
-  // Deshabilitar Rol
-  const [isDisableOpen, setDisableOpen] = useState(false);
-
-  const handleOpenDisableModal = () => setDisableOpen(true);
-  const handleCloseDisableModal = () => setDisableOpen(false);
-
   const handleDisableRole = (role) => {
-    // Ejemplo: marcar como inactivo en tu estado
     setRoles((prev) =>
       prev.map((r) => (r.id === role.id ? { ...r, status: "Inactive" } : r))
     );
@@ -89,99 +78,98 @@ function RoleManagement() {
       <Topbar title="Role Management">
         <TopControls
           module="role"
-          onCreate={handleOpenCreateModal}
+          onCreate={() => setCreateOpen(true)}
           onUpdate={
-            selectedRole ? () => openUpdateModal(selectedRole) : undefined
+            selectedRole
+              ? () => {
+                  setRoleToEdit(selectedRole);
+                  setUpdateOpen(true);
+                }
+              : undefined
           }
-          onDisable={handleOpenDisableModal}
+          onDisable={() => setDisableOpen(true)}
         />
       </Topbar>
 
-      {/* Modal crear rol */}
+      {error && (
+        <div className="text-center p-4 bg-red-100 text-red-700 mb-4 rounded">
+          {error}
+        </div>
+      )}
+
       <CreateRoleModal
         isOpen={isCreateOpen}
-        toggle={handleCloseCreateModal}
+        toggle={() => setCreateOpen(false)}
         onCreate={handleCreateRole}
       />
 
-      {/* Modal editar rol */}
       <UpdateRoleModal
         isOpen={isUpdateOpen}
-        toggle={closeUpdateModal}
+        toggle={() => setUpdateOpen(false)}
         role={roleToEdit}
         onUpdate={handleUpdateRole}
       />
 
       <DisableRoleModal
         isOpen={isDisableOpen}
-        toggle={handleCloseDisableModal}
+        toggle={() => setDisableOpen(false)}
         roles={roles}
-        onDisable={handleOpenDisableModal}
+        onDisable={handleDisableRole}
       />
 
-      {/* --- AQUÍ REEMPLAZAS --- */}
       <div className="admin-content mt-10">
         <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
           <thead>
             <tr>
               <th className="px-6 py-3 text-left text-gray-500 font-bold">#</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                NAME
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                DESCRIPTION
-              </th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                STATUS
-              </th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">STATUS</th>
             </tr>
           </thead>
           <tbody>
-            {roles.map((role, i) => (
-              <tr
-                key={role.id}
-                onClick={() => setSelectedRoleId(role.id)}
-                className={`
-                cursor-pointer transition
-                ${
-                  selectedRoleId === role.id
-                    ? "bg-purple-50 ring-2 ring-purple-200"
-                    : "hover:bg-gray-50"
-                }
-              `}
-              >
-                <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                <td>
-                  <span
-                    className={`
-                  px-5 py-2 rounded-xl font-bold shadow
-                  ${
-                    role.name === "Admin" ? "bg-purple-100 text-purple-700" : ""
-                  }
-                  ${role.name === "Manager" ? "bg-blue-100 text-blue-700" : ""}
-                  ${role.name === "Customer" ? "bg-red-100 text-red-600" : ""}
-                  ${
-                    role.name === "Team Member"
-                      ? "bg-green-100 text-green-600"
-                      : ""
-                  }
-                `}
-                  >
-                    {role.name}
-                  </span>
-                </td>
-                <td>
-                  <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
-                    {role.description}
-                  </span>
-                </td>
-                <td>
-                  <span className="bg-green-100 text-green-600 font-semibold rounded-full px-5 py-2 shadow text-base">
-                    Active
-                  </span>
+            {roles.length === 0 ? (
+              <tr>
+                <td colSpan={4} className="text-center py-4 text-gray-400">
+                  No roles found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              roles.map((role, i) => (
+                <tr
+                  key={role.id ?? `role-${i}`}
+                  onClick={() => setSelectedRoleId(role.id)}
+                  className={`cursor-pointer transition ${
+                    selectedRoleId === role.id
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
+                  <td>
+                    <span className="px-5 py-2 rounded-xl font-bold shadow">
+                      {role.name ?? "Unnamed"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
+                      {role.description ?? "No description"}
+                    </span>
+                  </td>
+                  <td>
+                    <span
+                      className={`px-5 py-2 rounded-full font-semibold shadow text-base ${
+                        role.status === "Inactive"
+                          ? "bg-red-100 text-red-500"
+                          : "bg-green-100 text-green-600"
+                      }`}
+                    >
+                      {role.status ?? "Active"}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
