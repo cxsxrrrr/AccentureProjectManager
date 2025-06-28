@@ -1,7 +1,6 @@
 package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.UsuarioDAO;
-
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.exception.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,16 +9,14 @@ import org.springframework.stereotype.Service;
 import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
-
+import com.Accenture.backend.domain.repository.RolRepository;
+import com.Accenture.backend.model.Rol;
 
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-
-
 
 @Service
 public class UsuarioService {
@@ -28,15 +25,25 @@ public class UsuarioService {
     private final UsuarioMapper usuarioMapper;
     private final MailSender mailSender;
     private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
 
-    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper, MailSender mailSender, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioDAO usuarioDAO,
+                         UsuarioMapper usuarioMapper,
+                         MailSender mailSender,
+                         PasswordEncoder passwordEncoder,
+                         RolRepository rolRepository) {
         this.usuarioDAO = usuarioDAO;
         this.usuarioMapper = usuarioMapper;
         this.mailSender = mailSender;
-        this.passwordEncoder = passwordEncoder; // Inicialización de passwordEncoder
+        this.passwordEncoder = passwordEncoder;
+        this.rolRepository = rolRepository;
     }
 
     public UsuarioDTO crearUsuario(UsuarioDTO dto) {
+        // Validate and set role
+        if (dto.getRol() == null || dto.getRol().getRolId() == null) {
+            throw new IllegalArgumentException("rolId es requerido");
+        }
         // Verificar si la cédula ya existe
         if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
             throw new IllegalArgumentException("La cédula ya está registrada");
@@ -56,6 +63,11 @@ public class UsuarioService {
 
         // UsuarioDTO a Usuario
         Usuario usuario = usuarioMapper.toEntity(dto);
+        // Assign role entity
+        Long rolId = dto.getRol().getRolId();
+        Rol rol = rolRepository.findById(rolId)
+                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + rolId));
+        usuario.setRol(rol);
 
         // Guardar usuario en la base de datos con contraseña encriptada
         final String rawPassword = dto.getPassword(); // Guardar la contraseña en texto plano para el correo
@@ -99,6 +111,12 @@ public class UsuarioService {
         Usuario usuarioExistente = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuarioMapper.updateUsuarioFromDto(dto, usuarioExistente);
+        // Update role if provided
+        if (dto.getRol() != null && dto.getRol().getRolId() != null) {
+            Rol rol = rolRepository.findById(dto.getRol().getRolId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + dto.getRol().getRolId()));
+            usuarioExistente.setRol(rol);
+        }
         Usuario updated = usuarioDAO.actualizarUsuario(usuarioExistente);
         return usuarioMapper.toDTO(updated);
     }
