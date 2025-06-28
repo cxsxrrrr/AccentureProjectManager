@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
  */
 
 @Entity
-@Table(name = "Recursos")
+@Table(name = "reportes")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,5 +33,25 @@ public class Reportes {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "reporte_id")
     private Long reporteId;
+
+    @Column(name = "nombre", length = 255, nullable = false)
+    private String nombre;
+
+    @Column(name = "tipo_reporte", length = 100)
+    private String tipoReporte;
+
+    @Column(name = "fecha_generado")
+    private LocalDateTime fechaGenerado;
+
+    @ManyToOne
+    @JoinColumn(name = "generado_por_id", nullable = false)
+    private Usuario generadoPor;
+
+    @ManyToOne
+    @JoinColumn(name = "proyecto_id")
+    private Proyecto proyecto;
+
+    @Column(name = "parametros", columnDefinition = "jsonb")
+    private String parametros;
 
 }
