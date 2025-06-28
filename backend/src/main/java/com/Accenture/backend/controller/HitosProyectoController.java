@@ -42,12 +42,13 @@ public class HitosProyectoController {
         return ResponseEntity.ok(hitos);
     }
 
-    // PUT Actualizar hito
-    @PutMapping
-    public ResponseEntity<HitosProyectoDTO> updateMilestone(@RequestBody HitosProyectoDTO hitoDTO) {
-        HitosProyecto hito = hitoMapper.toEntity(hitoDTO);
-        HitosProyecto actualizado = hitoService.actualizarHito(hito);
-        return ResponseEntity.ok(hitoMapper.toDTO(actualizado));
+    // PUT Actualizar hito by ID
+    @PutMapping("/{id}")
+    public ResponseEntity<HitosProyectoDTO> updateMilestone(
+            @PathVariable Long id,
+            @RequestBody HitosProyectoDTO hitoDTO) {
+        HitosProyectoDTO actualizado = hitoService.actualizarHitoById(id, hitoDTO);
+        return ResponseEntity.ok(actualizado);
     }
 
     // DELETE Eliminar hito

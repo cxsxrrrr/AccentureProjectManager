@@ -1,0 +1,39 @@
+.admin-page {
+  padding: 5px;
+  font-family: 'Sansation', sans-serif;
+  background-color: #fff;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.admin-content {
+  display: flex;
+  flex-direction: row;
+  background-color: #ffffff;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 6px 0 4px rgba(0, 0, 0, 0.05); 
+  width: 100%;
+  overflow-x: auto;
+}
+
+.admin-content.help-content {
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 10px;
+  background-color: transparent;
+}
+
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .admin-page {
+    padding: 1rem 2rem;
+  }
+}

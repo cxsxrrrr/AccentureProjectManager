@@ -14,12 +14,13 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(
         componentModel               = "spring",
         nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE,
-        unmappedTargetPolicy         = ReportingPolicy.IGNORE
+        unmappedTargetPolicy = ReportingPolicy.IGNORE
 )
 public interface UsuarioMapper {
 
     UsuarioDTO toDTO(Usuario usuario);
 
+    @org.mapstruct.Mapping(target = "rol", ignore = true)
     Usuario toEntity(UsuarioDTO usuarioDTO);
 
     void updateUsuarioFromDto(UsuarioDTO dto, @MappingTarget Usuario entity);
