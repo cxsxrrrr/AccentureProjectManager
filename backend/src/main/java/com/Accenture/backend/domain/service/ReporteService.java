@@ -2,23 +2,23 @@ package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.ReportesDAO;
 import com.Accenture.backend.domain.dto.ReportesDTO;
-import com.Accenture.backend.model.Reportes;
-import com.Accenture.backend.util.ReportesMapper;
-import com.Accenture.backend.domain.repository.UsuarioRepository;
 import com.Accenture.backend.domain.repository.ProyectoRepository;
+import com.Accenture.backend.domain.repository.UsuarioRepository;
 import com.Accenture.backend.exception.ResourceNotFoundException;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.Accenture.backend.model.Proyecto;
+import com.Accenture.backend.model.Reportes;
 import com.Accenture.backend.model.Usuario;
+import com.Accenture.backend.util.ReportExcelGenerator;
+import com.Accenture.backend.util.ReportPdfGenerator;
+import com.Accenture.backend.util.ReportesMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,50 +41,37 @@ public class ReporteService {
         this.proyectoRepository = proyectoRepository;
     }
 
-    // Crear o actualizar un reporte
     @Transactional
     public ReportesDTO guardarReporte(ReportesDTO dto) {
         Reportes entity = reportesMapper.toEntity(dto);
 
-        // Obtener Usuario completo
         Usuario usuario = usuarioRepository.findById(dto.getGeneradoPorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + dto.getGeneradoPorId()));
         entity.setGeneradoPor(usuario);
 
-        // Obtener Proyecto completo
         Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con id: " + dto.getProyectoId()));
         entity.setProyecto(proyecto);
 
-        // Asignar parámetros directamente
         entity.setParametros(dto.getParametros());
-
-        // Asignar fecha de generación
-        if (dto.getFechaGenerado() != null) {
-            entity.setFechaGenerado(dto.getFechaGenerado());
-        } else {
-            entity.setFechaGenerado(LocalDateTime.now());
-        }
+        entity.setFechaGenerado(dto.getFechaGenerado() != null ? dto.getFechaGenerado() : LocalDateTime.now());
 
         Reportes saved = reportesDAO.guardarReporte(entity);
         return reportesMapper.toDTO(saved);
     }
 
-    // Listar todos los reportes
     public List<ReportesDTO> listarReportes() {
         return reportesDAO.obtenerReportes().stream()
                 .map(reportesMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
-    // Obtener reporte por ID
     public ReportesDTO obtenerReportePorId(Long id) {
         Reportes rep = reportesDAO.buscarReportePorId(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con id: " + id));
         return reportesMapper.toDTO(rep);
     }
 
-    // Eliminar reporte
     @Transactional
     public void eliminarReporte(Long id) {
         Reportes rep = reportesDAO.buscarReportePorId(id)
@@ -92,13 +79,45 @@ public class ReporteService {
         reportesDAO.eliminarReporte(rep);
     }
 
-    // Generar reporte en Excel
     public byte[] generarReporteExcel(Long id) throws Exception {
-        return reportesDAO.generarReporteExcel(id);
+        Reportes rep = reportesDAO.buscarReportePorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con id: " + id));
+
+        Proyecto proyecto = proyectoRepository.findById(rep.getProyecto().getProyectoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con id: " + rep.getProyecto().getProyectoId()));
+
+        // Cargar relaciones: cliente y gerente
+        if (proyecto.getCliente() == null || proyecto.getCliente().getNombre() == null) {
+            proyecto.setCliente(usuarioRepository.findById(proyecto.getCliente().getUsuarioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado")));
+        }
+        if (proyecto.getGerenteProyecto() == null || proyecto.getGerenteProyecto().getNombre() == null) {
+            proyecto.setGerenteProyecto(usuarioRepository.findById(proyecto.getGerenteProyecto().getUsuarioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Gerente no encontrado")));
+        }
+
+        rep.setProyecto(proyecto);
+        return ReportExcelGenerator.generateExcel(rep);
     }
 
-    // Generar reporte en PDF
     public byte[] generarReportePdf(Long id) throws Exception {
-        return reportesDAO.generarReportePdf(id);
+        Reportes rep = reportesDAO.buscarReportePorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Reporte no encontrado con id: " + id));
+
+        Proyecto proyecto = proyectoRepository.findById(rep.getProyecto().getProyectoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con id: " + rep.getProyecto().getProyectoId()));
+
+        // Cargar relaciones: cliente y gerente
+        if (proyecto.getCliente() == null || proyecto.getCliente().getNombre() == null) {
+            proyecto.setCliente(usuarioRepository.findById(proyecto.getCliente().getUsuarioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado")));
+        }
+        if (proyecto.getGerenteProyecto() == null || proyecto.getGerenteProyecto().getNombre() == null) {
+            proyecto.setGerenteProyecto(usuarioRepository.findById(proyecto.getGerenteProyecto().getUsuarioId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Gerente no encontrado")));
+        }
+
+        rep.setProyecto(proyecto);
+        return ReportPdfGenerator.generatePdf(rep);
     }
 }
