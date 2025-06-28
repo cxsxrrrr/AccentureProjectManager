@@ -13,15 +13,11 @@ function Dashboard() {
     {
       label: "Total Employees",
       value: 856,
-      diff: "+10.0%",
-      trend: "up",
       subtitle: "Employee",
     },
     {
       label: "Resigned Employees",
       value: 17,
-      diff: "-7.0%",
-      trend: "down",
       subtitle: "Employee",
     },
   ]);
