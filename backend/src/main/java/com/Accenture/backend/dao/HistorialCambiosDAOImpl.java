@@ -1,5 +1,6 @@
 package com.Accenture.backend.dao;
 
+import com.Accenture.backend.domain.repository.ProyectoRepository;
 import com.Accenture.backend.model.HistorialCambios;
 import com.Accenture.backend.domain.repository.HistorialCambiosRepository;
 
@@ -25,8 +26,8 @@ public class HistorialCambiosDAOImpl implements HistorialCambiosDAO {
     }
 
     @Override
-    public List<HistorialCambios> mostrarCambiosxUsuarioId(Long usuarioId) {
-        return historialRepository.findByUsuarioUsuarioId(usuarioId);
+    public HistorialCambios mostrarCambiosxUsuario(Long idHistorial) {
+        return historialRepository.findById(idHistorial).orElse(null);
     }
 
     @Override

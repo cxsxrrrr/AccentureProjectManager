@@ -11,6 +11,6 @@ import java.util.List;
 
 public interface HistorialCambiosDAO {
     HistorialCambios guardarCambio(HistorialCambios historial);
-    List<HistorialCambios> mostrarCambiosxUsuarioId(Long usuarioId);
+    HistorialCambios mostrarCambiosxUsuario(Long idHistorial);
     List<HistorialCambios> mostrarCambios();
 }

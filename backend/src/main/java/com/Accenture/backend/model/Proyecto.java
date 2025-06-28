@@ -69,7 +69,5 @@ public class Proyecto {
     @JoinColumn(name = "creado_por_id", referencedColumnName = "usuarioId")
     private Usuario creadoPor;
 
-    public Proyecto(Long proyectoId) {
-        this.proyectoId = proyectoId;
-    }
+
 }

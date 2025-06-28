@@ -5,7 +5,6 @@ import com.Accenture.backend.domain.repository.ProyectoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -36,14 +35,7 @@ public class ProyectoDAOImpl implements ProyectoDAO {
     @Transactional
     @Override
     public void eliminarProyecto(Proyecto proyecto) {
-        proyectoRepository.deleteByProyectoId(proyecto.getProyectoId());
-    }
-
-    // Elimina el proyecto de la base de datos por ID
-    @Transactional
-    @Override
-    public void eliminarProyectoPorId(Long proyectoId) {
-        proyectoRepository.deleteByProyectoId(proyectoId);
+        proyectoRepository.delete(proyecto);
     }
 
     // Busca el proyecto en la base de datos Por Id
@@ -56,26 +48,5 @@ public class ProyectoDAOImpl implements ProyectoDAO {
     @Override
     public List<Proyecto> obtenerProyectos() {
         return proyectoRepository.findAll();
-    }
-
-    @Override
-    public List<Proyecto> buscarProyectosPorNombre(String nombre) {
-        return proyectoRepository.findByNombreProyectoContainingIgnoreCase(nombre);
-    }
-
-    @Override
-    public List<Proyecto> buscarProyectosPorEstado(String estado) {
-        if (estado == null || estado.isEmpty()) {
-            throw new IllegalArgumentException("El estado no puede ser nulo o vacío");
-        }
-        return proyectoRepository.findByEstadoIgnoreCase(estado);
-    }
-
-    @Override
-    public List<Proyecto> buscarProyectosPorFechaInicioEntre(LocalDate inicio, LocalDate fin) {
-        if (inicio == null || fin == null) {
-            throw new IllegalArgumentException("Las fechas de inicio y fin no pueden ser nulas");
-        }
-        return proyectoRepository.findByFechaInicioBetween(inicio, fin);
     }
 }

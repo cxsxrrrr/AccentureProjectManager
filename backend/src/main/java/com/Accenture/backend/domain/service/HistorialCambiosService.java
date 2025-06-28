@@ -11,9 +11,6 @@ import com.Accenture.backend.util.HistorialCambiosMapper;
 import com.Accenture.backend.util.UsuarioMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 public class HistorialCambiosService {
 
@@ -51,22 +48,5 @@ public class HistorialCambiosService {
         return historialMapper.toDTO(historial);
     }
 
-    public List<HistorialCambiosDTO> obtenerHistorial() {
-        // Retornamos todos los proyectos
-        return historialDAO.mostrarCambios().stream()
-                .map(historialMapper::toDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<HistorialCambiosDTO> obtenerHistorialxId(Long usuarioId) {
-        // Validar existencia de usuario
-        usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
-
-        // Obtener cambios del historial por usuario
-        return historialDAO.mostrarCambiosxUsuarioId(usuarioId).stream()
-                .map(historialMapper::toDTO)
-                .collect(Collectors.toList());
-    }
 
 }
