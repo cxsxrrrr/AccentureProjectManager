@@ -4,32 +4,19 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.io.DecodingException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-    private Key SECRET_KEY;
 
-    @PostConstruct
-    public void init() {
-        try {
-            byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
-            this.SECRET_KEY = Keys.hmacShaKeyFor(keyBytes);
-        } catch (IllegalArgumentException | DecodingException ex) {
-            // Invalid or missing secret, generate a new one
-            this.SECRET_KEY = Keys.secretKeyFor(SignatureAlgorithm.HS256);
-        }
-    }
+    private final Key SECRET_KEY = Keys.hmacShaKeyFor(
+            "01234567890123456789012345678901".getBytes(StandardCharsets.UTF_8)
+    );
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
