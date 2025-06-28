@@ -19,12 +19,8 @@ public class RolPermiso {
     @JoinColumn(name = "rol_id", nullable = false)
     private Rol rol;
 
-    @ManyToOne
-    @JoinColumn(name = "permiso_id", nullable = false)
-    private Permiso permiso;
 
-    public RolPermiso(Rol rol, Permiso permiso) {
+    public RolPermiso(Rol rol) {
         this.rol = rol;
-        this.permiso = permiso;
     }
 }
