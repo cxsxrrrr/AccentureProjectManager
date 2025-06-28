@@ -23,7 +23,6 @@ function Dashboard() {
       diff: "-7.0%",
       trend: "down",
       subtitle: "Employee",
-      
     },
   ]);
 
@@ -31,24 +30,21 @@ function Dashboard() {
   const employees = [
     {
       name: "Justin Lipshutz",
-      dept: "Marketing",
+      category: "Marketing",
       age: 22,
-      discipline: "100%",
-      status: "Permanent",
+      status: "Active",
     },
     {
       name: "Marcus Culhane",
-      dept: "Finance",
+      category: "Finance",
       age: 24,
-      discipline: "95%",
-      status: "Contract",
+      status: "Inactive",
     },
     {
       name: "Leo Stanton",
-      dept: "R&D",
+      category: "R&D",
       age: 28,
-      discipline: "89%",
-      status: "Permanent",
+      status: "Active",
     },
   ];
 
@@ -57,9 +53,9 @@ function Dashboard() {
 
   // Mock de proyectos para la tabla de abajo
   const projects = [
-    { task: "Data Analysis", dept: "IT", discipline: "100%", status: "Permanent" },
-    { task: "DBB Scheming", dept: "IT", discipline: "-14%", status: "Contract" },
-    { task: "Code Testing", dept: "R&D", discipline: "5%", status: "Permanent" },
+    { task: "Data Analysis", category: "IT", status: "Active" },
+    { task: "DBB Scheming", category: "IT", status: "Inactive" },
+    { task: "Code Testing", category: "R&D", status: "Active" },
   ];
 
   return (

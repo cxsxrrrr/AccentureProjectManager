@@ -10,7 +10,6 @@ const ProjectStatusTable = ({ data = [] }) => (
         <tr>
           <th className="text-left px-6 py-3 font-semibold">Task Name</th>
           <th className="text-left px-6 py-3 font-semibold">Department</th>
-          <th className="text-left px-6 py-3 font-semibold">Discipline</th>
           <th className="text-left px-6 py-3 font-semibold">Status</th>
         </tr>
       </thead>
@@ -20,15 +19,7 @@ const ProjectStatusTable = ({ data = [] }) => (
             <tr key={i} className="border-t">
               <td className="px-6 py-4">{e.task}</td>
               <td className="px-6 py-4">{e.dept}</td>
-              <td
-                className={`px-6 py-4 ${
-                  e.discipline.startsWith("-")
-                    ? "text-red-500"
-                    : "text-green-600"
-                }`}
-              >
-                {e.discipline}
-              </td>
+
               <td className="px-6 py-4">
                 <span
                   className={`px-4 py-2 rounded-full text-base font-bold
