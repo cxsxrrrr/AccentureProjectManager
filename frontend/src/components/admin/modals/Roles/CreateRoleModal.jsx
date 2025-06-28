@@ -3,10 +3,11 @@ import React, { useState } from "react";
 export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
   const [form, setForm] = useState({ name: "", description: "" });
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = e => {
-    setForm(f => ({ ...f, [e.target.name]: e.target.value }));
-    setErrors(e => ({ ...e, [e.target.name]: "" }));
+  const handleChange = (e) => {
+    setForm((f) => ({ ...f, [e.target.name]: e.target.value }));
+    setErrors((e) => ({ ...e, [e.target.name]: "" }));
   };
 
   const validate = () => {
@@ -17,12 +18,21 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
     return Object.keys(errs).length === 0;
   };
 
-  const handleSubmit = e => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onCreate(form);
-    toggle();
-    setForm({ name: "", description: "" });
+
+    try {
+      setIsSubmitting(true);
+      await onCreate(form); // Asegúrate de que onCreate devuelva una promesa (axios.post, por ejemplo)
+      toggle(); // Cerrar modal
+      setForm({ name: "", description: "" }); // Limpiar formulario
+    } catch (error) {
+      console.error("Error creating role:", error);
+      alert("Error al crear el rol. Verifica la consola para más detalles.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -37,46 +47,64 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
             className="ml-auto text-gray-400 hover:text-purple-600 text-2xl"
             aria-label="Close modal"
             type="button"
-          >×</button>
+          >
+            ×
+          </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-8">
           <div>
-            <label className="block text-2xl font-bold mb-2">Role Name <span className="text-red-500">*</span></label>
+            <label className="block text-2xl font-bold mb-2">
+              Role Name <span className="text-red-500">*</span>
+            </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
               placeholder="Enter role name"
-              className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 ${errors.name && "border-red-400"}`}
+              className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 ${
+                errors.name && "border-red-400"
+              }`}
               autoFocus
+              disabled={isSubmitting}
             />
-            {errors.name && <div className="text-red-500 mt-1 text-sm">{errors.name}</div>}
+            {errors.name && (
+              <div className="text-red-500 mt-1 text-sm">{errors.name}</div>
+            )}
           </div>
           <div>
-            <label className="block text-2xl font-bold mb-2">Description <span className="text-red-500">*</span></label>
+            <label className="block text-2xl font-bold mb-2">
+              Description <span className="text-red-500">*</span>
+            </label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
               placeholder="Enter role description"
               rows={5}
-              className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 resize-none ${errors.description && "border-red-400"}`}
+              className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 resize-none ${
+                errors.description && "border-red-400"
+              }`}
+              disabled={isSubmitting}
             />
-            {errors.description && <div className="text-red-500 mt-1 text-sm">{errors.description}</div>}
+            {errors.description && (
+              <div className="text-red-500 mt-1 text-sm">{errors.description}</div>
+            )}
           </div>
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="button"
               onClick={toggle}
+              disabled={isSubmitting}
               className="px-8 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium text-lg"
             >
               Cancel
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="px-8 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition text-lg shadow"
             >
-              Create
+              {isSubmitting ? "Creating..." : "Create"}
             </button>
           </div>
         </form>
