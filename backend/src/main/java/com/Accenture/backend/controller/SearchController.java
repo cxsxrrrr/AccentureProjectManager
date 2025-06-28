@@ -73,6 +73,7 @@ public class SearchController {
             proyectos = List.of();
         }
 
+
         Map<String, Object> result = new HashMap<>();
         result.put("usuarios", usuarios);
         result.put("proyectos", proyectos);

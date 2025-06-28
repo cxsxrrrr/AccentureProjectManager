@@ -17,6 +17,8 @@ public interface UsuarioDAO {
     Usuario buscarUsuarioxId(Long usuarioId);
     List<Usuario> obtenerUsuarios();
     Optional<Usuario> buscarUsuarioxCedula(Long cedula);
+    Optional<Usuario> buscarUsuarioxTelefono(String telefono);
+
 
     // Funciones de búsqueda adicionales
     List<Usuario> buscarUsuariosPorNombre(String nombre);
