@@ -116,6 +116,21 @@ function TopControls({
       ];
     }
 
+    if (module === "resourceManager") {
+      // Solo update y delete para resources (como lo quieres)
+      return [
+        <button
+          key="assign-resource"
+          className="control-button"
+          onClick={onAssignResource}
+        >
+          <img src={assignResource} alt="" className="button-icon" />
+          Assign Resource
+        </button>,
+        ...common
+      ];
+    }    
+
     if (module === "project") {
       // Solo update y delete para resources (como lo quieres)
       return [...common.slice(0, 2)];

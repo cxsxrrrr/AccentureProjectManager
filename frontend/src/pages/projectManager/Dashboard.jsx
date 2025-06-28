@@ -3,6 +3,8 @@ import ManagerStatCard from "../../components/manager/dashboard/ManagerStatCard"
 import ManagerBarChart from "../../components/manager/dashboard/ManagerBarChart";
 import ManagerDonutChart from "../../components/manager/dashboard/ManagerDonutChart";
 import ManagerEmployeeStatusTable from "../../components/manager/dashboard/ManagerEmployeeStatusTable";
+import Topbar from "../../components/common/Topbar";
+import TopControls from "../../components/common/TopControls";
 
 // Mock data basados en tus DTOs reales
 
@@ -23,8 +25,8 @@ const barData = [
 
 
 const donutData = [
-  { name: "Activo", value: 2 },
-  { name: "Inactivo", value: 1 }
+  { name: "Active", value: 2 },
+  { name: "Inactive", value: 1 }
 ];
 
 const employees = [
@@ -37,7 +39,7 @@ const employees = [
     fechaNacimiento: "2004-01-21T00:00:00",
     email: "samuel@acc.com",
     password: "noimporta",
-    estado: "Activo",
+    estado: "Active",
     fechaCreacion: "2024-04-20T09:00:00",
     ultimoAcceso: "2025-06-26T10:00:00",
     rol: { rolId: 1, nombre: "Gerente" },
@@ -55,7 +57,7 @@ const employees = [
     fechaNacimiento: "2002-06-12T00:00:00",
     email: "valen@acc.com",
     password: "noimporta",
-    estado: "Activo",
+    estado: "Active",
     fechaCreacion: "2024-03-15T11:00:00",
     ultimoAcceso: "2025-06-25T18:10:00",
     rol: { rolId: 2, nombre: "Desarrollador" },
@@ -73,7 +75,7 @@ const employees = [
     fechaNacimiento: "1999-10-11T00:00:00",
     email: "luis@acc.com",
     password: "noimporta",
-    estado: "Inactivo",
+    estado: "Inactive",
     fechaCreacion: "2024-02-01T13:00:00",
     ultimoAcceso: "2025-04-10T17:00:00",
     rol: { rolId: 3, nombre: "QA" },
@@ -86,7 +88,14 @@ const employees = [
 
 function Dashboard() {
   return (
+    <div className="">
+           <Topbar title="Dashboard">
+        <TopControls
+          module="dashboard"
+        />
+      </Topbar>
     <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
+      
       {/* Top KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <ManagerStatCard label="Total Employees" value="3" unit="Employee(s)" trend="0.0%" trendType="up" />
@@ -105,6 +114,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

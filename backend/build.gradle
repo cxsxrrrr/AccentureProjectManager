@@ -58,6 +58,11 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+
+	// Excel generation
+	implementation 'org.apache.poi:poi-ooxml:5.2.3'
+	// PDF generation
+	implementation 'com.itextpdf:itextpdf:5.5.13.3'
 }
 tasks.named('test') {
 	useJUnitPlatform()

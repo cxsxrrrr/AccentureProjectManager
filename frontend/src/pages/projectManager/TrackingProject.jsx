@@ -49,7 +49,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-05-03",
         fechaInicioReal: "2025-05-01",
         fechaFinReal: "2025-05-03",
-        peso: 0.1,
         creadoPorId: 1,
         fechaCreacion: "2025-05-01T08:00:00",
         ultimaActualizacion: "2025-05-03T17:00:00",
@@ -65,7 +64,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-06-05",
         fechaInicioReal: "2025-05-04",
         fechaFinReal: "",
-        peso: 0.5,
         creadoPorId: 1,
         fechaCreacion: "2025-05-04T10:00:00",
         ultimaActualizacion: "2025-06-05T16:30:00",
@@ -81,7 +79,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-06-15",
         fechaInicioReal: "",
         fechaFinReal: "",
-        peso: 0.2,
         creadoPorId: 1,
         fechaCreacion: "2025-06-09T10:00:00",
         ultimaActualizacion: "",
@@ -97,7 +94,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-07-15",
         fechaInicioReal: "",
         fechaFinReal: "",
-        peso: 0.2,
         creadoPorId: 1,
         fechaCreacion: "2025-07-13T11:00:00",
         ultimaActualizacion: "",
@@ -128,7 +124,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-06-03",
         fechaInicioReal: "2025-06-01",
         fechaFinReal: "2025-06-02",
-        peso: 0.2,
         creadoPorId: 2,
         fechaCreacion: "2025-06-01T09:00:00",
         ultimaActualizacion: "2025-06-02T15:00:00",
@@ -144,7 +139,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-07-10",
         fechaInicioReal: "2025-06-04",
         fechaFinReal: "",
-        peso: 0.4,
         creadoPorId: 2,
         fechaCreacion: "2025-06-04T10:00:00",
         ultimaActualizacion: "2025-06-28T12:30:00",
@@ -160,7 +154,6 @@ const mockProjects = [
         fechaFinEstimada: "2025-08-10",
         fechaInicioReal: "",
         fechaFinReal: "",
-        peso: 0.4,
         creadoPorId: 2,
         fechaCreacion: "2025-07-11T10:00:00",
         ultimaActualizacion: "",
@@ -404,9 +397,7 @@ function TrackingProject() {
                             <th className="px-4 py-3 sm:px-2 text-left text-gray-500 font-bold uppercase whitespace-nowrap">
                               Real End
                             </th>
-                            <th className="px-4 py-3 sm:px-2 text-left text-gray-500 font-bold uppercase whitespace-nowrap">
-                              Weight
-                            </th>
+
                           </tr>
                         </thead>
                         <tbody>
@@ -460,9 +451,6 @@ function TrackingProject() {
                                 </td>
                                 <td className="px-4 py-3 sm:px-2 whitespace-nowrap">
                                   {fmtDate(task.fechaFinReal)}
-                                </td>
-                                <td className="px-4 py-3 sm:px-2">
-                                  {task.peso ?? "-"}
                                 </td>
                               </tr>
                             ))

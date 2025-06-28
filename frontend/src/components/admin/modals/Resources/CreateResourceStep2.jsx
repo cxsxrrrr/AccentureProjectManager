@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
+const CreateResourceStep2 = ({ values, onBack, onCreate, onCancel }) => {
   const [local, setLocal] = useState({
     unit: values.unit || "",
     description: values.description || "",
@@ -17,6 +17,7 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
     let { name, value } = e.target;
     // Limita a 7 dígitos (solo números)
     if (name === "unit") {
+      // Quita cualquier carácter no numérico
       value = value.replace(/\D/, "");
       if (value.length > 7) value = value.slice(0, 7);
     }
@@ -25,7 +26,7 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
 
   return (
     <div>
-      <h2 className="text-3xl font-bold mb-7">Update Resource</h2>
+      <h2 className="text-3xl font-bold mb-7">Create Resource</h2>
       {/* Resource Unit */}
       <label className="block font-semibold text-lg mb-1">
         Resource Unit <span className="text-purple-600">*</span>
@@ -68,13 +69,14 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
         </button>
         <button
           className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow"
-          onClick={() => onSave(local)}
+          onClick={() => onCreate(local)}
+          disabled={!local.unit || !local.description}
         >
-          Save Change
+          Create Resource
         </button>
       </div>
     </div>
   );
 };
 
-export default UpdateResourceStep2;
+export default CreateResourceStep2;
