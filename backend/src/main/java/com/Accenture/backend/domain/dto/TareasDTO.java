@@ -5,12 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
 import java.time.LocalDate;
 
 // Librerias de la aplicación
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,13 +17,10 @@ import java.time.LocalDate;
 public class TareasDTO {
 
         private Long TareaId;
-        private string TareaName;
-        private string TareaDescription;
+        private String TareaName;
+        private String TareaDescription;
         private LocalDate fechaInicio;
         private LocalDate fechaFin;
         private LocalDate fechaFinReal;
         private String Status;
-
-
-
 }
