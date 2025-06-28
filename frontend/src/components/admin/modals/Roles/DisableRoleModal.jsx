@@ -7,19 +7,31 @@ export default function DisableRoleModal({ isOpen, toggle, roles = [], onDisable
 
   // Filtra roles activos y según búsqueda
   const filteredRoles = roles
-    .filter(r => r.status !== "Inactive")
-    .filter(r =>
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.description?.toLowerCase().includes(search.toLowerCase())
-    );
+  .filter(r => r && r.name && r.status !== "Inactive")
+  .filter(r =>
+    r.name.toLowerCase().includes(search.toLowerCase()) ||
+    (r.description?.toLowerCase() || "").includes(search.toLowerCase())
+  );
 
-  const handleDisable = () => {
-    if (selectedId) {
-      const role = roles.find(r => r.id === selectedId);
-      onDisable && onDisable(role);
-      toggle();
-    }
-  };
+ const handleDisableRole = async (role) => {
+  try {
+    const token = localStorage.getItem("token");
+    await axios.patch(`http://localhost:8080/api/roles/${role.id}/disable`, null, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    setRoles((prev) =>
+      prev.map((r) => (r.id === role.id ? { ...r, status: "Inactive" } : r))
+    );
+  } catch (err) {
+    console.error("Error disabling role:", err);
+    setError("Failed to disable role.");
+  } finally {
+    setDisableOpen(false);
+  }
+};
 
   // Reset al abrir/cerrar
   React.useEffect(() => {

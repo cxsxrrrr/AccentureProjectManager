@@ -9,86 +9,61 @@ import DisableRoleModal from "../../components/admin/modals/Roles/DisableRoleMod
 function RoleManagement() {
   const [roles, setRoles] = useState([]);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
-  const selectedRole = roles.find((r) => r.id === selectedRoleId);
-
-  // Modales
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isUpdateOpen, setUpdateOpen] = useState(false);
-  const [roleToEdit, setRoleToEdit] = useState(null);
   const [isDisableOpen, setDisableOpen] = useState(false);
-
-  // Estado para carga y error
-  const [isLoading, setIsLoading] = useState(false);
+  const [roleToEdit, setRoleToEdit] = useState(null);
   const [error, setError] = useState(null);
 
+  const selectedRole = roles.find((r) => r.id === selectedRoleId);
+
   useEffect(() => {
-    loadRoles();
-  }, []);
-
-  const loadRoles = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found. Please login.");
-        return;
+    const fetchRoles = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:8080/api/roles", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Roles cargados:", response.data);
+        setRoles(response.data || []);
+      } catch (err) {
+        console.error("Error loading roles", err);
+        setError("Error loading roles.");
       }
+    };
 
-      const response = await axios.get("http://localhost:8080/api/roles", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setRoles(response.data);
-    } catch (error) {
-      console.error("Error loading roles:", error);
-      setError("Error loading roles. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    fetchRoles();
+  }, []);
 
   const handleCreateRole = async (roleData) => {
     try {
-      setError(null);
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No authentication token found. Please login.");
-        return;
-      }
-
       const response = await axios.post(
         "http://localhost:8080/api/roles",
         { ...roleData, status: "Active" },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       setRoles((prev) => [...prev, response.data]);
-    } catch (error) {
-      console.error("Error creating role:", error);
-      setError("Error creating role. Please try again.");
+    } catch (err) {
+      console.error("Error creating role", err);
+      setError("Error creating role.");
     } finally {
       setCreateOpen(false);
     }
-  };
-
-  const openUpdateModal = (role) => {
-    setRoleToEdit(role);
-    setUpdateOpen(true);
-  };
-
-  const closeUpdateModal = () => {
-    setUpdateOpen(false);
-    setRoleToEdit(null);
   };
 
   const handleUpdateRole = (updatedRole) => {
     setRoles((prev) =>
       prev.map((r) => (r.id === roleToEdit.id ? { ...r, ...updatedRole } : r))
     );
-    closeUpdateModal();
+    setUpdateOpen(false);
+    setRoleToEdit(null);
   };
 
   const handleDisableRole = (role) => {
@@ -104,7 +79,14 @@ function RoleManagement() {
         <TopControls
           module="role"
           onCreate={() => setCreateOpen(true)}
-          onUpdate={selectedRole ? () => openUpdateModal(selectedRole) : undefined}
+          onUpdate={
+            selectedRole
+              ? () => {
+                  setRoleToEdit(selectedRole);
+                  setUpdateOpen(true);
+                }
+              : undefined
+          }
           onDisable={() => setDisableOpen(true)}
         />
       </Topbar>
@@ -123,7 +105,7 @@ function RoleManagement() {
 
       <UpdateRoleModal
         isOpen={isUpdateOpen}
-        toggle={closeUpdateModal}
+        toggle={() => setUpdateOpen(false)}
         role={roleToEdit}
         onUpdate={handleUpdateRole}
       />
@@ -136,22 +118,26 @@ function RoleManagement() {
       />
 
       <div className="admin-content mt-10">
-        {isLoading ? (
-          <div className="text-center py-10 text-gray-500">Loading roles...</div>
-        ) : (
-          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
-            <thead>
+        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
+          <thead>
+            <tr>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">#</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
+              <th className="px-6 py-3 text-left text-gray-500 font-bold">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {roles.length === 0 ? (
               <tr>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">#</th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">STATUS</th>
+                <td colSpan={4} className="text-center py-4 text-gray-400">
+                  No roles found.
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {roles.map((role, i) => (
+            ) : (
+              roles.map((role, i) => (
                 <tr
-                  key={role.id}
+                  key={role.id ?? `role-${i}`}
                   onClick={() => setSelectedRoleId(role.id)}
                   className={`cursor-pointer transition ${
                     selectedRoleId === role.id
@@ -161,19 +147,13 @@ function RoleManagement() {
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
                   <td>
-                    <span
-                      className={`px-5 py-2 rounded-xl font-bold shadow ${
-                        role.name === "Admin" ? "bg-purple-100 text-purple-700" : ""
-                      } ${role.name === "Manager" ? "bg-blue-100 text-blue-700" : ""}
-                      ${role.name === "Customer" ? "bg-red-100 text-red-600" : ""}
-                      ${role.name === "Team Member" ? "bg-green-100 text-green-600" : ""}`}
-                    >
-                      {role.name}
+                    <span className="px-5 py-2 rounded-xl font-bold shadow">
+                      {role.name ?? "Unnamed"}
                     </span>
                   </td>
                   <td>
                     <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
-                      {role.description}
+                      {role.description ?? "No description"}
                     </span>
                   </td>
                   <td>
@@ -184,14 +164,14 @@ function RoleManagement() {
                           : "bg-green-100 text-green-600"
                       }`}
                     >
-                      {role.status || "Active"}
+                      {role.status ?? "Active"}
                     </span>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
