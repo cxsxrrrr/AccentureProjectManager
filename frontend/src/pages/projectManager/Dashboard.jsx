@@ -3,6 +3,8 @@ import ManagerStatCard from "../../components/manager/dashboard/ManagerStatCard"
 import ManagerBarChart from "../../components/manager/dashboard/ManagerBarChart";
 import ManagerDonutChart from "../../components/manager/dashboard/ManagerDonutChart";
 import ManagerEmployeeStatusTable from "../../components/manager/dashboard/ManagerEmployeeStatusTable";
+import Topbar from "../../components/common/Topbar";
+import TopControls from "../../components/common/TopControls";
 
 // Mock data basados en tus DTOs reales
 
@@ -86,7 +88,14 @@ const employees = [
 
 function Dashboard() {
   return (
+    <div className="">
+           <Topbar title="Dashboard">
+        <TopControls
+          module="dashboard"
+        />
+      </Topbar>
     <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
+      
       {/* Top KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <ManagerStatCard label="Total Employees" value="3" unit="Employee(s)" trend="0.0%" trendType="up" />
@@ -105,6 +114,7 @@ function Dashboard() {
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }
