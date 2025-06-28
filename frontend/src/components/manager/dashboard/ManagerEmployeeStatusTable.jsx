@@ -16,8 +16,7 @@ const ManagerEmployeeStatusTable = ({ employees }) => (
         {employees.map((emp, i) => (
           <tr key={i} className="border-t">
             <td className="px-2 py-2 flex items-center gap-2">
-              <img src={emp.avatar} className="w-6 h-6 rounded-full" alt="avatar"/>
-              <span className="font-medium">{emp.name}</span>
+              <span className="font-medium">{emp.nombre} {emp.apellido}</span>
             </td>
             <td className="px-2 py-2">{emp.department}</td>
             <td className="px-2 py-2 text-center">{emp.age}</td>

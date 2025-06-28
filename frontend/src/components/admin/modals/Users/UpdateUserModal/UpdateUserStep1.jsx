@@ -54,6 +54,13 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
     onNext(local);
   };
 
+    const handleSizeValue = (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    if (val.length < 9) {
+      handleChange(e); // Tu función normal
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 relative animate-fade-in">
       <div className="flex items-center mb-6 gap-3">
@@ -147,9 +154,9 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
               <input
                 name="cedula"
                 value={local.cedula}
-                onChange={handleChange}
+                onChange={handleSizeValue}
                 required
-                type="text"
+                type="number"
                 className="mb-2 border rounded w-full px-3 py-2"
               />
             </label>

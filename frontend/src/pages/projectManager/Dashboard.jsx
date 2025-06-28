@@ -25,8 +25,8 @@ const barData = [
 
 
 const donutData = [
-  { name: "Activo", value: 2 },
-  { name: "Inactivo", value: 1 }
+  { name: "Active", value: 2 },
+  { name: "Inactive", value: 1 }
 ];
 
 const employees = [
@@ -39,7 +39,7 @@ const employees = [
     fechaNacimiento: "2004-01-21T00:00:00",
     email: "samuel@acc.com",
     password: "noimporta",
-    estado: "Activo",
+    estado: "Active",
     fechaCreacion: "2024-04-20T09:00:00",
     ultimoAcceso: "2025-06-26T10:00:00",
     rol: { rolId: 1, nombre: "Gerente" },
@@ -57,7 +57,7 @@ const employees = [
     fechaNacimiento: "2002-06-12T00:00:00",
     email: "valen@acc.com",
     password: "noimporta",
-    estado: "Activo",
+    estado: "Active",
     fechaCreacion: "2024-03-15T11:00:00",
     ultimoAcceso: "2025-06-25T18:10:00",
     rol: { rolId: 2, nombre: "Desarrollador" },
@@ -75,7 +75,7 @@ const employees = [
     fechaNacimiento: "1999-10-11T00:00:00",
     email: "luis@acc.com",
     password: "noimporta",
-    estado: "Inactivo",
+    estado: "Inactive",
     fechaCreacion: "2024-02-01T13:00:00",
     ultimoAcceso: "2025-04-10T17:00:00",
     rol: { rolId: 3, nombre: "QA" },
