@@ -10,7 +10,15 @@ import com.Accenture.backend.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.Accenture.backend.model.Proyecto;
+import com.Accenture.backend.model.Usuario;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,6 +28,8 @@ public class ReporteService {
     private final ReportesMapper reportesMapper;
     private final UsuarioRepository usuarioRepository;
     private final ProyectoRepository proyectoRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(ReporteService.class);
 
     public ReporteService(ReportesDAO reportesDAO,
                           ReportesMapper reportesMapper,
@@ -35,17 +45,27 @@ public class ReporteService {
     @Transactional
     public ReportesDTO guardarReporte(ReportesDTO dto) {
         Reportes entity = reportesMapper.toEntity(dto);
-        // Asignar relaciones
-        usuarioRepository.findById(dto.getGeneradoPorId())
+
+        // Obtener Usuario completo
+        Usuario usuario = usuarioRepository.findById(dto.getGeneradoPorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con id: " + dto.getGeneradoPorId()));
-        entity.setGeneradoPor(usuarioRepository.getById(dto.getGeneradoPorId()));
-        proyectoRepository.findById(dto.getProyectoId())
+        entity.setGeneradoPor(usuario);
+
+        // Obtener Proyecto completo
+        Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())
                 .orElseThrow(() -> new ResourceNotFoundException("Proyecto no encontrado con id: " + dto.getProyectoId()));
-        entity.setProyecto(proyectoRepository.getById(dto.getProyectoId()));
-        // FechaGenerado puede venir en dto o asignarse aquí
+        entity.setProyecto(proyecto);
+
+        // Asignar parámetros directamente
+        entity.setParametros(dto.getParametros());
+
+        // Asignar fecha de generación
         if (dto.getFechaGenerado() != null) {
             entity.setFechaGenerado(dto.getFechaGenerado());
+        } else {
+            entity.setFechaGenerado(LocalDateTime.now());
         }
+
         Reportes saved = reportesDAO.guardarReporte(entity);
         return reportesMapper.toDTO(saved);
     }
