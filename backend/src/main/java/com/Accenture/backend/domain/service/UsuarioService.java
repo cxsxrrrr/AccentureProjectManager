@@ -42,6 +42,18 @@ public class UsuarioService {
             throw new IllegalArgumentException("La cédula ya está registrada");
         }
 
+        if (usuarioDAO.buscarUsuarioPorEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado");
+        }
+
+        if (usuarioDAO.buscarUsuarioPorEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado");
+        }
+
+        if (usuarioDAO.buscarUsuarioxTelefono(dto.getNumeroTelefono()).isPresent()) {
+            throw new IllegalArgumentException("El numero de telefono ya está registrado");
+        }
+
         // UsuarioDTO a Usuario
         Usuario usuario = usuarioMapper.toEntity(dto);
 
