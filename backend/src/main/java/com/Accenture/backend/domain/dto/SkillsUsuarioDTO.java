@@ -9,8 +9,8 @@ import lombok.Builder;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CategoriaUsuarioDTO {
+public class SkillsUsuarioDTO {
+    private Long skillUsuarioId;
+    private Long skillId;
     private Long usuarioId;
-    private Long categoriaId;
-    private String experiencia;
 }
