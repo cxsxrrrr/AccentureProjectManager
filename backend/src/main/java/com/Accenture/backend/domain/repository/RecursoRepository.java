@@ -13,6 +13,8 @@ import java.util.List;
 public interface RecursoRepository extends JpaRepository<Recurso, Long> {
     // Métodos de búsqueda personalizados
     List<Recurso> findByNombreRecursoContainingIgnoreCase(String nombre);
-    List<Recurso> findByEstadoIgnoreCase(String estado);
+    List<Recurso> findByDisponibilidadIgnoreCase(String disponibilidad);
 
+    // Búsqueda por disponibilidad parcial (case-insensitive)
+    List<Recurso> findByDisponibilidadContainingIgnoreCase(String disponibilidad);
 }

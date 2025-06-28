@@ -17,11 +17,22 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 )
 public interface RecursoMapper {
 
+    @org.mapstruct.Mapping(source = "disponibilidad", target = "estado")
+    @org.mapstruct.Mapping(source = "costo", target = "coste")
+    @org.mapstruct.Mapping(source = "proyecto.proyectoId", target = "proyectoId")
+    @org.mapstruct.Mapping(target = "gerenteProyecto", ignore = true)
+    @org.mapstruct.Mapping(target = "creadoPor", ignore = true)
     RecursoDTO toDTO(Recurso recurso);
 
+    @org.mapstruct.Mapping(target = "recursoId", ignore = true)
+    @org.mapstruct.Mapping(source = "estado", target = "disponibilidad")
+    @org.mapstruct.Mapping(source = "coste", target = "costo")
+    @org.mapstruct.Mapping(source = "proyectoId", target = "proyecto.proyectoId")
     Recurso toEntity(RecursoDTO recursoDTO);
 
-    @Mapping(target = "gerenteProyecto", ignore = true)
-    @Mapping(target = "creadoPor", ignore = true)
-    void updateRecursoFromDto(RecursoDTO dto, @MappingTarget recurso entity);
+    @org.mapstruct.Mapping(target = "recursoId", ignore = true)
+    @org.mapstruct.Mapping(source = "estado", target = "disponibilidad")
+    @org.mapstruct.Mapping(source = "coste", target = "costo")
+    @org.mapstruct.Mapping(target = "proyecto", ignore = true)
+    void updateRecursoFromDto(RecursoDTO dto, @MappingTarget Recurso entity);
 }

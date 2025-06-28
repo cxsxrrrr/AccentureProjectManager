@@ -73,17 +73,6 @@ public class SearchController {
             proyectos = List.of();
         }
 
-        // Recursos: Aplicar filtro solo si afecta a proyectos o miembros
-        List<RecursoDTO> recurso;
-        if (!anyFilter) {
-            recurso = recursoService.obtenerTodosLosRecursos();
-        } else if (!q.isBlank()) {
-            recurso = recursoService.buscarRecursosPorNombre(q);
-        } else if (estadoRecurso != null && !estadoRecurso.isBlank()) {
-            recurso = recursoService.buscarRecursosPorEstado(estadoRecurso);
-        }  else {
-            recurso = List.of();
-        }
 
         Map<String, Object> result = new HashMap<>();
         result.put("usuarios", usuarios);

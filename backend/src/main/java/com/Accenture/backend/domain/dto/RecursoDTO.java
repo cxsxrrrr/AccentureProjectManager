@@ -1,6 +1,5 @@
 package com.Accenture.backend.domain.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -21,6 +20,7 @@ public class RecursoDTO {
     private String estado;
     private String coste;
     private String tipo;
+    private Long proyectoId;
     private UsuarioDTO gerenteProyecto;
     private UsuarioDTO creadoPor;
     private LocalDateTime fechaCreacion;

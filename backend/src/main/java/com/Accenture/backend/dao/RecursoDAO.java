@@ -1,4 +1,4 @@
-ackage com.Accenture.backend.dao;
+package com.Accenture.backend.dao;
 
 import com.Accenture.backend.model.Recurso;
 
@@ -13,9 +13,10 @@ import java.util.List;
 public interface RecursoDAO {
     Recurso guardarRecurso(Recurso recurso);
     Recurso actualizarRecurso(Recurso recurso);
-    void eliminarRecurso(Recurso recurso));
+    void eliminarRecurso(Recurso recurso);
     Recurso buscarRecursoxId(Long idRecurso);
     List<Recurso> obtenerRecursos();
+
 
     // Funciones de búsqueda adicionales
     List<Recurso> buscarRecursosPorNombre(String nombre);

@@ -41,14 +41,14 @@ public class RecursoDAOImpl implements RecursoDAO {
 
     // Busca el recurso en la base de datos x ID
     @Override
-    public Recurso buscarRecursoxID(Long idRecurso) {
+    public Recurso buscarRecursoxId(Long idRecurso) {
         return recursoRepository.findById(idRecurso).orElse(null);
     }
 
     // Busca los recursos por nombres
     @Override
     public List<Recurso> buscarRecursosPorNombre(String nombre) {
-        return proyectoRepository.findByNombreProyectoContainingIgnoreCase(nombre);
+        return recursoRepository.findByNombreRecursoContainingIgnoreCase(nombre);
     }
 
     // Busca los recursos por estado
@@ -57,13 +57,20 @@ public class RecursoDAOImpl implements RecursoDAO {
         if (estado == null || estado.isEmpty()) {
             throw new IllegalArgumentException("El estado no puede ser nulo o vacío");
         }
-        return recursoRepository.findByEstadoIgnoreCase(estado);
+        return recursoRepository.findByDisponibilidadIgnoreCase(estado);
     }
 
 
     // Obtener una lista con los recursos
     @Override
-    public List<Recurso> obtenerRecurso() {
+    public List<Recurso> obtenerRecursos() {
         return recursoRepository.findAll();
+    }
+
+    // Eliminar recurso por ID directamente
+    @Transactional
+    @Override
+    public void eliminarRecursoxID(Long recursoId) {
+        recursoRepository.deleteById(recursoId);
     }
 }
