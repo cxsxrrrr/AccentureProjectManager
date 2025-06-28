@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import com.Accenture.backend.util.ReportExcelGenerator;
+import com.Accenture.backend.util.ReportPdfGenerator;
 
 @Repository
 public class ReportesDAOImpl implements ReportesDAO {
@@ -42,8 +44,8 @@ public class ReportesDAOImpl implements ReportesDAO {
     public byte[] generarReporteExcel(Long reporteId) throws Exception {
         Reportes rep = reportesRepository.findById(reporteId)
                 .orElseThrow(() -> new IllegalArgumentException("Reporte no encontrado con id: " + reporteId));
-        // TODO: Implementar generación de Excel usando Apache POI u otra librería
-        return new byte[0];
+        // Delegate to utility
+        return ReportExcelGenerator.generateExcel(rep);
     }
 
     @Override
@@ -51,7 +53,7 @@ public class ReportesDAOImpl implements ReportesDAO {
     public byte[] generarReportePdf(Long reporteId) throws Exception {
         Reportes rep = reportesRepository.findById(reporteId)
                 .orElseThrow(() -> new IllegalArgumentException("Reporte no encontrado con id: " + reporteId));
-        // TODO: Implementar generación de PDF usando iText o PDFBox
-        return new byte[0];
+        // Delegate to utility
+        return ReportPdfGenerator.generatePdf(rep);
     }
 }
