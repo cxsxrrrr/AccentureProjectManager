@@ -18,21 +18,29 @@ function RoleManagement() {
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
   useEffect(() => {
-    const fetchRoles = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8080/api/roles", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Roles cargados:", response.data);
-        setRoles(response.data || []);
-      } catch (err) {
-        console.error("Error loading roles", err);
-        setError("Error loading roles.");
-      }
-    };
+  const fetchRoles = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:8080/api/roles", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("Roles cargados:", response.data);
+
+      const mappedRoles = response.data.map((r) => ({
+        id: r.rolId,
+        name: r.nombre,
+        description: r.descripcion,
+        status: "Active", // Ajusta si tu backend tiene otro campo para estado
+      }));
+
+      setRoles(mappedRoles);
+    } catch (err) {
+      console.error("Error loading roles", err);
+      setError("Error loading roles.");
+    }
+  };
 
     fetchRoles();
   }, []);
