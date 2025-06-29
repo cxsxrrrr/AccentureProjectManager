@@ -368,12 +368,12 @@ function CategoriesandSkills() {
               </tr>
             </thead>
             <tbody>
-            {categories.map((cat, i) => (
+            {categories.map((categoriaId, i) => (
               <tr
-                key={cat.id}  // <--- Aquí tienes key, parece correcto
-                onClick={() => setSelectedCategoryId(cat.id)}
+                key={categoriaId}  // <--- Aquí tienes key, parece correcto
+                onClick={() => setSelectedCategoryId(categoriaId)}
                 className={`cursor-pointer transition ${
-                  selectedCategoryId === cat.id
+                  selectedCategoryId === categoriaId
                     ? "bg-purple-50 ring-2 ring-purple-200"
                     : "hover:bg-gray-50"
                 }`}
