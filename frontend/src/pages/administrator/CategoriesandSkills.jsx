@@ -368,20 +368,21 @@ function CategoriesandSkills() {
               </tr>
             </thead>
             <tbody>
-            {categories.map((categoriaId, i) => (
+            {categories.map((category, i) => (
               <tr
-                key={categoriaId}  // <--- Aquí tienes key, parece correcto
-                onClick={() => setSelectedCategoryId(categoriaId)}
+                key={category.categoriaId}  // usa la propiedad que el backend te está enviando
+                onClick={() => setSelectedCategoryId(category.categoriaId)}
                 className={`cursor-pointer transition ${
-                  selectedCategoryId === categoriaId
+                  selectedCategoryId === category.categoriaId
                     ? "bg-purple-50 ring-2 ring-purple-200"
                     : "hover:bg-gray-50"
                 }`}
               >
-                {/* contenido */}
+                <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
+                <td className="px-6 py-4 font-semibold text-lg">{category.name}</td>
+                <td className="px-6 py-4">{category.description}</td>
               </tr>
             ))}
-
             </tbody>
           </table>
         ) : (
