@@ -112,6 +112,10 @@ public class UsuarioService {
         Usuario usuarioExistente = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuarioMapper.updateUsuarioFromDto(dto, usuarioExistente);
+        // Encrypt new password if provided
+        if (dto.getPassword() != null && !dto.getPassword().isEmpty()) {
+            usuarioExistente.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
         // Actualizar rol solo si viene en el DTO y tiene rolId
         if (dto.getRol() != null && dto.getRol().getRolId() != null) {
             Rol rol = rolRepository.findById(dto.getRol().getRolId())
@@ -212,6 +216,7 @@ public class UsuarioService {
         }
         // Generar nueva contraseña aleatoria segura
         String nuevaPassword = generarPasswordSegura();
+        // Encrypt and set new password
         usuario.setPassword(passwordEncoder.encode(nuevaPassword));
         usuario.setEstado("ACTIVO");
         usuario.setIntentosLogin(0);

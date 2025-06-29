@@ -11,4 +11,5 @@ public interface CategoriaUsuarioRepository extends JpaRepository<CategoriaUsuar
         Long categoriaId
     );
     List<CategoriaUsuario> findAllByCategoria_CategoriaId(Long categoriaId);
+    List<CategoriaUsuario> findAllByUsuario_UsuarioId(Long usuarioId);
 }
