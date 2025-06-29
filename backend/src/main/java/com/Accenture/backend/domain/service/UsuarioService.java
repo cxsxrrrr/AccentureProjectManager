@@ -156,4 +156,81 @@ public class UsuarioService {
                 .collect(Collectors.toList());
     }
 
+    // Login con control de intentos fallidos
+    public UsuarioDTO login(String email, String password) {
+        Usuario usuario = usuarioDAO.buscarUsuarioPorEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con email: " + email));
+        if (usuario.getEstado() != null && usuario.getEstado().equalsIgnoreCase("INACTIVO")) {
+            throw new IllegalArgumentException("Usuario inactivo. Contacte al administrador.");
+        }
+        if (!passwordEncoder.matches(password, usuario.getPassword())) {
+            // !!! Intentos fallidos
+            int intentos = usuario.getIntentosLogin() + 1;
+            usuario.setIntentosLogin(intentos);
+            if (intentos >= 3) {
+                usuario.setEstado("INACTIVO");
+            }
+            usuarioDAO.actualizarUsuario(usuario);
+            throw new IllegalArgumentException("Credenciales incorrectas. Intentos fallidos: " + intentos);
+        } else {
+            // Login exitoso: resetear intentos
+            usuario.setIntentosLogin(0);
+            usuarioDAO.actualizarUsuario(usuario);
+        }
+        return usuarioMapper.toDTO(usuario);
+    }
+
+    // Control de intentos fallidos para integración con AuthController
+    public void registrarIntentoLoginFallido(Long cedula) {
+        Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
+                .orElse(null);
+        if (usuario != null) {
+            int intentos = usuario.getIntentosLogin() + 1;
+            usuario.setIntentosLogin(intentos);
+            if (intentos >= 3) {
+                usuario.setEstado("INACTIVO");
+            }
+            usuarioDAO.actualizarUsuario(usuario);
+        }
+    }
+
+    public void resetearIntentosLogin(Long cedula) {
+        Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
+                .orElse(null);
+        if (usuario != null && usuario.getIntentosLogin() > 0) {
+            usuario.setIntentosLogin(0);
+            usuarioDAO.actualizarUsuario(usuario);
+        }
+    }
+
+    // Recuperación de contraseña: genera nueva, la envía y reactiva usuario
+    public boolean recuperarPasswordPorEmail(String email) {
+        Usuario usuario = usuarioDAO.buscarUsuarioPorEmail(email)
+                .orElse(null);
+        if (usuario == null) {
+            return false;
+        }
+        // Generar nueva contraseña aleatoria segura
+        String nuevaPassword = generarPasswordSegura();
+        usuario.setPassword(passwordEncoder.encode(nuevaPassword));
+        usuario.setEstado("ACTIVO");
+        usuario.setIntentosLogin(0);
+        usuarioDAO.actualizarUsuario(usuario);
+        // Enviar correo con la nueva contraseña
+        mailSender.sendWelcomeEmail(usuario.getEmail(), String.valueOf(usuario.getCedula()), nuevaPassword);
+        return true;
+    }
+
+    // Utilidad para generar contraseñas seguras
+    private String generarPasswordSegura() {
+        int length = 10;
+        String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*";
+        StringBuilder sb = new StringBuilder();
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        for (int i = 0; i < length; i++) {
+            sb.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return sb.toString();
+    }
+
 }

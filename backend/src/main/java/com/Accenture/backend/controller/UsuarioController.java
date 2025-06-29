@@ -62,4 +62,15 @@ public class UsuarioController {
         return ResponseEntity.ok(actualizado);
     }
 
+    // Endpoint para login (maneja intentos fallidos)
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UsuarioDTO loginDTO) {
+        try {
+            UsuarioDTO usuario = usuarioService.login(loginDTO.getEmail(), loginDTO.getPassword());
+            return ResponseEntity.ok(usuario);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
+    }
+
 }

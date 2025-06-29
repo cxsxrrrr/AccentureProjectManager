@@ -36,8 +36,13 @@ public class UsuarioRolController {
 
     // Crear una nueva relación usuario-rol
     @PostMapping
-    public UsuarioRol crearUsuarioRol(@RequestBody UsuarioRol usuarioRol) {
-        return usuarioRolService.guardarUsuarioRol(usuarioRol);
+    public ResponseEntity<?> crearUsuarioRol(@RequestBody UsuarioRol usuarioRol) {
+        try {
+            UsuarioRol creado = usuarioRolService.guardarUsuarioRol(usuarioRol);
+            return ResponseEntity.ok(creado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // Actualizar una relación usuario-rol existente

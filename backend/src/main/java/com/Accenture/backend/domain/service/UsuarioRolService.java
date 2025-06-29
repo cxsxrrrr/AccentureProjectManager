@@ -15,7 +15,7 @@ public class UsuarioRolService {
         this.usuarioRolDAO = usuarioRolDAO;
     }
 
-    // Guarda o actualiza una relación UsuarioRol
+    // Guarda o actualiza una relación UsuarioRol (sin restricción de un solo rol por usuario)
     public UsuarioRol guardarUsuarioRol(UsuarioRol usuarioRol) {
         return usuarioRolDAO.guardarUsuarioRol(usuarioRol);
     }
