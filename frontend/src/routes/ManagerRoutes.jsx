@@ -8,6 +8,7 @@ import GenerateReport from "../pages/projectManager/GenerateReport";
 import ManagerHelp from "../pages/projectManager/Help";
 import ProjectManagement from "../pages/projectManager/ProjectManagement";
 import ResourcesManagement from "../pages/projectManager/ResourcesManagement";
+import ProjectMilestones from "../pages/projectManager/ProjectMilestones";
 import TaskManagement from "../pages/projectManager/TaskManagement";
 import TeamManagement from "../pages/projectManager/TeamManagement";
 import TrackingProject from "../pages/projectManager/TrackingProject";
@@ -22,6 +23,7 @@ const ManagerRoutes = () => (
             <Route path="help" element={<ManagerHelp />} />
             <Route path="projectmanagement" element={<ProjectManagement />} />
             <Route path="resourcesmanagement" element={<ResourcesManagement />} />
+            <Route path="projectmilestones" element={<ProjectMilestones />} />
             <Route path="taskmanagement" element={<TaskManagement />} />
             <Route path="teammanagement" element={<TeamManagement />} />
             <Route path="trackingproject" element={<TrackingProject />} />

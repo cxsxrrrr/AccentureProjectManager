@@ -13,5 +13,6 @@ import lombok.NoArgsConstructor;
 public class CategoriaDTO {
     private Long categoriaId;
     private String nombre;
+    private String estado;
     private String descripcion;
 }

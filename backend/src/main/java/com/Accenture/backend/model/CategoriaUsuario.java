@@ -25,6 +25,4 @@ public class CategoriaUsuario {
     @JoinColumn(name = "categoria_id", nullable = false)
     private Categoria categoria;
 
-    private String experiencia;
-
 }

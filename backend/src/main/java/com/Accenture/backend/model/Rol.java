@@ -20,6 +20,8 @@ public class Rol {
     @Column(name = "rol_id")
     private Long rolId;
 
+    private String estado;
+
     @Column(name = "nombre", nullable = false, unique = true)
     private String nombre;
 
@@ -69,5 +71,13 @@ public class Rol {
 
     public void setPermisos(Set<RolPermiso> permisos) {
         this.permisos = permisos;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

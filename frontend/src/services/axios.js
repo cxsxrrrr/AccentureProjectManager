@@ -2,7 +2,9 @@ import axios from 'axios';
 
 // Configuración base de la API
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
+  // En desarrollo, usar el proxy de Vite (sin baseURL completa)
+  // En producción, usar la URL completa del backend
+  baseURL: import.meta.env.DEV ? '/api' : 'http://localhost:8080/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

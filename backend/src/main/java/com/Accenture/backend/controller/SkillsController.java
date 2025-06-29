@@ -1,6 +1,7 @@
 package com.Accenture.backend.controller;
 
 import com.Accenture.backend.domain.dto.SkillsDTO;
+import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.domain.service.SkillsService;
 import org.springframework.http.ResponseEntity;
 
@@ -23,6 +24,13 @@ public class SkillsController {
 
     public SkillsController(SkillsService skillsService) {
         this.skillsService = skillsService;
+    }
+
+    // Obtener usuarios asociados a una skill
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<UsuarioDTO>> getUsersBySkill(@PathVariable("id") Long id) {
+        List<UsuarioDTO> users = skillsService.obtenerUsuariosPorSkill(id);
+        return ResponseEntity.ok(users);
     }
 
     // Crear Skill

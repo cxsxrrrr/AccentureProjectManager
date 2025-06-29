@@ -3,7 +3,7 @@ package com.Accenture.backend.domain.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,25 +19,24 @@ public class UsuarioDTO {
     private Long usuarioId;
     private String nombre;
     private String apellido;
-    private RolDTO rolUsuario;
-    //JsonProperty para no mostrar datos delicados en la peticion
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private RolDTO rol;
+    
     private Long cedula;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private char genero;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private LocalDate fechaNacimiento;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private String numeroTelefono;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private String email;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private String password;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private String estado;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private LocalDateTime fechaCreacion;
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private LocalDateTime ultimoAcceso;
 
 

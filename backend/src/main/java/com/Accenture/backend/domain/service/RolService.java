@@ -9,4 +9,6 @@ public interface RolService {
     RolDTO guardarRol(RolDTO rolDTO);
     List<RolDTO> listarRoles();
     Optional<RolDTO> buscarPorNombre(String nombre);
+    Optional<RolDTO> buscarPorId(Long id);
+    RolDTO actualizarRol(RolDTO rolDTO);
 }

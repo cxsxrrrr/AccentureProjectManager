@@ -37,12 +37,22 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
     e.preventDefault();
     // Validación final antes de enviar
     if (!local.fechaNacimiento || local.fechaNacimiento > maxDate) {
-      setBirthError("The user must be at least 18 years old and date cannot be in the future.");
+      setBirthError(
+        "The user must be at least 18 years old and date cannot be in the future."
+      );
       return;
     }
     setBirthError("");
     onNext(local);
   };
+
+  // Validacion de cifras mayores a 8
+  const handleSizeValue = (e) => {
+    const val = e.target.value.replace(/\D/g, "");
+    if (val.length < 9) {
+      handleChange(e); // Tu función normal
+    }
+  }
 
   return (
     <form onSubmit={handleSubmit} className="p-8 space-y-4">
@@ -77,7 +87,9 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
             value={local.fechaNacimiento}
             onChange={handleChange}
             required
-            className={`mb-2 border rounded w-full px-3 py-2 ${birthError ? "border-red-400" : ""}`}
+            className={`mb-2 border rounded w-full px-3 py-2 ${
+              birthError ? "border-red-400" : ""
+            }`}
             max={maxDate}
           />
           {birthError && (
@@ -103,15 +115,17 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
           Identity Document & Password
         </h3>
         <div className="grid grid-cols-1 gap-3">
-          <label className="block text-sm font-medium mb-1">Document Number *</label>
+          <label className="block text-sm font-medium mb-1">
+            Document Number *
+          </label>
           <input
             name="cedula"
             value={local.cedula}
-            onChange={handleChange}
+            onChange={handleSizeValue}
             required
             placeholder="Enter document number"
             className="mb-2 border rounded w-full px-3 py-2"
-            type="text"
+            type="number"
           />
           <label className="block text-sm font-medium mb-1">Password *</label>
           <div className="relative">
@@ -134,13 +148,25 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
             >
               {showPassword ? (
                 // 👁️‍🗨️ Ojo abierto
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
                   <path d="M1.5 12S5 5 12 5s10.5 7 10.5 7-3.5 7-10.5 7S1.5 12 1.5 12z" />
                   <circle cx="12" cy="12" r="3" />
                 </svg>
               ) : (
                 // 👁️‍🗨️ Ojo cerrado (slash)
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
                   <path d="M17.94 17.94C16.12 19.2 14.14 20 12 20 5 20 1.5 12 1.5 12c.95-1.9 2.32-4.15 4.33-6.06M10.12 6.13C10.72 6.04 11.35 6 12 6c7 0 10.5 7 10.5 7-.6 1.21-1.39 2.57-2.41 3.88M9.59 9.59a3 3 0 0 1 4.24 4.24" />
                   <path d="M3 3l18 18" />
                 </svg>

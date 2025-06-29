@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from "react";
-import assignTaskIcon from "../../../../assets/icons/assign_task.svg"; // Cambia el path si es necesario
 
-function AssignTaskModal({ isOpen, onClose, onAssign, users = [], task }) {
-  const [selectedUser, setSelectedUser] = useState("");
 
-  // Si abres el modal, resetea selección
-  useEffect(() => {
-    if (isOpen) setSelectedUser("");
-  }, [isOpen, task]);
+// MODAL para asignación masiva
+function AssignTaskModal({ isOpen, onClose, onAssign, users = [], tasksToAssign }) {
+  const [selectedUsers, setSelectedUsers] = useState([]);
 
-  if (!isOpen || !task) return null;
+  React.useEffect(() => {
+    if (isOpen) setSelectedUsers([]);
+  }, [isOpen, tasksToAssign]);
+
+  if (!isOpen || !tasksToAssign || tasksToAssign.length === 0) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (selectedUser) {
-      onAssign(selectedUser);
-      setSelectedUser("");
+    if (selectedUsers.length) {
+      onAssign(selectedUsers);
+      setSelectedUsers([]);
     }
   };
 
@@ -24,15 +24,7 @@ function AssignTaskModal({ isOpen, onClose, onAssign, users = [], task }) {
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-8 relative animate-fade-in">
         {/* Header */}
         <div className="flex items-center mb-6 gap-3">
-          <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-            <img src={assignTaskIcon} alt="" className="w-8 h-8" />
-          </span>
-          <div>
-            <h2 className="text-3xl font-bold">Assign Task</h2>
-            <p className="text-sm text-gray-500">
-              Select a user to assign the task: <span className="font-semibold">{task.task}</span>
-            </p>
-          </div>
+          <h2 className="text-3xl font-bold">Assign Tasks</h2>
           <button
             onClick={onClose}
             className="ml-auto text-gray-400 hover:text-purple-600 text-2xl"
@@ -42,32 +34,28 @@ function AssignTaskModal({ isOpen, onClose, onAssign, users = [], task }) {
             ×
           </button>
         </div>
-        {/* User select */}
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
-              <span className="text-xl bg-purple-100 p-1 rounded">
-                <img src={assignTaskIcon} alt="" className="w-6 h-6" />
-              </span>
-              User Selection
-            </h3>
-            <label className="font-semibold text-sm">
-              Assigned To *
+            <label className="font-semibold text-sm mb-2 block">
+              Assign selected tasks to:
               <select
+                multiple
                 name="assignedTo"
-                value={selectedUser}
-                onChange={e => setSelectedUser(e.target.value)}
+                value={selectedUsers}
+                onChange={e =>
+                  setSelectedUsers(Array.from(e.target.selectedOptions, option => option.value))
+                }
                 required
                 className="mt-1 border rounded w-full px-3 py-2"
+                size={Math.min(users.length, 6)}
               >
-                <option value="">Select user</option>
                 {users.map(u => (
                   <option key={u.id} value={u.name}>{u.name}</option>
                 ))}
               </select>
+              <span className="block text-xs text-gray-500 mt-1">Ctrl+Click to select multiple users</span>
             </label>
           </div>
-          {/* Footer */}
           <div className="flex justify-end gap-3 mt-6">
             <button
               type="button"
@@ -78,16 +66,20 @@ function AssignTaskModal({ isOpen, onClose, onAssign, users = [], task }) {
             </button>
             <button
               type="submit"
-              disabled={!selectedUser}
-              className={`px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition ${!selectedUser ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={!selectedUsers.length}
+              className={`px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition ${!selectedUsers.length ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               Assign
             </button>
           </div>
         </form>
+        <div className="mt-4 text-sm text-gray-500">
+          Tasks to assign: <span className="font-semibold">{tasksToAssign.map(t => t.task).join(", ")}</span>
+        </div>
       </div>
     </div>
   );
 }
+
 
 export default AssignTaskModal;

@@ -59,6 +59,11 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findByCedula(cedula);
     }
 
+    @Override
+    public Optional<Usuario> buscarUsuarioxTelefono(String telefono) {
+        return usuarioRepository.findByNumeroTelefono(telefono);
+    }
+
     // Obtener lista de usuarios por nombre
     @Override
     public List<Usuario> buscarUsuariosPorNombre(String nombre) {
@@ -83,3 +88,5 @@ public class UsuarioDAOImpl implements UsuarioDAO {
         return usuarioRepository.findByEstado(estado);
     }
 }
+
+

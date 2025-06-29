@@ -39,4 +39,25 @@ public class RolServiceImpl implements RolService {
         return rolRepository.findByNombre(nombre)
                 .map(rolMapper::toDTO);
     }
+
+    @Override
+    public Optional<RolDTO> buscarPorId(Long id) {
+        return rolRepository.findById(id).map(rolMapper::toDTO);
+    }
+
+    @Override
+    public RolDTO actualizarRol(RolDTO rolDTO) {
+        if (rolDTO.getId() == null) return null;
+        Optional<Rol> optionalRol = rolRepository.findById(rolDTO.getId());
+        if (optionalRol.isPresent()) {
+            Rol rol = optionalRol.get();
+            rol.setNombre(rolDTO.getNombre());
+            rol.setEstado(rolDTO.getEstado());
+            rol.setDescripcion(rolDTO.getDescripcion());
+            Rol actualizado = rolRepository.save(rol);
+            return rolMapper.toDTO(actualizado);
+        } else {
+            return null;
+        }
+    }
 }
