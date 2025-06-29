@@ -17,12 +17,11 @@ function RoleManagement() {
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
-  // Array of color combinations for role names (matching your example)
   const colorVariants = [
-    { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' }, // Admin style
-    { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' }, // Manager style
-    { bg: 'bg-red-50', text: 'text-red-500', border: 'border-red-200' }, // Customer style
-    { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' }, // Team Member style
+    { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' },
+    { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+    { bg: 'bg-red-50', text: 'text-red-500', border: 'border-red-200' },
+    { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
     { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200' },
     { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200' },
     { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200' },
@@ -31,7 +30,6 @@ function RoleManagement() {
     { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' },
   ];
 
-  // Function to get color based on role index or ID
   const getRoleColor = (index, roleId) => {
     const colorIndex = roleId ? (roleId % colorVariants.length) : (index % colorVariants.length);
     return colorVariants[colorIndex];
@@ -46,13 +44,12 @@ function RoleManagement() {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log("Roles cargados:", response.data);
 
         const mappedRoles = response.data.map((r) => ({
           id: r.rolId,
           nombre: r.nombre,
           descripcion: r.descripcion,
-          status: "Active", // Ajusta si tu backend tiene otro campo para estado
+          estado: r.estado || "activo",
         }));
 
         setRoles(mappedRoles);
@@ -65,13 +62,9 @@ function RoleManagement() {
     fetchRoles();
   }, []);
 
-  // Helper function to handle API errors
   const handleApiError = (error, defaultMessage) => {
     if (error.response?.status === 400) {
-      // Check if the error message indicates duplicate name
       const errorMessage = error.response?.data?.message || error.response?.data?.error || '';
-      
-      // Common patterns that indicate duplicate name error
       const duplicatePatterns = [
         /duplicate/i,
         /already exists/i,
@@ -80,32 +73,25 @@ function RoleManagement() {
         /unique/i,
         /constraint/i
       ];
-      
       const isDuplicateName = duplicatePatterns.some(pattern => pattern.test(errorMessage));
-      
       if (isDuplicateName) {
         return "Role with duplicate name";
       }
-      
-      // If it's a 400 error but not duplicate name, return the server message or default
       return errorMessage || "Invalid request";
     }
-    
-    // For other error statuses, return default message
     return defaultMessage;
   };
 
-  // para crear los Roles
   const handleCreateRole = async (roleData) => {
     try {
-      setError(null); // Clear previous errors
+      setError(null);
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "http://localhost:8080/api/roles",
         {
           nombre: roleData.name,
-          descripcion: roleData.description, 
-          status: "Active",
+          descripcion: roleData.description,
+          estado: (roleData.status || "activo").toLowerCase(),
         },
         {
           headers: {
@@ -113,15 +99,14 @@ function RoleManagement() {
           },
         }
       );
-      
-      // Map the response to match your frontend structure
+
       const newRole = {
         id: response.data.rolId || response.data.id,
         nombre: response.data.nombre,
         descripcion: response.data.descripcion,
-        status: "Active"
+        estado: response.data.estado || "activo"
       };
-      
+
       setRoles((prev) => [...prev, newRole]);
       setCreateOpen(false);
     } catch (err) {
@@ -133,14 +118,15 @@ function RoleManagement() {
 
   const handleUpdateRole = async (updatedRole) => {
     try {
-      setError(null); // Clear previous errors
+      setError(null);
       const token = localStorage.getItem("token");
-      
+
       await axios.put(
-        `http://localhost:8080/api/roles/${roleToEdit.id}`,
+        `http://localhost:8080/api/roles/${updatedRole.id}`,
         {
-          nombre: updatedRole.name || updatedRole.nombre,
-          descripcion: updatedRole.description || updatedRole.descripcion,
+          nombre: updatedRole.nombre,
+          descripcion: updatedRole.descripcion,
+          estado: typeof updatedRole.estado === 'string' ? updatedRole.estado.toLowerCase() : "activo"
         },
         {
           headers: {
@@ -148,15 +134,20 @@ function RoleManagement() {
           },
         }
       );
-      
-      // Update local state
+
       setRoles((prev) =>
-        prev.map((r) => (r.id === roleToEdit.id ? { 
-          ...r, 
-          nombre: updatedRole.name || updatedRole.nombre || r.nombre,
-          descripcion: updatedRole.description || updatedRole.descripcion || r.descripcion
-        } : r))
+        prev.map((r) =>
+          r.id === updatedRole.id
+            ? {
+                ...r,
+                nombre: updatedRole.nombre,
+                descripcion: updatedRole.descripcion,
+                estado: updatedRole.estado.toLowerCase(),
+              }
+            : r
+        )
       );
+
       setUpdateOpen(false);
       setRoleToEdit(null);
     } catch (err) {
@@ -168,7 +159,7 @@ function RoleManagement() {
 
   const handleDisableRole = (role) => {
     setRoles((prev) =>
-      prev.map((r) => (r.id === role.id ? { ...r, status: "Inactive" } : r))
+      prev.map((r) => (r.id === role.id ? { ...r, estado: "inactivo" } : r))
     );
     setDisableOpen(false);
   };
@@ -259,12 +250,12 @@ function RoleManagement() {
                   <td>
                     <span
                       className={`px-5 py-2 rounded-full font-semibold shadow text-base ${
-                        role.status === "Inactive"
+                        role.estado?.toLowerCase() === "inactivo"
                           ? "bg-red-100 text-red-500"
                           : "bg-green-100 text-green-600"
                       }`}
                     >
-                      {role.status ?? "Active"}
+                      {role.estado ?? "activo"}
                     </span>
                   </td>
                 </tr>

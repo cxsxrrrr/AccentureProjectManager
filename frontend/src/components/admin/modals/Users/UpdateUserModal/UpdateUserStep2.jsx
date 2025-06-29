@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 export default function UpdateUserStep2({
   values,
   categories,
   skills,
+  roles,          // <-- NUEVO: recibes los roles
   onBack,
   onSave,
   onCancel,
@@ -13,6 +14,7 @@ export default function UpdateUserStep2({
     numeroTelefono: "",
     categoria: "",
     habilidades: [],
+    rol: "", // <-- aquí el nombre del rol
   });
 
   // Precargar datos cuando abres la modal (body en español)
@@ -22,17 +24,28 @@ export default function UpdateUserStep2({
       numeroTelefono: values.numeroTelefono || "",
       categoria: values.categoria || "",
       habilidades: values.habilidades || [],
+      rol: values.rol?.nombre || "", // precarga el nombre del rol
     });
   }, [values]);
 
-  // Filtrar skills según la categoría seleccionada (igual que en create)
+  // Filtrar skills activas según categoría seleccionada
   const filteredSkills = useMemo(() => {
-    const catObj = categories?.find((c) => c.name === local.categoria);
-    if (!catObj) return [];
-    return skills?.filter((sk) => sk.categoryId === catObj.id) || [];
-  }, [local.categoria, categories, skills]);
+    if (!local.categoria || !activeCategories || !skills) return [];
 
-  // Cambios en campos simples
+    const selectedCat = activeCategories.find(
+      (c) => c.nombre === local.categoria || c.name === local.categoria
+    );
+    if (!selectedCat) return [];
+
+    const selectedCatId = selectedCat.id || selectedCat.categoriaId;
+
+    return skills.filter(
+      (sk) =>
+        (sk.categoriaId === selectedCatId || sk.categoryId === selectedCatId) &&
+        sk.estado?.toLowerCase() === "activo"
+    );
+  }, [local.categoria, activeCategories, skills]);
+
   const handleChange = (e) => {
     setLocal((prev) => ({
       ...prev,
@@ -41,7 +54,6 @@ export default function UpdateUserStep2({
     }));
   };
 
-  // Skills (habilidades)
   const handleSkillToggle = (skillId) => {
     setLocal((prev) => ({
       ...prev,
@@ -51,21 +63,22 @@ export default function UpdateUserStep2({
     }));
   };
 
-  // Guardar
+  const isFormValid =
+    local.email &&
+    local.numeroTelefono &&
+    local.categoria &&
+    local.habilidades.length > 0;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(local); // body en español
+    onSave(local); // body en español, rol será el nombre seleccionado
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 relative animate-fade-in"
-    >
+    <form onSubmit={handleSubmit} className="p-8 space-y-4">
       {/* Header */}
       <div className="flex items-center mb-3 gap-3">
         <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-          <i className="material-icons">person</i>
         </span>
         <div>
           <h2 className="text-2xl font-bold">Update User</h2>
@@ -82,11 +95,11 @@ export default function UpdateUserStep2({
           ×
         </button>
       </div>
+
       {/* Contact Info */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
-            <i className="material-icons">mail</i>
           </span>
           Contact Information
         </h3>
@@ -99,7 +112,7 @@ export default function UpdateUserStep2({
             onChange={handleChange}
             required
             placeholder="example@correo.com"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <label className="font-semibold text-sm">Phone number *</label>
           <input
@@ -108,15 +121,39 @@ export default function UpdateUserStep2({
             onChange={handleChange}
             required
             placeholder="+1 (555) 123-4456"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+        </div>
+      </div>
+      {/* Rol del usuario */}
+      <div>
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
+          <span className="text-xl bg-purple-100 p-1 rounded">
+          </span>
+          Role
+        </h3>
+        <div className="grid grid-cols-1 gap-3">
+          <label className="font-semibold text-sm">Role *</label>
+          <select
+            name="rol"
+            value={local.rol}
+            onChange={handleChange}
+            required
+            className="mb-2 border rounded w-full px-3 py-2"
+          >
+            <option value="">Select Role</option>
+            {(roles || []).map((r) => (
+              <option key={r.nombre} value={r.nombre}>
+                {r.nombre} - {r.descripcion}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       {/* Categoría y Skills */}
       <div>
-        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
           <span className="text-xl bg-purple-100 p-1 rounded">
-            <i className="material-icons">check_circle</i>
           </span>
           Category & Skills
         </h3>
@@ -127,51 +164,122 @@ export default function UpdateUserStep2({
             value={local.categoria}
             onChange={handleChange}
             required
-            className="mb-2 border rounded w-full px-3 py-2"
+            disabled={isLoadingData || activeCategories.length === 0}
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            <option value="">Select Category</option>
-            {(categories || []).map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
+            <option value="">
+              {isLoadingData
+                ? "Loading categories..."
+                : activeCategories.length === 0
+                ? "No categories available"
+                : "Select Category"}
+            </option>
+            {activeCategories.map((cat) => (
+              <option key={cat.id || cat.nombre} value={cat.nombre || cat.name}>
+                {cat.nombre || cat.name}
               </option>
             ))}
           </select>
+
           <label className="font-semibold text-sm">Skills *</label>
-          <div className="flex flex-wrap gap-2">
-            {filteredSkills.length === 0 && (
-              <span className="text-gray-400 italic">Select a category first</span>
+          <div className="min-h-[50px] border rounded p-3 bg-gray-50">
+            {isLoadingData ? (
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                <span className="text-sm">Loading skills...</span>
+              </div>
+            ) : !local.categoria ? (
+              <span className="text-gray-400 italic text-sm">
+                Select a category first
+              </span>
+            ) : filteredSkills.length === 0 ? (
+              <span className="text-gray-400 italic text-sm">
+                No skills available for this category
+              </span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {filteredSkills.map((skill) => (
+                  <button
+                    type="button"
+                    key={`${skill.skillId}-${skill.nombre}`}
+                    onClick={() => handleSkillToggle(skill.skillId)}
+                    className={`px-3 py-1 rounded-lg border font-semibold text-sm transition hover:scale-105 ${
+                      local.habilidades.includes(skill.skillId)
+                        ? "bg-purple-600 text-white border-purple-500 shadow-md"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-purple-300"
+                    }`}
+                  >
+                    {skill.nombre}
+                  </button>
+                ))}
+              </div>
             )}
-            {filteredSkills.map((skill) => (
-              <button
-                type="button"
-                key={skill.id}
-                onClick={() => handleSkillToggle(skill.id)}
-                className={`px-3 py-1 rounded-lg border font-semibold text-sm transition ${
-                  local.habilidades.includes(skill.id)
-                    ? "bg-purple-600 text-white border-purple-500"
-                    : "bg-gray-100 text-gray-700 border-gray-300"
-                }`}
-              >
-                {skill.name}
-              </button>
-            ))}
           </div>
+
+          {/* Selected skills */}
+          {local.habilidades.length > 0 && (
+            <div className="mt-2">
+              <span className="text-sm font-medium text-gray-600">
+                Selected skills ({local.habilidades.length}):
+              </span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {local.habilidades.map((skillId) => {
+                  const skill = skills?.find((s) => s.skillId === skillId);
+                  return skill ? (
+                    <span
+                      key={`selected-${skillId}`}
+                      className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                    >
+                      {skill.nombre}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Estado */}
+      <div>
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
+          <span className="text-xl bg-purple-100 p-1 rounded">
+            <i className="material-icons">toggle_on</i>
+          </span>
+          Account Status
+        </h3>
+        <label className="font-semibold text-sm">Status *</label>
+        <select
+          name="estado"
+          value={local.estado}
+          onChange={handleChange}
+          required
+          className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
+
       {/* Footer */}
-      <div className="flex justify-end gap-3 mt-6">
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
           type="button"
           onClick={() => onBack(local)}
-          className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
+          className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
         >
           Back
         </button>
         <button
           type="submit"
-          className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
+          disabled={!isFormValid || isLoadingData}
+          className={`px-6 py-2 rounded-xl font-semibold transition-colors ${
+            isFormValid && !isLoadingData
+              ? "bg-purple-600 text-white hover:bg-purple-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          Save
+          {isLoadingData ? "Updating..." : "Update User"}
         </button>
       </div>
     </form>

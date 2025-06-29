@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
-  const [form, setForm] = useState({ name: "", description: "" });
+  const [form, setForm] = useState({ name: "", description: "", status: "activo" });
   const [errors, setErrors] = useState({});
 
   const handleChange = (e) => {
@@ -14,6 +14,7 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
     const errs = {};
     if (!form.name.trim()) errs.name = "Role name is required";
     if (!form.description.trim()) errs.description = "Description is required";
+    if (!form.status.trim()) errs.status = "Status is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -21,9 +22,13 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    onCreate(form);
+    onCreate({
+      name: form.name,
+      description: form.description,
+      status: form.status
+    });
     toggle();
-    setForm({ name: "", description: "" });
+    setForm({ name: "", description: "", status: "activo" });
   };
 
   if (!isOpen) return null;
@@ -77,6 +82,25 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
             />
             {errors.description && (
               <div className="text-red-500 mt-1 text-sm">{errors.description}</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-2xl font-bold mb-2">
+              Status <span className="text-red-500">*</span>
+            </label>
+            <select
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 ${
+                errors.status ? "border-red-400" : ""
+              }`}
+            >
+              <option value="activo">Activo</option>
+              <option value="inactivo">Inactivo</option>
+            </select>
+            {errors.status && (
+              <div className="text-red-500 mt-1 text-sm">{errors.status}</div>
             )}
           </div>
           <div className="flex justify-end gap-3 pt-6">
