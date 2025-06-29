@@ -1,18 +1,42 @@
 import React, { useState, useEffect } from "react";
 import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el ícono si prefieres otro
+import api from "../../../../services/axios"; // Ajusta si tu path varía
 
 function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
-  // Estado para proyecto seleccionado (sólo por coherencia visual, aunque siempre hay uno)
   const [selectedProject, setSelectedProject] = useState(user?.project || "");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   // Actualiza el proyecto seleccionado si cambia el usuario
   useEffect(() => {
     setSelectedProject(user?.project || "");
   }, [user]);
 
-  if (!isOpen || !user) return null;
-
   const canUnassign = selectedProject && selectedProject !== "None";
+
+  const handleUnassign = async () => {
+    if (!canUnassign || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      // Llama a TU endpoint de desasignación. 
+      // EJEMPLO: api.post("/asignaciones/unassign", { usuarioId, proyectoId })
+      // AJUSTA este endpoint y payload si el tuyo es diferente:
+      await api.post("/asignaciones/unassign", {
+        usuarioId: user.id || user.usuarioId,
+        proyectoNombre: selectedProject, // o proyectoId si tienes el id, ajústalo
+      });
+
+      if (onUnassign) onUnassign(user);
+      onClose();
+    } catch (err) {
+      setError("Error unassigning user from project.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (!isOpen || !user) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
@@ -70,26 +94,33 @@ function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
             )}
           </div>
         </div>
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 bg-red-100 text-red-700 px-4 py-2 rounded">
+            {error}
+          </div>
+        )}
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-8">
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
           >
             Cancel
           </button>
           <button
             type="button"
-            disabled={!canUnassign}
-            onClick={() => onUnassign(user)}
+            disabled={!canUnassign || submitting}
+            onClick={handleUnassign}
             className={`
               px-6 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition flex items-center gap-2
-              ${!canUnassign ? "opacity-50 cursor-not-allowed" : ""}
+              ${!canUnassign || submitting ? "opacity-50 cursor-not-allowed" : ""}
             `}
           >
             <span className="material-icons text-lg"></span>
-            Unassign
+            {submitting ? "Unassigning..." : "Unassign"}
           </button>
         </div>
       </div>

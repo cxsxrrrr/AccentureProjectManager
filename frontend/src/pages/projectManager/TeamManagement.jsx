@@ -1,68 +1,55 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
 import UnassignProjectModal from "../../components/manager/modals/Teams/UnassignProjectModal";
 import AssignProjectModal from "../../components/manager/modals/Teams/AssignProjectModal";
-
-const mockCategorias = [
-  { nombre: "Desarrollo Web", descripcion: "Proyectos de desarrollo en la web" },
-  { nombre: "Infraestructura", descripcion: "Administración de servidores" }
-];
-const mockProyectos = [
-  { proyectoId: 1, nombreProyecto: "PJUTJ", estado: "En progreso" },
-  { proyectoId: 2, nombreProyecto: "Inventario 2025", estado: "Planificado" }
-];
-const allSkills = ["React", "Node.js", "JavaScript", "Linux", "Networking", "Figma", "Photoshop"];
-const mockTeam = [
-  {
-    id: 1,
-    nombre: "John",
-    apellido: "Doe",
-    email: "john@demo.com",
-    rol: { rolId: 1, nombre: "Administrador" },
-    cedula: 22345678,
-    status: "Activo",
-    categoria: { nombre: "Desarrollo Web" },
-    habilidades: ["React", "Node.js", "JavaScript"],
-    proyecto: { proyectoId: 1, nombreProyecto: "PJUTJ" }
-  },
-  {
-    id: 2,
-    nombre: "Jane",
-    apellido: "Smith",
-    email: "jane@demo.com",
-    rol: { rolId: 2, nombre: "Analista" },
-    cedula: 23345722,
-    status: "Activo",
-    categoria: { nombre: "Infraestructura" },
-    habilidades: ["Linux", "Networking"],
-    proyecto: { proyectoId: 2, nombreProyecto: "Inventario 2025" }
-  },
-  {
-    id: 3,
-    nombre: "Carlos",
-    apellido: "Reyes",
-    email: "carlos@demo.com",
-    rol: { rolId: 3, nombre: "Diseñador" },
-    cedula: 24448888,
-    status: "Inactivo",
-    categoria: { nombre: "Desarrollo Web" },
-    habilidades: ["Figma", "Photoshop"],
-    proyecto: null
-  },
-];
+import api from "../../services/axios"; // Ajusta el path según tu estructura
 
 function TeamManagement() {
+  // Estados para datos reales de API
+  const [team, setTeam] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [proyectos, setProyectos] = useState([]);
+  const [allSkills, setAllSkills] = useState([]);
+  // Estados UI
+  const [selectedId, setSelectedId] = useState(null);
   const [showAssign, setShowAssign] = useState(false);
   const [showUnassign, setShowUnassign] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
   const [categoriaFilter, setCategoriaFilter] = useState("");
   const [skillFilter, setSkillFilter] = useState("");
   const [projectFilter, setProjectFilter] = useState("");
   const [search, setSearch] = useState("");
-  const [team, setTeam] = useState(mockTeam);
 
+  // Cargar datos desde la API al montar
+  useEffect(() => {
+    // Cargar miembros del equipo
+    api.get("/usuario")
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          setTeam(res.data);
+        } else {
+          setTeam([]);
+        }
+      })
+      .catch(() => setTeam([]));
+    // Cargar categorías (o skills si tienes endpoint)
+    api.get("/category")
+      .then(res => setCategorias(res.data))
+      .catch(() => setCategorias([]));
+    // Cargar proyectos
+    api.get("/proyectos")
+      .then(res => setProyectos(res.data))
+      .catch(() => setProyectos([]));
+    // Si tienes endpoint de habilidades, usa GET /habilidades. Si no, extrae desde miembros:
+    api.get("/skills")
+      .then(res => setAllSkills(res.data.map(h => h.nombre)))
+      .catch(() => {
+        setAllSkills([]);
+      });
+  }, []);
+
+  // Filtros
   const filteredTeam = team.filter((member) => {
     const matchSearch =
       !search ||
@@ -82,6 +69,7 @@ function TeamManagement() {
 
   const selectedUser = team.find((u) => u.id === selectedId);
 
+  // Asignación y desasignación
   const handleAssign = () => {
     if (selectedUser) setShowAssign(true);
   };
@@ -90,26 +78,24 @@ function TeamManagement() {
       setShowUnassign(true);
     }
   };
-  const handleAssignProject = (projectName) => {
-    setTeam((prev) =>
-      prev.map((t) =>
-        t.id === selectedId
-          ? {
-              ...t,
-              proyecto: mockProyectos.find((p) => p.nombreProyecto === projectName)
-            }
-          : t
-      )
-    );
+
+  // Al asignar, refresca miembros
+  const handleAssignProject = async () => {
+    await reloadTeam();
     setShowAssign(false);
   };
-  const handleUnassignProject = (user) => {
-    setTeam((prev) =>
-      prev.map((t) =>
-        t.id === user.id ? { ...t, proyecto: null } : t
-      )
-    );
+  // Al desasignar, refresca miembros
+  const handleUnassignProject = async () => {
+    await reloadTeam();
     setShowUnassign(false);
+  };
+
+  // Refrescar lista de usuarios
+  const reloadTeam = async () => {
+    try {
+      const res = await api.get("/usuario");
+      setTeam(res.data);
+    } catch { setTeam([]); }
   };
 
   return (
@@ -125,7 +111,7 @@ function TeamManagement() {
               onUnassign={selectedUser && selectedUser.proyecto ? handleUnassign : undefined}
             />
           </div>
-          {/* Filters and Search aligned to the right */}
+          {/* Filters and Search */}
           <div className="flex flex-wrap gap-2 md:gap-3 items-center md:ml-auto">
             <input
               type="text"
@@ -141,7 +127,7 @@ function TeamManagement() {
               onChange={(e) => setCategoriaFilter(e.target.value)}
             >
               <option value="">All categories</option>
-              {mockCategorias.map((c) => (
+              {categorias.map((c) => (
                 <option key={c.nombre} value={c.nombre}>
                   {c.nombre}
                 </option>
@@ -165,8 +151,8 @@ function TeamManagement() {
               onChange={(e) => setProjectFilter(e.target.value)}
             >
               <option value="">All projects</option>
-              {mockProyectos.map((p) => (
-                <option key={p.proyectoId} value={p.nombreProyecto}>
+              {proyectos.map((p) => (
+                <option key={p.proyectoId || p.id} value={p.nombreProyecto}>
                   {p.nombreProyecto}
                 </option>
               ))}
@@ -191,15 +177,13 @@ function TeamManagement() {
               </tr>
             </thead>
             <tbody>
-              {filteredTeam.map((member, idx) => (
+              {filteredTeam.map((member) => (
                 <tr
-                  key={member.id}
+                  key={member.id || member.usuarioId}
                   onClick={() => setSelectedId(member.id)}
                   className={`cursor-pointer transition ${
                     selectedId === member.id
                       ? "bg-purple-100 ring-2 ring-purple-200"
-                      : idx % 2
-                      ? "bg-gray-50"
                       : ""
                   } hover:bg-purple-50`}
                 >
@@ -208,12 +192,14 @@ function TeamManagement() {
                   </td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.cedula}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.email}</td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol.nombre}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol?.nombre}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.categoria?.nombre || "-"}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
                     <div className="flex flex-wrap gap-1">
-                      {member.habilidades?.map(skill => (
-                        <span key={skill} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">{skill}</span>
+                      {member.habilidades?.map((skill) => (
+                        <span key={`${member.id || member.usuarioId}-${skill}`} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">
+                          {skill}
+                        </span>
                       ))}
                     </div>
                   </td>
@@ -243,12 +229,13 @@ function TeamManagement() {
         </div>
       </div>
 
+      {/* Modales de asignar y desasignar */}
       <AssignProjectModal
         isOpen={showAssign}
         onClose={() => setShowAssign(false)}
         onAssign={handleAssignProject}
         user={selectedUser}
-        projects={mockProyectos.map(p => p.nombreProyecto)}
+        projects={proyectos}
       />
       <UnassignProjectModal
         isOpen={showUnassign}
