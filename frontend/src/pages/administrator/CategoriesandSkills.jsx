@@ -45,26 +45,68 @@ function CategoriesandSkills() {
       setError(null);
 
       const token = localStorage.getItem("token");
+      
+      // Configuración de axios con headers
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      };
 
-      const [categoriesResponse, skillsResponse] = await Promise.all([
-        axios.get("http://localhost:8080/api/categories", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:8080/api/skills", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
+      // Primero cargar categorías
+      const categoriesResponse = await axios.get(
+        "http://localhost:8080/api/categories", 
+        config
+      );
+      
+      // Verificar si la respuesta tiene datos
+      if (!categoriesResponse.data) {
+        throw new Error("No se recibieron datos de categorías");
+      }
+      
       setCategories(categoriesResponse.data);
-      setSkills(sskillsResponse.data);
+
+      // Luego cargar habilidades
+      const skillsResponse = await axios.get(
+        "http://localhost:8080/api/skills", 
+        config
+      );
+      
+      // Verificar si la respuesta tiene datos
+      if (!skillsResponse.data) {
+        throw new Error("No se recibieron datos de habilidades");
+      }
+      
+      setSkills(skillsResponse.data);
+
     } catch (err) {
       console.error("Error loading data:", err);
-      setError("Error loading data. Please try again.");
+      
+      // Manejo detallado de errores
+      let errorMessage = "Error loading data. Please try again.";
+      
+      if (err.response) {
+        // El servidor respondió con un código de estado fuera del rango 2xx
+        if (err.response.status === 401) {
+          errorMessage = "Session expired. Please login again.";
+          localStorage.removeItem("token");
+          window.location.href = '/login';
+        } else if (err.response.status === 500) {
+          errorMessage = "Server error. Please try again later.";
+        } else if (err.response.data && err.response.data.message) {
+          errorMessage = err.response.data.message;
+        }
+      } else if (err.request) {
+        // La solicitud fue hecha pero no se recibió respuesta
+        errorMessage = "Network error. Please check your connection.";
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
   };
-
   const handleCreateCategory = async (newCat) => {
     try {
       setError(null);
