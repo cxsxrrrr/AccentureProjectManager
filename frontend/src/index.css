@@ -1,6 +1,10 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@layer theme, custom-base, custom-components, custom-utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(custom-base);
+@import "tailwindcss/utilities.css" layer(custom-utilities);
+
+
+
 
 /* Esto sirve para que el panel ocupe toda la mitad de la pantalla */
 html,
