@@ -22,7 +22,15 @@ function mapUserApiToUi(user) {
   };
 }
 
-export default function UpdateUserModal({ isOpen, toggle, user, categories, skills, onUpdate }) {
+export default function UpdateUserModal({
+  isOpen,
+  toggle,
+  user,
+  categories,
+  skills,
+  roles,              // <-- Agregado: recibir roles
+  onUpdate
+}) {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState(mapUserApiToUi(user));
 
@@ -54,6 +62,7 @@ export default function UpdateUserModal({ isOpen, toggle, user, categories, skil
       cedula: Number(form.cedula),
       numeroTelefono: form.numeroTelefono,
       email: form.email,
+      rol: { nombre: data.rol },            // <-- Aquí el objeto con nombre del rol
       // Puedes agregar el resto de campos aquí si tu modal los permite editar
     };
     onUpdate(salida);
@@ -75,6 +84,7 @@ export default function UpdateUserModal({ isOpen, toggle, user, categories, skil
           values={form}
           categories={categories}
           skills={skills}
+          roles={roles}         // <-- Aquí pasas los roles
           onBack={handleBack}
           onSave={handleSave}
           onCancel={toggle}

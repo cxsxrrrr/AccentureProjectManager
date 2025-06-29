@@ -2,9 +2,9 @@ import React from "react";
 import ManagerStatCard from "../../components/manager/dashboard/ManagerStatCard";
 import ManagerBarChart from "../../components/manager/dashboard/ManagerBarChart";
 import ManagerDonutChart from "../../components/manager/dashboard/ManagerDonutChart";
-import ManagerEmployeeStatusTable from "../../components/manager/dashboard/ManagerEmployeeStatusTable";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
+import ManagerProjectStatusTable from "../../components/manager/dashboard/ManagerProjectStatusTable";
 
 // Mock data basados en tus DTOs reales
 
@@ -23,98 +23,72 @@ const barData = [
   { month: "Dic", JobView: 59, JobApplied: 26 }
 ];
 
-
 const donutData = [
-  { name: "Active", value: 2 },
-  { name: "Inactive", value: 1 }
+  { name: "Frontend Developer", value: 8 },
+  { name: "Backend Developer", value: 5 },
+  { name: "Others", value: 2 }
 ];
 
-const employees = [
+// Ahora definimos tus proyectos/tareas mock
+const projects = [
   {
-    nombre: "Samuel",
-    apellido: "Rodríguez",
-    numeroTelefono: "0414-1234567",
-    cedula: 29412345,
-    genero: "M",
-    fechaNacimiento: "2004-01-21T00:00:00",
-    email: "samuel@acc.com",
-    password: "noimporta",
-    estado: "Active",
-    fechaCreacion: "2024-04-20T09:00:00",
-    ultimoAcceso: "2025-06-26T10:00:00",
-    rol: { rolId: 1, nombre: "Gerente" },
-    department: "TI",
-    age: 20,
-    discipline: "Frontend",
-    avatar: "/avatars/samuel.png"
+    proyectoId: 1,
+    nombre: "Implementar login",
+    descripcion: "Endpoint y UI de autenticación",
+    estado: "Cancelled",
+    prioridad: "HIGH",
+    fechaInicioEstimada: "2025-07-05",
+    fechaFinEstimada: "2025-07-10",
+    creadoPorId: 5
   },
   {
-    nombre: "Valentina",
-    apellido: "Morán",
-    numeroTelefono: "0412-9876543",
-    cedula: 30765432,
-    genero: "F",
-    fechaNacimiento: "2002-06-12T00:00:00",
-    email: "valen@acc.com",
-    password: "noimporta",
-    estado: "Active",
-    fechaCreacion: "2024-03-15T11:00:00",
-    ultimoAcceso: "2025-06-25T18:10:00",
-    rol: { rolId: 2, nombre: "Desarrollador" },
-    department: "Diseño",
-    age: 22,
-    discipline: "UI/UX",
-    avatar: "/avatars/valentina.png"
+    proyectoId: 2,
+    nombre: "Diseñar Dashboard",
+    descripcion: "Vista principal para KPIs",
+    estado: "In Progress",
+    prioridad: "MEDIUM",
+    fechaInicioEstimada: "2025-07-02",
+    fechaFinEstimada: "2025-07-09",
+    creadoPorId: 3
   },
   {
-    nombre: "Luis",
-    apellido: "Solarte",
-    numeroTelefono: "0416-5555555",
-    cedula: 30888888,
-    genero: "M",
-    fechaNacimiento: "1999-10-11T00:00:00",
-    email: "luis@acc.com",
-    password: "noimporta",
-    estado: "Inactive",
-    fechaCreacion: "2024-02-01T13:00:00",
-    ultimoAcceso: "2025-04-10T17:00:00",
-    rol: { rolId: 3, nombre: "QA" },
-    department: "QA",
-    age: 23,
-    discipline: "Testing",
-    avatar: "/avatars/luis.png"
+    proyectoId: 3,
+    nombre: "Integración Backend",
+    descripcion: "API con endpoints REST",
+    estado: "Completed",
+    prioridad: "LOW",
+    fechaInicioEstimada: "2025-06-15",
+    fechaFinEstimada: "2025-06-30",
+    creadoPorId: 2
   }
 ];
 
 function Dashboard() {
   return (
     <div className="">
-           <Topbar title="Dashboard">
-        <TopControls
-          module="dashboard"
-        />
+      <Topbar title="Dashboard">
+        <TopControls module="dashboard" />
       </Topbar>
-    <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
-      
-      {/* Top KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        <ManagerStatCard label="Total Employees" value="3" unit="Employee(s)" trend="0.0%" trendType="up" />
-        <ManagerStatCard label="Active Employees" value="2" unit="Active(s)" trend="+1" trendType="up" />
-        <ManagerStatCard label="Inactive Employees" value="1" unit="Inactive(s)" trend="0" trendType="down" />
-      </div>
-      {/* Main Cards */}
-      <div className="bg-white rounded-3xl shadow-md p-4 md:p-8 flex flex-col gap-8">
-        <ManagerBarChart data={barData} />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="md:col-span-2">
-            <ManagerEmployeeStatusTable employees={employees} />
-          </div>
-          <div>
-            <ManagerDonutChart data={donutData} />
+      <div className="p-4 md:p-8 max-w-7xl mx-auto flex flex-col gap-8">
+        {/* Top KPIs */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <ManagerStatCard label="Total Employees" value="3" unit="Employee(s)" trend="0.0%" trendType="up" />
+          <ManagerStatCard label="Active Employees" value="2" unit="Active(s)" trend="+1" trendType="up" />
+          <ManagerStatCard label="Inactive Employees" value="1" unit="Inactive(s)" trend="0" trendType="down" />
+        </div>
+        {/* Main Cards */}
+        <div className="bg-white rounded-3xl shadow-md p-4 md:p-8 flex flex-col gap-8">
+          <ManagerBarChart data={barData} />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
+              <ManagerProjectStatusTable projects={projects} />
+            </div>
+            <div>
+              <ManagerDonutChart data={donutData} />
+            </div>
           </div>
         </div>
       </div>
-    </div>
     </div>
   );
 }
