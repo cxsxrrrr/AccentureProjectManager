@@ -108,6 +108,7 @@ function CategoriesandSkills() {
       console.error("Error creating category:", err);
       setError("Error creating category. Please try again.");
     }
+    console.log("Nueva categoría creada:", response.data);
   };
 
   const handleCreateSkill = async (newSkill) => {
