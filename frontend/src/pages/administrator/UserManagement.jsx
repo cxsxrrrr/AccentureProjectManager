@@ -96,7 +96,7 @@ function UserManagement() {
         estado: u.estado,
         fechaCreacion: u.fechaCreacion,
         ultimoAcceso: u.ultimoAcceso,
-        rol: u.rolUsuario,
+        rol: u.rol || u.rolUsuario || null,
       }));
 
       setUsers(formattedUsers);
