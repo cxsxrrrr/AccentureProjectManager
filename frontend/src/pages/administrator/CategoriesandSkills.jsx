@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
@@ -10,120 +11,176 @@ import DisableCategoryModal from "../../components/admin/modals/CategorySkills/D
 import DisableSkillModal from "../../components/admin/modals/CategorySkills/DisableSkillModal";
 
 function CategoriesandSkills() {
-  // Estado para seleccion
+  const [categories, setCategories] = useState([]);
+  const [skills, setSkills] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
 
-  // Tabs: 'categories' o 'skills'
   const [tab, setTab] = useState("categories");
 
-  // Mock inicial de categorías y skills
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Software Development",
-      description:
-        "Design and maintenance of software applications and systems.",
-    },
-    {
-      id: 2,
-      name: "Marketing and Advertising",
-      description:
-        "Campaigns to promote products, services, or brand awareness.",
-    },
-    {
-      id: 3,
-      name: "Construction and Civil Works",
-      description:
-        "Modernization of processes through digital tools and automation.",
-    },
-  ]);
-
-  const [skills, setSkills] = useState([
-    { id: 1, name: "Java", category: "Software Development" },
-    { id: 2, name: "React", category: "Software Development" },
-    {
-      id: 3,
-      name: "Working with concrete and mortar",
-      category: "Construction and Civil Works",
-    },
-    { id: 4, name: "Marketing Digital", category: "Marketing and Advertising" },
-  ]);
-
-  // --- CRUD handlers y modales ---
   const [isCreateCatOpen, setCreateCatOpen] = useState(false);
   const [isCreateSkillOpen, setCreateSkillOpen] = useState(false);
-
-  const handleCreateCategory = (newCat) => {
-    setCategories((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((c) => c.id)) + 1 : 1,
-        ...newCat,
-      },
-    ]);
-  };
-  const handleCreateSkill = (newSkill) => {
-    setSkills((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((s) => s.id)) + 1 : 1,
-        ...newSkill,
-      },
-    ]);
-  };
-
-  // Update
-
   const [isUpdateCatOpen, setUpdateCatOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState(null);
-
   const [isUpdateSkillOpen, setUpdateSkillOpen] = useState(false);
   const [skillToEdit, setSkillToEdit] = useState(null);
-
-  // Borrar
-
-  // Estados para los modales
   const [isDisableCategoryOpen, setDisableCategoryOpen] = useState(false);
   const [isDisableSkillOpen, setDisableSkillOpen] = useState(false);
 
-  // Abrir/Cerrar modales
-  const handleOpenDisableCategory = () => setDisableCategoryOpen(true);
-  const handleCloseDisableCategory = () => setDisableCategoryOpen(false);
+  // Verificar autenticación al cargar el componente
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      window.location.href = '/login';
+      return;
+    }
+    loadData();
+  }, []);
 
-  const handleOpenDisableSkill = () => setDisableSkillOpen(true);
-  const handleCloseDisableSkill = () => setDisableSkillOpen(false);
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-  // Lógica para deshabilitar (borrar)
-  const handleDisableCategory = (categoryId) => {
-    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
-    handleCloseDisableCategory();
-  };
-  const handleDisableSkill = (skillId) => {
-    setSkills((prev) => prev.filter((s) => s.id !== skillId));
-    handleCloseDisableSkill();
+      const token = localStorage.getItem("token");
+
+      const [categoriesResponse, skillsResponse] = await Promise.all([
+        axios.get("http://localhost:8080/api/categories", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get("http://localhost:8080/api/skills", {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      setCategories(categoriesResponse.data);
+      setSkills(sskillsResponse.data);
+    } catch (err) {
+      console.error("Error loading data:", err);
+      setError("Error loading data. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handlers
-  const openUpdateCategoryModal = (cat) => {
-    setCatToEdit(cat);
-    setUpdateCatOpen(true);
+  const handleCreateCategory = async (newCat) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "http://localhost:8080/api/categories",
+        newCat,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setCategories((prev) => [...prev, response.data]);
+      setCreateCatOpen(false);
+    } catch (err) {
+      console.error("Error creating category:", err);
+      setError("Error creating category. Please try again.");
+    }
   };
-  const openUpdateSkillModal = (skill) => {
-    setSkillToEdit(skill);
-    setUpdateSkillOpen(true);
+
+  const handleCreateSkill = async (newSkill) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "http://localhost:8080/api/skills",
+        newSkill,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSkills((prev) => [...prev, response.data]);
+      setCreateSkillOpen(false);
+    } catch (err) {
+      console.error("Error creating skill:", err);
+      setError("Error creating skill. Please try again.");
+    }
   };
-  const handleUpdateCategory = (catData) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catData.id ? catData : c))
-    );
-    setUpdateCatOpen(false);
+
+  const handleUpdateCategory = async (catData) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      await axios.put(
+        `http://localhost:8080/api/categories/${catData.id}`,
+        catData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setCategories((prev) =>
+        prev.map((c) => (c.id === catData.id ? catData : c))
+      );
+      setUpdateCatOpen(false);
+    } catch (err) {
+      console.error("Error updating category:", err);
+      setError("Error updating category. Please try again.");
+    }
   };
-  const handleUpdateSkill = (skillData) => {
-    setSkills((prev) =>
-      prev.map((s) => (s.id === skillData.id ? skillData : s))
-    );
-    setUpdateSkillOpen(false);
+
+  const handleUpdateSkill = async (skillData) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      await axios.put(
+        `http://localhost:8080/api/skills/${skillData.id}`,
+        skillData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSkills((prev) =>
+        prev.map((s) => (s.id === skillData.id ? skillData : s))
+      );
+      setUpdateSkillOpen(false);
+    } catch (err) {
+      console.error("Error updating skill:", err);
+      setError("Error updating skill. Please try again.");
+    }
+  };
+
+  const handleDisableCategory = async (categoryId) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`http://localhost:8080/api/categories/${categoryId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      setDisableCategoryOpen(false);
+    } catch (err) {
+      console.error("Error disabling category:", err);
+      setError("Error disabling category. Please try again.");
+    }
+  };
+
+  const handleDisableSkill = async (skillId) => {
+    try {
+      setError(null);
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`http://localhost:8080/api/skills/${skillId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setSkills((prev) => prev.filter((s) => s.id !== skillId));
+      setDisableSkillOpen(false);
+    } catch (err) {
+      console.error("Error disabling skill:", err);
+      setError("Error disabling skill. Please try again.");
+    }
+  };
+
+  const handleRefresh = () => {
+    loadData();
   };
 
   return (
@@ -153,11 +210,18 @@ function CategoriesandSkills() {
           }
           onDisable={
             tab === "categories"
-              ? handleOpenDisableCategory
-              : handleOpenDisableSkill
+              ? () => setDisableCategoryOpen(true)
+              : () => setDisableSkillOpen(true)
           }
+          onRefresh={handleRefresh}
         />
       </Topbar>
+
+      {error && (
+        <div className="text-center p-4 bg-red-100 text-red-700 mb-4 rounded">
+          {error}
+        </div>
+      )}
 
       <CreateCategoryModal
         isOpen={isCreateCatOpen}
@@ -188,14 +252,14 @@ function CategoriesandSkills() {
       <DisableCategoryModal
         isOpen={isDisableCategoryOpen}
         categories={categories}
-        onClose={handleCloseDisableCategory}
+        onClose={() => setDisableCategoryOpen(false)}
         onDisable={handleDisableCategory}
       />
       <DisableSkillModal
         isOpen={isDisableSkillOpen}
         skills={skills}
         categories={categories}
-        onClose={handleCloseDisableSkill}
+        onClose={() => setDisableSkillOpen(false)}
         onDisable={handleDisableSkill}
       />
 
@@ -225,19 +289,36 @@ function CategoriesandSkills() {
 
       {/* Tab Content */}
       <div className="admin-content mt-4">
-        {tab === "categories" && (
+        {isLoading ? (
+          <div className="text-center text-gray-500 py-4">
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              Loading data...
+            </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+                <span className="material-icons">error</span>
+                <span className="font-semibold">Error</span>
+              </div>
+              <p className="text-red-600 text-sm">{error}</p>
+              <button 
+                onClick={handleRefresh}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : tab === "categories" ? (
           <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  NAME
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  DESCRIPTION
-                </th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">#</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
               </tr>
             </thead>
             <tbody>
@@ -245,19 +326,14 @@ function CategoriesandSkills() {
                 <tr
                   key={cat.id}
                   onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`
-                      cursor-pointer transition
-                      ${
-                        selectedCategoryId === cat.id
-                          ? "bg-purple-50 ring-2 ring-purple-200"
-                          : "hover:bg-gray-50"
-                      }
-                    `}
+                  className={`cursor-pointer transition ${
+                    selectedCategoryId === cat.id
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                  }`}
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                  <td className="px-6 py-4 font-semibold text-lg">
-                    {cat.name}
-                  </td>
+                  <td className="px-6 py-4 font-semibold text-lg">{cat.name}</td>
                   <td>
                     <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
                       {cat.description}
@@ -267,21 +343,13 @@ function CategoriesandSkills() {
               ))}
             </tbody>
           </table>
-        )}
-
-        {tab === "skills" && (
+        ) : (
           <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  NAME
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  CATEGORY
-                </th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">#</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">CATEGORY</th>
               </tr>
             </thead>
             <tbody>
@@ -289,19 +357,14 @@ function CategoriesandSkills() {
                 <tr
                   key={skill.id}
                   onClick={() => setSelectedSkillId(skill.id)}
-                  className={`
-                    cursor-pointer transition
-                    ${
-                      selectedSkillId === skill.id
-                        ? "bg-purple-50 ring-2 ring-purple-200"
-                        : "hover:bg-gray-50"
-                    }
-                  `}
+                  className={`cursor-pointer transition ${
+                    selectedSkillId === skill.id
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                  }`}
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                  <td className="px-6 py-4 font-semibold text-lg">
-                    {skill.name}
-                  </td>
+                  <td className="px-6 py-4 font-semibold text-lg">{skill.name}</td>
                   <td className="px-6 py-4">{skill.category}</td>
                 </tr>
               ))}
