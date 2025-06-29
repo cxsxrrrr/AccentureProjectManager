@@ -16,6 +16,16 @@ function CategoriesandSkills() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const openDisableCategoryModal = (category) => {
+    setSelectedCategoryId(category.id);
+    setDisableCategoryOpen(true);
+  };
+
+  const openDisableSkillModal = (skill) => {
+    setSelectedSkillId(skill.id);
+    setDisableSkillOpen(true);
+  };
+
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
 
@@ -43,6 +53,8 @@ function CategoriesandSkills() {
     try {
       setIsLoading(true);
       setError(null);
+      setCategories([]);
+      setSkills([]);
 
       const token = localStorage.getItem("token");
 
@@ -182,6 +194,24 @@ function CategoriesandSkills() {
   const handleRefresh = () => {
     loadData();
   };
+   const openUpdateCategoryModal = (category) => {
+  setCatToEdit(category);
+  setUpdateCatOpen(true);
+  };
+
+  const openUpdateSkillModal = (skill) => {
+  setSkillToEdit(skill);
+  setUpdateSkillOpen(true);
+  };
+
+  const handleTabChange = (newTab) => {
+  setTab(newTab);
+  setSelectedCategoryId(null);
+  setSelectedSkillId(null);
+};
+
+
+
 
   return (
     <div className="admin-page">
@@ -194,20 +224,21 @@ function CategoriesandSkills() {
               : () => setCreateSkillOpen(true)
           }
           onUpdate={
-            tab === "categories"
-              ? selectedCategoryId
-                ? () =>
-                    openUpdateCategoryModal(
-                      categories.find((c) => c.id === selectedCategoryId)
-                    )
-                : undefined
-              : selectedSkillId
-              ? () =>
-                  openUpdateSkillModal(
-                    skills.find((s) => s.id === selectedSkillId)
-                  )
+          tab === "categories"
+          ? selectedCategoryId
+          ? () =>
+          openUpdateCategoryModal(
+            categories.find((c) => c.id === selectedCategoryId)
+             )
               : undefined
-          }
+              : selectedSkillId
+            ? () =>
+          openUpdateSkillModal(
+          skills.find((s) => s.id === selectedSkillId)
+        )
+    : undefined
+}
+
           onDisable={
             tab === "categories"
               ? () => setDisableCategoryOpen(true)
@@ -271,7 +302,7 @@ function CategoriesandSkills() {
               ? "border-purple-500 text-purple-700"
               : "border-transparent text-gray-400 hover:text-purple-500"
           }`}
-          onClick={() => setTab("categories")}
+          onClick={() => handleTabChange("categories")}
         >
           Categories
         </button>
@@ -281,7 +312,7 @@ function CategoriesandSkills() {
               ? "border-purple-500 text-purple-700"
               : "border-transparent text-gray-400 hover:text-purple-500"
           }`}
-          onClick={() => setTab("skills")}
+          onClick={() => handleTabChange("skills")}
         >
           Skills
         </button>
@@ -365,7 +396,9 @@ function CategoriesandSkills() {
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
                   <td className="px-6 py-4 font-semibold text-lg">{skill.name}</td>
-                  <td className="px-6 py-4">{skill.category}</td>
+                    <td className="px-6 py-4">
+                    {categories.find(cat => cat.id === skill.category)?.name || "N/A"}
+                    </td>
                 </tr>
               ))}
             </tbody>
@@ -375,5 +408,14 @@ function CategoriesandSkills() {
     </div>
   );
 }
+const openDisableCategoryModal = (category) => {
+  setSelectedCategoryId(category.id);
+  setDisableCategoryOpen(true);
+};
+
+const openDisableSkillModal = (skill) => {
+  setSelectedSkillId(skill.id);
+  setDisableSkillOpen(true);
+};
 
 export default CategoriesandSkills;
