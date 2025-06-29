@@ -4,6 +4,7 @@ export default function UpdateUserStep2({
   values,
   categories,
   skills,
+  roles,          // <-- NUEVO: recibes los roles
   onBack,
   onSave,
   onCancel,
@@ -13,6 +14,7 @@ export default function UpdateUserStep2({
     numeroTelefono: "",
     categoria: "",
     habilidades: [],
+    rol: "", // <-- aquí el nombre del rol
   });
 
   // Precargar datos cuando abres la modal (body en español)
@@ -22,6 +24,7 @@ export default function UpdateUserStep2({
       numeroTelefono: values.numeroTelefono || "",
       categoria: values.categoria || "",
       habilidades: values.habilidades || [],
+      rol: values.rol?.nombre || "", // precarga el nombre del rol
     });
   }, [values]);
 
@@ -54,7 +57,7 @@ export default function UpdateUserStep2({
   // Guardar
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(local); // body en español
+    onSave(local); // body en español, rol será el nombre seleccionado
   };
 
   return (
@@ -65,7 +68,6 @@ export default function UpdateUserStep2({
       {/* Header */}
       <div className="flex items-center mb-3 gap-3">
         <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-          <i className="material-icons">person</i>
         </span>
         <div>
           <h2 className="text-2xl font-bold">Update User</h2>
@@ -86,7 +88,6 @@ export default function UpdateUserStep2({
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
           <span className="text-xl bg-purple-100 p-1 rounded">
-            <i className="material-icons">mail</i>
           </span>
           Contact Information
         </h3>
@@ -112,11 +113,35 @@ export default function UpdateUserStep2({
           />
         </div>
       </div>
+      {/* Rol del usuario */}
+      <div>
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
+          <span className="text-xl bg-purple-100 p-1 rounded">
+          </span>
+          Role
+        </h3>
+        <div className="grid grid-cols-1 gap-3">
+          <label className="font-semibold text-sm">Role *</label>
+          <select
+            name="rol"
+            value={local.rol}
+            onChange={handleChange}
+            required
+            className="mb-2 border rounded w-full px-3 py-2"
+          >
+            <option value="">Select Role</option>
+            {(roles || []).map((r) => (
+              <option key={r.nombre} value={r.nombre}>
+                {r.nombre} - {r.descripcion}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
       {/* Categoría y Skills */}
       <div>
-        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
           <span className="text-xl bg-purple-100 p-1 rounded">
-            <i className="material-icons">check_circle</i>
           </span>
           Category & Skills
         </h3>

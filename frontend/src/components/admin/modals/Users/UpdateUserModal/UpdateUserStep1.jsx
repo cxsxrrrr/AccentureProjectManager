@@ -65,7 +65,6 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 relative animate-fade-in">
       <div className="flex items-center mb-6 gap-3">
         <span className="text-3xl text-purple-600 bg-purple-100 p-2 rounded-xl">
-          <i className="material-icons">person</i>
         </span>
         <div>
           <h2 className="text-xl font-semibold">Update User</h2>
@@ -83,7 +82,7 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
       {/* Personal Info */}
       <div>
         <h3 className="text-md font-semibold text-purple-600 flex items-center gap-2 mb-3">
-          <span className="text-lg"><i className="material-icons">person</i></span> Personal Information
+          <span className="text-lg"></span> Personal Information
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
