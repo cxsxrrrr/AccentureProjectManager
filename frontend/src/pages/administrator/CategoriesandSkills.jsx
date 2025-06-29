@@ -97,7 +97,7 @@ function CategoriesandSkills() {
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
-        "http://localhost:8080/api/categories",
+        "http://localhost:8080/api/category",
         newCat,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -135,7 +135,7 @@ function CategoriesandSkills() {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `http://localhost:8080/api/categories/${catData.id}`,
+        `http://localhost:8080/api/category/${catData.id}`,
         catData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -176,7 +176,7 @@ function CategoriesandSkills() {
       setError(null);
       const token = localStorage.getItem("token");
 
-      await axios.delete(`http://localhost:8080/api/categories/${categoryId}`, {
+      await axios.delete(`http://localhost:8080/api/category/${categoryId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
