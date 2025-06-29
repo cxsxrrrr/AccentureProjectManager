@@ -63,6 +63,13 @@ public class SkillsController {
         return ResponseEntity.ok("Skill eliminado exitosamente");
     }
 
+    // Obtener Skill por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<SkillsDTO> getSkillById(@PathVariable Long id) {
+        SkillsDTO dto = skillsService.obtenerSkillPorId(id);
+        return ResponseEntity.ok(dto);
+    }
+
     // Obtener Skills asociadas a un usuario
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<SkillsDTO>> getSkillsByUsuario(@PathVariable("usuarioId") Long usuarioId) {

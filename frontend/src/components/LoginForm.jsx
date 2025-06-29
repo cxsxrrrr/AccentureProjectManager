@@ -19,33 +19,26 @@ export default function LoginForm() {
       const result = await authService.login(cedula, password);
 
       if (result.success) {
+        // Guarda token
         localStorage.setItem("token", result.token);
 
-        const userRole = result.usuario?.rol?.nombre?.toLowerCase();
-        console.log("Datos del usuario:", result.usuario);
-        console.log("Rol detectado:", userRole);
-        if (!userRole) {
-          setError("Usuario sin rol asignado o sin acceso autorizado.");
-          return;
-        }
-
-        switch (userRole) {
-          case "admin":
+        // Redireccionar según el ID del rol
+        const roleId = result.roleId;
+        switch (roleId) {
+          case 1:
             navigate("/admin");
             break;
-          case "manager":
+          case 2:
             navigate("/manager");
             break;
-          case "team":
-          case "teammember":
+          case 3:
             navigate("/team");
             break;
-          case "client":
-          case "cliente":
+          case 4:
             navigate("/client");
             break;
           default:
-            setError("Rol no reconocido. Acceso denegado.");
+            navigate("/");
         }
       } else {
         setError(result.error || "Credenciales inválidas");

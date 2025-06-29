@@ -10,6 +10,7 @@ import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
 import com.Accenture.backend.domain.repository.RolRepository;
+import com.Accenture.backend.domain.dto.RolDTO;
 import com.Accenture.backend.model.Rol;
 
 
@@ -169,7 +170,7 @@ public class UsuarioService {
         }
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
             // !!! Intentos fallidos
-            int intentos = usuario.getIntentosLogin() + 1;
+            int intentos = (usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0) + 1;
             usuario.setIntentosLogin(intentos);
             if (intentos >= 3) {
                 usuario.setEstado("INACTIVO");
@@ -189,7 +190,7 @@ public class UsuarioService {
         Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
                 .orElse(null);
         if (usuario != null) {
-            int intentos = usuario.getIntentosLogin() + 1;
+            int intentos = (usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0) + 1;
             usuario.setIntentosLogin(intentos);
             if (intentos >= 3) {
                 usuario.setEstado("INACTIVO");
@@ -201,9 +202,12 @@ public class UsuarioService {
     public void resetearIntentosLogin(Long cedula) {
         Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
                 .orElse(null);
-        if (usuario != null && usuario.getIntentosLogin() > 0) {
-            usuario.setIntentosLogin(0);
-            usuarioDAO.actualizarUsuario(usuario);
+        if (usuario != null) {
+            int intentos = usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0;
+            if (intentos > 0) {
+                usuario.setIntentosLogin(0);
+                usuarioDAO.actualizarUsuario(usuario);
+            }
         }
     }
 
@@ -238,4 +242,25 @@ public class UsuarioService {
         return sb.toString();
     }
 
+    /**
+     * Obtener Usuario por cédula
+     */
+    public UsuarioDTO obtenerUsuarioPorCedula(Long cedula) {
+        // Fetch user entity
+        Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con cédula: " + cedula));
+        // Map generic fields
+        UsuarioDTO dto = usuarioMapper.toDTO(usuario);
+        // Manual mapping of Rol
+        Rol rolEntity = usuario.getRol();
+        if (rolEntity != null) {
+            RolDTO rolDto = new RolDTO();
+            rolDto.setRolId(rolEntity.getRolId());
+            rolDto.setNombre(rolEntity.getNombre());
+            rolDto.setEstado(rolEntity.getEstado());
+            rolDto.setDescripcion(rolEntity.getDescripcion());
+            dto.setRol(rolDto);
+        }
+        return dto;
+    }
 }
