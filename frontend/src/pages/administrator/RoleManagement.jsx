@@ -90,8 +90,8 @@ function RoleManagement() {
         "http://localhost:8080/api/roles",
         {
           nombre: roleData.name,
-          descripcion: roleData.description, 
-          estado: roleData.estado.toLowerCase(),
+          descripcion: roleData.description,
+          estado: (roleData.status || "activo").toLowerCase(),
         },
         {
           headers: {
