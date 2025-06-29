@@ -28,14 +28,17 @@ export default function UpdateUserModal({
   isOpen,
   toggle,
   user,
-  categories,
-  skills,
-  roles,              // <-- Agregado: recibir roles
-  onUpdate
+  categories: categoriesProp,  // Renombrar props para evitar conflicto
+  skills: skillsProp,          // Renombrar props para evitar conflicto
+  roles,
+  onUpdate,
 }) {
   const [step, setStep] = useState(1);
-  const [categories, setCategories] = useState([]);
-  const [skills, setSkills] = useState([]);
+
+  // Solo usar estado local si quieres modificar o cargar las categorías/skills aquí
+  const [categories, setCategories] = useState(categoriesProp || []);
+  const [skills, setSkills] = useState(skillsProp || []);
+
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataError, setDataError] = useState(null);
   const [form, setForm] = useState(mapUserApiToUi(user));
@@ -53,18 +56,24 @@ export default function UpdateUserModal({
     }
   }, [user, isOpen]);
 
+  useEffect(() => {
+    // Cuando cambian las props categories o skills, actualizamos el estado local
+    setCategories(categoriesProp || []);
+    setSkills(skillsProp || []);
+  }, [categoriesProp, skillsProp]);
+
   const loadCategoriesAndSkills = async () => {
     try {
       setIsLoadingData(true);
       setDataError(null);
 
       if (!authService.isAuthenticated()) {
-        throw new Error('No authenticated');
+        throw new Error("No authenticated");
       }
 
       const [categoriesResponse, skillsResponse] = await Promise.all([
-        api.get('/category'),
-        api.get('/skills'),
+        api.get("/category"),
+        api.get("/skills"),
       ]);
 
       setCategories(categoriesResponse.data);
@@ -77,7 +86,7 @@ export default function UpdateUserModal({
         authService.logout();
       } else if (err.response?.status === 403) {
         setDataError("You don't have permission to access this data.");
-      } else if (err.message === 'No authenticated') {
+      } else if (err.message === "No authenticated") {
         setDataError("Please login to continue.");
         authService.logout();
       } else {
@@ -91,8 +100,8 @@ export default function UpdateUserModal({
   const handleClose = () => {
     setStep(1);
     setForm(mapUserApiToUi(user));
-    setCategories([]);
-    setSkills([]);
+    setCategories(categoriesProp || []);
+    setSkills(skillsProp || []);
     setDataError(null);
     toggle();
   };
@@ -107,17 +116,15 @@ export default function UpdateUserModal({
     setStep(1);
   };
 
-  // Guardar cambios - convierte UI fields -> body API (español)
   const handleSave = (data) => {
     const salida = {
       ...form,
       ...data,
-      fechaNacimiento: form.fechaNacimiento, // ya está en formato yyyy-mm-dd
+      fechaNacimiento: form.fechaNacimiento,
       cedula: Number(form.cedula),
       numeroTelefono: form.numeroTelefono,
       email: form.email,
-      rol: { nombre: data.rol },            // <-- Aquí el objeto con nombre del rol
-      // Puedes agregar el resto de campos aquí si tu modal los permite editar
+      rol: { nombre: data.rol },
     };
     onUpdate(salida);
     setStep(1);
@@ -133,18 +140,14 @@ export default function UpdateUserModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       {step === 1 && (
-        <UpdateUserStep1
-          values={form}
-          onNext={handleNext}
-          onCancel={toggle}
-        />
+        <UpdateUserStep1 values={form} onNext={handleNext} onCancel={toggle} />
       )}
       {step === 2 && (
         <UpdateUserStep2
           values={form}
           categories={categories}
           skills={skills}
-          roles={roles}         // <-- Aquí pasas los roles
+          roles={roles}
           onBack={handleBack}
           onSave={handleSave}
           onCancel={toggle}
