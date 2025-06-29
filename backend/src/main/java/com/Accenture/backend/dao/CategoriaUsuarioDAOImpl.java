@@ -20,6 +20,10 @@ public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
     @Transactional
     @Override
     public void asociarCategoriaAUsuario(Long usuarioId, Long categoriaId) {
+        // Verificar si ya existe la asociación
+        if (categoriaUsuarioRepository.findByUsuario_UsuarioIdAndCategoria_CategoriaId(usuarioId, categoriaId).isPresent()) {
+            throw new IllegalArgumentException("El usuario ya tiene esta categoría asociada.");
+        }
         CategoriaUsuario cu = new CategoriaUsuario();
         // Construyo solo proxies con el ID para no recargar entidad completa
         Usuario u = new Usuario(); u.setUsuarioId(usuarioId);

@@ -17,8 +17,12 @@ public class CategoriaUsuarioController {
     // Asociar categoría a usuario
     @PostMapping("/asociar")
     public ResponseEntity<String> asociarCategoriaAUsuario(@RequestBody CategoriaUsuarioDTO dto) {
-        categoriaUsuarioService.asociarCategoriaAUsuario(dto.getUsuarioId(), dto.getCategoriaId());
-        return ResponseEntity.ok("Categoría asociada al usuario correctamente");
+        try {
+            categoriaUsuarioService.asociarCategoriaAUsuario(dto.getUsuarioId(), dto.getCategoriaId());
+            return ResponseEntity.ok("Categoría asociada al usuario correctamente");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     // Remover categoría de usuario
