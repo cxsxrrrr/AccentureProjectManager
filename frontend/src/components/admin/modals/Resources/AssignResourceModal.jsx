@@ -1,24 +1,47 @@
 import React, { useState, useEffect } from "react";
 
-const AssignResourceModal = ({
+export default function AssignResourceModal({
   isOpen,
   onClose,
   onAssign,
   projects = [],
   resources = [],
-}) => {
-  const [resourceName, setResourceName] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+}) {
+  const [form, setForm] = useState({ resourceName: "", projectId: null });
   const [search, setSearch] = useState("");
+  const [errors, setErrors] = useState({});
 
   // Reinicia estado cuando se abre/cierra
   useEffect(() => {
     if (!isOpen) {
-      setResourceName("");
-      setSelectedProjectId(null);
+      setForm({ resourceName: "", projectId: null });
       setSearch("");
+      setErrors({});
     }
   }, [isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
+  };
+
+  const validate = () => {
+    const errs = {};
+    if (!form.resourceName.trim()) errs.resourceName = "Resource name is required";
+    if (!form.projectId) errs.projectId = "Project is required";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (!validate()) return;
+    onAssign({
+      resourceName: form.resourceName,
+      projectId: form.projectId,
+    });
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -36,19 +59,27 @@ const AssignResourceModal = ({
           Resource Name *
           <input
             type="text"
-            className="block mt-1 w-full border rounded-lg px-4 py-2 focus:outline-purple-500"
+            name="resourceName"
+            className={`block mt-1 w-full border rounded-lg px-4 py-2 focus:outline-purple-500 ${
+              errors.resourceName ? "border-red-400" : ""
+            }`}
             placeholder="Enter Resource name"
-            value={resourceName}
-            onChange={(e) => setResourceName(e.target.value)}
+            value={form.resourceName}
+            onChange={handleChange}
           />
+          {errors.resourceName && (
+            <div className="text-red-500 mt-1 text-sm">{errors.resourceName}</div>
+          )}
         </label>
 
         <div className="mb-2 font-semibold text-base">Select Project *</div>
         <input
-          className="w-full border rounded-lg px-4 py-2 mb-3 focus:outline-purple-500"
+          className={`w-full border rounded-lg px-4 py-2 mb-3 focus:outline-purple-500 ${
+            errors.projectId ? "border-red-400" : ""
+          }`}
           placeholder="Search project..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={(e) => setSearch(e.target.value)}
         />
         <div className="space-y-2 max-h-40 overflow-y-auto mb-6">
           {filteredProjects.length === 0 && (
@@ -58,16 +89,19 @@ const AssignResourceModal = ({
             <div
               key={proj.id}
               className={`px-4 py-3 rounded border cursor-pointer text-base font-bold flex items-center transition
-                ${selectedProjectId === proj.id
+                ${form.projectId === proj.id
                   ? "bg-purple-100 border-purple-400"
                   : "hover:bg-gray-50 border-gray-300"
                 }`}
-              onClick={() => setSelectedProjectId(proj.id)}
+              onClick={() => setForm((prev) => ({ ...prev, projectId: proj.id }))}
             >
               {proj.name}
             </div>
           ))}
         </div>
+        {errors.projectId && (
+          <div className="text-red-500 mt-1 text-sm">{errors.projectId}</div>
+        )}
         <div className="flex justify-end gap-2">
           <button
             className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200 transition"
@@ -78,13 +112,8 @@ const AssignResourceModal = ({
           </button>
           <button
             className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
-            disabled={!resourceName || !selectedProjectId}
-            onClick={() => {
-              onAssign({
-                resourceName,
-                projectId: selectedProjectId,
-              });
-            }}
+            disabled={!form.resourceName || !form.projectId}
+            onClick={handleSubmit}
             type="button"
           >
             Assign
@@ -94,5 +123,3 @@ const AssignResourceModal = ({
     </div>
   );
 };
-
-export default AssignResourceModal;
