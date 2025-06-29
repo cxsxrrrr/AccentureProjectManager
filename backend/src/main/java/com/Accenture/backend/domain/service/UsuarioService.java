@@ -12,11 +12,15 @@ import com.Accenture.backend.util.UsuarioMapper;
 import com.Accenture.backend.domain.repository.RolRepository;
 import com.Accenture.backend.model.Rol;
 
+
 import java.text.Normalizer;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+
+
 
 @Service
 public class UsuarioService {
