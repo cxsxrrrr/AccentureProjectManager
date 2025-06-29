@@ -18,7 +18,7 @@ import java.util.List;
 
 // Ruta principal
 @RestController
-@RequestMapping("api/usuario")
+@RequestMapping("/api/usuario")
 public class UsuarioController {
     private final UsuarioService usuarioService;
 
@@ -71,6 +71,13 @@ public class UsuarioController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(e.getMessage());
         }
+    }
+
+    // Buscar Usuario por cédula
+    @GetMapping("/cedula/{cedula}")
+    public ResponseEntity<UsuarioDTO> getUserByCedula(@PathVariable("cedula") Long cedula) {
+        UsuarioDTO usuario = usuarioService.obtenerUsuarioPorCedula(cedula);
+        return ResponseEntity.ok(usuario);
     }
 
 }

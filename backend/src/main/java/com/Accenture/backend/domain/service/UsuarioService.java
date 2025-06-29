@@ -169,7 +169,7 @@ public class UsuarioService {
         }
         if (!passwordEncoder.matches(password, usuario.getPassword())) {
             // !!! Intentos fallidos
-            int intentos = usuario.getIntentosLogin() + 1;
+            int intentos = (usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0) + 1;
             usuario.setIntentosLogin(intentos);
             if (intentos >= 3) {
                 usuario.setEstado("INACTIVO");
@@ -189,7 +189,7 @@ public class UsuarioService {
         Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
                 .orElse(null);
         if (usuario != null) {
-            int intentos = usuario.getIntentosLogin() + 1;
+            int intentos = (usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0) + 1;
             usuario.setIntentosLogin(intentos);
             if (intentos >= 3) {
                 usuario.setEstado("INACTIVO");
@@ -201,9 +201,12 @@ public class UsuarioService {
     public void resetearIntentosLogin(Long cedula) {
         Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
                 .orElse(null);
-        if (usuario != null && usuario.getIntentosLogin() > 0) {
-            usuario.setIntentosLogin(0);
-            usuarioDAO.actualizarUsuario(usuario);
+        if (usuario != null) {
+            int intentos = usuario.getIntentosLogin() != null ? usuario.getIntentosLogin() : 0;
+            if (intentos > 0) {
+                usuario.setIntentosLogin(0);
+                usuarioDAO.actualizarUsuario(usuario);
+            }
         }
     }
 
@@ -238,4 +241,13 @@ public class UsuarioService {
         return sb.toString();
     }
 
+    /**
+     * Obtener Usuario por cédula
+     */
+    public UsuarioDTO obtenerUsuarioPorCedula(Long cedula) {
+        return usuarioMapper.toDTO(
+            usuarioDAO.buscarUsuarioxCedula(cedula)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con cédula: " + cedula))
+        );
+    }
 }
