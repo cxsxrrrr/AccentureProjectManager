@@ -4,7 +4,6 @@ import com.Accenture.backend.domain.dto.TareaDTO;
 import com.Accenture.backend.model.Tarea;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 
 @Mapper(componentModel = "spring")
 public interface TareaMapper {

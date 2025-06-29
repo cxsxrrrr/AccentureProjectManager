@@ -1,7 +1,6 @@
 package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.UsuarioDAO;
-
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.exception.ResourceNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -10,6 +9,8 @@ import org.springframework.stereotype.Service;
 import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
+import com.Accenture.backend.domain.repository.RolRepository;
+import com.Accenture.backend.model.Rol;
 
 
 import java.text.Normalizer;
@@ -28,30 +29,54 @@ public class UsuarioService {
     private final UsuarioMapper usuarioMapper;
     private final MailSender mailSender;
     private final PasswordEncoder passwordEncoder;
+    private final RolRepository rolRepository;
 
-    public UsuarioService(UsuarioDAO usuarioDAO, UsuarioMapper usuarioMapper, MailSender mailSender, PasswordEncoder passwordEncoder) {
+    public UsuarioService(UsuarioDAO usuarioDAO,
+                         UsuarioMapper usuarioMapper,
+                         MailSender mailSender,
+                         PasswordEncoder passwordEncoder,
+                         RolRepository rolRepository) {
         this.usuarioDAO = usuarioDAO;
         this.usuarioMapper = usuarioMapper;
         this.mailSender = mailSender;
-        this.passwordEncoder = passwordEncoder; // Inicialización de passwordEncoder
+        this.passwordEncoder = passwordEncoder;
+        this.rolRepository = rolRepository;
     }
 
     public UsuarioDTO crearUsuario(UsuarioDTO dto) {
+        // Ya no se requiere rol obligatorio
         // Verificar si la cédula ya existe
         if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
             throw new IllegalArgumentException("La cédula ya está registrada");
         }
 
+        if (usuarioDAO.buscarUsuarioPorEmail(dto.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("El correo electrónico ya está registrado");
+        }
+
+        if (usuarioDAO.buscarUsuarioxTelefono(dto.getNumeroTelefono()).isPresent()) {
+            throw new IllegalArgumentException("El numero de telefono ya está registrado");
+        }
+
         // UsuarioDTO a Usuario
         Usuario usuario = usuarioMapper.toEntity(dto);
 
+        // Asignar rol solo si viene en el DTO y tiene rolId
+        if (dto.getRol() != null && dto.getRol().getRolId() != null) {
+            Long rolId = dto.getRol().getRolId();
+            Rol rol = rolRepository.findById(rolId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + rolId));
+            usuario.setRol(rol);
+        } else {
+            usuario.setRol(null);
+        }
+
         // Guardar usuario en la base de datos con contraseña encriptada
         final String rawPassword = dto.getPassword(); // Guardar la contraseña en texto plano para el correo
-        // Guardar usuario en la base de datos con contraseña encriptada
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario = usuarioDAO.crearUsuario(usuario);
 
-        final Usuario savedUsuario = usuarioDAO.crearUsuario(usuario);
+        final Usuario savedUsuario = usuario;
 
         // Enviar correo de bienvenida de forma asíncrona
         CompletableFuture.runAsync(() -> {
@@ -87,6 +112,14 @@ public class UsuarioService {
         Usuario usuarioExistente = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuarioMapper.updateUsuarioFromDto(dto, usuarioExistente);
+        // Actualizar rol solo si viene en el DTO y tiene rolId
+        if (dto.getRol() != null && dto.getRol().getRolId() != null) {
+            Rol rol = rolRepository.findById(dto.getRol().getRolId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + dto.getRol().getRolId()));
+            usuarioExistente.setRol(rol);
+        } else {
+            usuarioExistente.setRol(null);
+        }
         Usuario updated = usuarioDAO.actualizarUsuario(usuarioExistente);
         return usuarioMapper.toDTO(updated);
     }

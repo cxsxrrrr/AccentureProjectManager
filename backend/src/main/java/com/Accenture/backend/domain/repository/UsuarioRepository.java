@@ -13,5 +13,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     // Métodos de búsqueda personalizados
     List<Usuario> findByNombreContainingIgnoreCase(String nombre);
     Optional<Usuario> findByEmail(String email);
+    Optional<Usuario> findByNumeroTelefono(String telefono);
     List<Usuario> findByEstado(String estado);
 }

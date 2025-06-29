@@ -17,7 +17,7 @@ function ClientLayout() {
         menuItems={clientMenu}
         logo={accentureLogo}
       />
-      <div style={{ flexGrow: 1, padding: "20px" }}>
+      <div style={{ flex: 1, padding: "2rem", overflowY: "auto" }}>
         <Component />
       </div>
     </div>
