@@ -19,29 +19,26 @@ export default function LoginForm() {
       const result = await authService.login(cedula, password);
 
       if (result.success) {
-        localStorage.setItem("token", result.token); // Guarda token
+        // Guarda token
+        localStorage.setItem("token", result.token);
 
-        const userRole = result.usuario?.rol?.nombre?.toLowerCase();
-
-        // Redireccionar según el nombre del rol
-        switch (userRole) {
-          case "admin":
+        // Redireccionar según el ID del rol
+        const roleId = result.roleId;
+        switch (roleId) {
+          case 1:
             navigate("/admin");
             break;
-          case "manager":
+          case 2:
             navigate("/manager");
             break;
-          case "team":
-          case "teammember":
+          case 3:
             navigate("/team");
             break;
-          case "client":
-          case "cliente":
+          case 4:
             navigate("/client");
             break;
           default:
             navigate("/");
-            break;
         }
       } else {
         setError(result.error || "Credenciales inválidas");

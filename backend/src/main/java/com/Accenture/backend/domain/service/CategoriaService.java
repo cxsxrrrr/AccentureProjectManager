@@ -3,6 +3,7 @@ package com.Accenture.backend.domain.service;
 
 import com.Accenture.backend.dao.CategoriaDAO;
 import com.Accenture.backend.domain.dto.CategoriaDTO;
+import com.Accenture.backend.domain.dto.CategoryUsersResponseDTO;
 import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.domain.repository.CategoriaRepository;
 import com.Accenture.backend.domain.repository.CategoriaUsuarioRepository;
@@ -73,5 +74,28 @@ public class CategoriaService {
         return categoriaUsuarioRepository.findAllByCategoria_CategoriaId(categoriaId).stream()
                 .map(cu -> usuarioMapper.toDTO(cu.getUsuario()))
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtener Categoria por ID
+     */
+    public CategoriaDTO obtenerCategoriaPorId(Long id) {
+        Categoria categoria = categoriaDAO.buscarCategoriaPorId(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada con id: " + id));
+        return categoriaMapper.toDTO(categoria);
+    }
+
+    /**
+     * Listar usuarios junto a info de categoría
+     */
+    public CategoryUsersResponseDTO obtenerUsuariosCategoria(Long categoriaId) {
+        Categoria categoria = categoriaDAO.buscarCategoriaPorId(categoriaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Categoria no encontrada con id: " + categoriaId));
+        List<UsuarioDTO> users = listarUsuariosPorCategoria(categoriaId);
+        return CategoryUsersResponseDTO.builder()
+            .categoriaId(categoria.getCategoriaId())
+            .nombre(categoria.getNombre())
+            .usuarios(users)
+            .build();
     }
 }

@@ -10,6 +10,7 @@ import com.Accenture.backend.model.Usuario;
 import com.Accenture.backend.util.MailSender;
 import com.Accenture.backend.util.UsuarioMapper;
 import com.Accenture.backend.domain.repository.RolRepository;
+import com.Accenture.backend.domain.dto.RolDTO;
 import com.Accenture.backend.model.Rol;
 
 
@@ -245,9 +246,21 @@ public class UsuarioService {
      * Obtener Usuario por cédula
      */
     public UsuarioDTO obtenerUsuarioPorCedula(Long cedula) {
-        return usuarioMapper.toDTO(
-            usuarioDAO.buscarUsuarioxCedula(cedula)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con cédula: " + cedula))
-        );
+        // Fetch user entity
+        Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedula)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado con cédula: " + cedula));
+        // Map generic fields
+        UsuarioDTO dto = usuarioMapper.toDTO(usuario);
+        // Manual mapping of Rol
+        Rol rolEntity = usuario.getRol();
+        if (rolEntity != null) {
+            RolDTO rolDto = new RolDTO();
+            rolDto.setRolId(rolEntity.getRolId());
+            rolDto.setNombre(rolEntity.getNombre());
+            rolDto.setEstado(rolEntity.getEstado());
+            rolDto.setDescripcion(rolEntity.getDescripcion());
+            dto.setRol(rolDto);
+        }
+        return dto;
     }
 }

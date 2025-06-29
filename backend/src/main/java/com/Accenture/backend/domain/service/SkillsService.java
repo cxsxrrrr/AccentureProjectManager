@@ -96,7 +96,22 @@ public class SkillsService {
      */
     public List<SkillsDTO> obtenerSkillsPorUsuario(Long usuarioId) {
         return skillsUsuarioRepository.findAllByUsuario_UsuarioId(usuarioId).stream()
-            .map(su -> skillsMapper.toDTO(su.getSkill()))
+            .map(su -> {
+                SkillsDTO dto = skillsMapper.toDTO(su.getSkill());
+                if (su.getSkill().getCategoria() != null) {
+                    dto.setCategoriaNombre(su.getSkill().getCategoria().getNombre());
+                }
+                return dto;
+            })
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Obtener Skill por ID
+     */
+    public SkillsDTO obtenerSkillPorId(Long id) {
+        Skills skill = skillsRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Skill no encontrada con id: " + id));
+        return skillsMapper.toDTO(skill);
     }
 }
