@@ -3,7 +3,7 @@ import { authService } from "../services/authService";
 import { useNavigate } from "react-router-dom";
 
 export default function LoginForm() {
-  const [cedula, setCedula] = useState(""); // Mantener cédula como identificador
+  const [cedula, setCedula] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -53,14 +53,12 @@ export default function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6" data-element="login-form">
-      {/* Error message */}
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
           <span className="block sm:inline">{error}</span>
         </div>
       )}
 
-      {/* Cédula */}
       <div>
         <label htmlFor="cedula" className="text-3xl block mb-2 font-medium text-gray-700">
           ID user
@@ -72,7 +70,7 @@ export default function LoginForm() {
           value={cedula}
           onChange={(e) => {
             const value = e.target.value;
-            if (/^\d*$/.test(value)) setCedula(value); // Solo dígitos
+            if (/^\d*$/.test(value)) setCedula(value);
           }}
           required
           disabled={loading}
@@ -80,7 +78,6 @@ export default function LoginForm() {
         />
       </div>
 
-      {/* Password */}
       <div>
         <label htmlFor="password" className="text-3xl block mb-2 font-medium text-gray-700">Password</label>
         <div className="relative">
@@ -115,12 +112,10 @@ export default function LoginForm() {
         </div>
       </div>
 
-      {/* Forgot password */}
       <div className="flex justify-end">
         <a href="#" className="text-sm hover:underline">Forgot password?</a>
       </div>
 
-      {/* Submit */}
       <button
         type="submit"
         disabled={loading}
