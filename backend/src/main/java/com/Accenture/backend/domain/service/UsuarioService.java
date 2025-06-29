@@ -40,17 +40,10 @@ public class UsuarioService {
     }
 
     public UsuarioDTO crearUsuario(UsuarioDTO dto) {
-        // Validate and set role
-        if (dto.getRol() == null || dto.getRol().getRolId() == null) {
-            throw new IllegalArgumentException("rolId es requerido");
-        }
+        // Ya no se requiere rol obligatorio
         // Verificar si la cédula ya existe
         if (usuarioDAO.buscarUsuarioxCedula(dto.getCedula()).isPresent()) {
             throw new IllegalArgumentException("La cédula ya está registrada");
-        }
-
-        if (usuarioDAO.buscarUsuarioPorEmail(dto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("El correo electrónico ya está registrado");
         }
 
         if (usuarioDAO.buscarUsuarioPorEmail(dto.getEmail()).isPresent()) {
@@ -63,19 +56,23 @@ public class UsuarioService {
 
         // UsuarioDTO a Usuario
         Usuario usuario = usuarioMapper.toEntity(dto);
-        // Assign role entity
-        Long rolId = dto.getRol().getRolId();
-        Rol rol = rolRepository.findById(rolId)
-                .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + rolId));
-        usuario.setRol(rol);
+
+        // Asignar rol solo si viene en el DTO y tiene rolId
+        if (dto.getRol() != null && dto.getRol().getRolId() != null) {
+            Long rolId = dto.getRol().getRolId();
+            Rol rol = rolRepository.findById(rolId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + rolId));
+            usuario.setRol(rol);
+        } else {
+            usuario.setRol(null);
+        }
 
         // Guardar usuario en la base de datos con contraseña encriptada
         final String rawPassword = dto.getPassword(); // Guardar la contraseña en texto plano para el correo
-        // Guardar usuario en la base de datos con contraseña encriptada
         usuario.setPassword(passwordEncoder.encode(dto.getPassword()));
         usuario = usuarioDAO.crearUsuario(usuario);
 
-        final Usuario savedUsuario = usuarioDAO.crearUsuario(usuario);
+        final Usuario savedUsuario = usuario;
 
         // Enviar correo de bienvenida de forma asíncrona
         CompletableFuture.runAsync(() -> {
@@ -111,11 +108,13 @@ public class UsuarioService {
         Usuario usuarioExistente = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
         usuarioMapper.updateUsuarioFromDto(dto, usuarioExistente);
-        // Update role if provided
+        // Actualizar rol solo si viene en el DTO y tiene rolId
         if (dto.getRol() != null && dto.getRol().getRolId() != null) {
             Rol rol = rolRepository.findById(dto.getRol().getRolId())
                     .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + dto.getRol().getRolId()));
             usuarioExistente.setRol(rol);
+        } else {
+            usuarioExistente.setRol(null);
         }
         Usuario updated = usuarioDAO.actualizarUsuario(usuarioExistente);
         return usuarioMapper.toDTO(updated);
