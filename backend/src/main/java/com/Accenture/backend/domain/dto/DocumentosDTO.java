@@ -1,17 +1,15 @@
 package com.Accenture.backend.domain.dto;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class SkillsDTO {
-    private Long skillId;
-    private String nombre;
-    private String estado;
-    private Long categoriaId;
+public class DocumentosDTO {
+    private Long documentoId;
+    private String nombreOriginal;
+    private Long proyectoId;
 }

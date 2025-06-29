@@ -12,5 +12,14 @@ import lombok.NoArgsConstructor;
 public class RolDTO {
     private Long rolId;
     private String nombre;
+    private String estado;
     private String descripcion;
+    
+    public void setId(Long id) {
+        this.rolId = id;
+    }
+    
+    public Long getId() {
+        return this.rolId;
+    }
 }

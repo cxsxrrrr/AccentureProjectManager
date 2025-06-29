@@ -32,4 +32,15 @@ public class RolController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RolDTO> actualizarRol(@PathVariable Long id, @RequestBody RolDTO rolDTO) {
+        rolDTO.setId(id);
+        RolDTO actualizado = rolService.actualizarRol(rolDTO);
+        if (actualizado != null) {
+            return ResponseEntity.ok(actualizado);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

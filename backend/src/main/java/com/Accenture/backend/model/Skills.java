@@ -20,6 +20,8 @@ public class Skills {
 
     @Column(length = 255)
     private String nombre;
+    
+    private String estado;
 
     @ManyToOne
     @JoinColumn(name = "categoria_id", nullable = false)
