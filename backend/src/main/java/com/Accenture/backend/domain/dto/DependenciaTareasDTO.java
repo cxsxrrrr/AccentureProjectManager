@@ -9,10 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-// Datos visibles en la petición
-public class CategoriaDTO {
-    private Long categoriaId;
-    private String nombre;
-    private String estado;
-    private String descripcion;
+public class DependenciaTareasDTO {
+    private Long dependenciaTareasId;
+    private Long tareaId;
+    private Long tareaPresendente;
+    private String tipoDependencia;
 }

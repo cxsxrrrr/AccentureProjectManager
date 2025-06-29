@@ -26,6 +26,8 @@ public class Categoria {
     @Column(length = 255)
     private String nombre;
 
+    private String estado;
+
     @Column(length = 255)
     private String descripcion;
 
