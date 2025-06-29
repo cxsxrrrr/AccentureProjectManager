@@ -14,4 +14,6 @@ public interface SkillsUsuarioRepository extends JpaRepository<SkillsUsuario, Lo
     );
 
     List<SkillsUsuario> findAllBySkill_SkillId(Long skillId);
+
+    List<SkillsUsuario> findAllByUsuario_UsuarioId(Long usuarioId);
 }

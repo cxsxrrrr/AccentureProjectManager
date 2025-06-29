@@ -90,4 +90,13 @@ public class SkillsService {
                 .map(su -> usuarioMapper.toDTO(su.getUsuario()))
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Obtener Skills asociadas a un usuario
+     */
+    public List<SkillsDTO> obtenerSkillsPorUsuario(Long usuarioId) {
+        return skillsUsuarioRepository.findAllByUsuario_UsuarioId(usuarioId).stream()
+            .map(su -> skillsMapper.toDTO(su.getSkill()))
+            .collect(Collectors.toList());
+    }
 }

@@ -63,7 +63,7 @@ public class Usuario {
     private LocalDateTime ultimoAcceso;
 
     @Column(name = "intentos_login")
-    private int intentosLogin;
+    private Integer intentosLogin;
 
     @ManyToOne
     @JoinColumn(name = "rol_id", referencedColumnName = "rol_id")

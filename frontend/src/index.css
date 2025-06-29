@@ -1,7 +1,6 @@
-@import "tailwindcss";
-
-
-
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Esto sirve para que el panel ocupe toda la mitad de la pantalla */
 html,

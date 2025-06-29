@@ -7,6 +7,8 @@ import com.Accenture.backend.model.Categoria;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 @Repository
 public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
@@ -41,5 +43,11 @@ public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
             .findByUsuario_UsuarioIdAndCategoria_CategoriaId(usuarioId, categoriaId)
             .orElseThrow(() -> new IllegalArgumentException("No existe esa asociación"));
         categoriaUsuarioRepository.delete(cu);
+    }
+
+    @Transactional
+    @Override
+    public List<CategoriaUsuario> listarPorUsuarioId(Long usuarioId) {
+        return categoriaUsuarioRepository.findAllByUsuario_UsuarioId(usuarioId);
     }
 }
