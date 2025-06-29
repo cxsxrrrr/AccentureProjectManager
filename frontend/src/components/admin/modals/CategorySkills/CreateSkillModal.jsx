@@ -2,33 +2,36 @@ import React, { useState, useEffect } from "react";
 import { FiSearch, FiCheck } from "react-icons/fi";
 
 export default function CreateSkillModal({ isOpen, toggle, categories = [], onCreate }) {
-  const [name, setName] = useState("");
+  const [nombre, setNombre] = useState("");
   const [catSearch, setCatSearch] = useState("");
-  const [catId, setCatId] = useState(null);
+  const [categoriaId, setCategoriaId] = useState(null);
   const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setName("");
+      setNombre("");
       setCatSearch("");
-      setCatId(null);
+      setCategoriaId(null);
       setTouched(false);
     }
   }, [isOpen]);
 
-  // Buscador de categorías
+  // Buscador de categorías (usa nombre y descripcion, respetando tus modelos)
   const filteredCategories = categories.filter(c =>
-    c.name.toLowerCase().includes(catSearch.toLowerCase())
-  );
+  (typeof c?.nombre === "string" && c.nombre.toLowerCase().includes(catSearch.toLowerCase())) ||
+  (typeof c?.descripcion === "string" && c.descripcion.toLowerCase().includes(catSearch.toLowerCase()))
+);
 
-  const valid = name.trim() && catId;
+  const valid = nombre.trim() && categoriaId;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
-    const category = categories.find(c => c.id === catId);
-    onCreate && onCreate({ name: name.trim(), category: category.name });
+    onCreate && onCreate({
+      nombre: nombre.trim(),
+      categoria_id: categoriaId
+    });
     toggle();
   };
 
@@ -41,91 +44,92 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-10 relative"
       >
         {/* Header */}
-        <div className="flex items-start mb-8">
-          <h2 className="text-3xl font-bold text-gray-700 flex-1">New Skill</h2>
+        <div className="flex items-start mb-10">
+          <h2 className="text-3xl font-bold text-gray-700 flex-1">Nueva Habilidad</h2>
           <button
             onClick={toggle}
             className="ml-auto text-gray-400 hover:text-red-500 text-2xl"
-            aria-label="Close modal"
+            aria-label="Cerrar modal"
             type="button"
           >×</button>
         </div>
-        {/* Form */}
-        <div className="mb-8">
-          <label className="block text-2xl font-bold mb-3" htmlFor="skillname">
-            Skill name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="skillname"
-            className="w-full rounded-lg border border-gray-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400 mb-7"
-            placeholder="Enter skill name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            autoFocus
-          />
-          {touched && !name.trim() && (
-            <div className="text-red-500 text-sm mb-2">Skill name is required.</div>
-          )}
-
-          <div className="mb-4">
-            <div className="text-2xl font-bold mb-3">Select Category</div>
-            <div className="flex items-center border rounded-lg px-3 py-2 mb-4 bg-gray-50 shadow-inner">
+        {/* Formulario */}
+        <div className="flex flex-col gap-8 mb-10">
+          <div>
+            <label className="block text-2xl font-bold mb-4" htmlFor="skillname">
+              Nombre de la Habilidad <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="skillname"
+              className="w-full rounded-lg border border-gray-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400 mb-4"
+              placeholder="Escribe el nombre de la habilidad"
+              value={nombre}
+              onChange={e => setNombre(e.target.value)}
+              autoFocus
+            />
+            {touched && !nombre.trim() && (
+              <div className="text-red-500 text-sm mb-2">El nombre es obligatorio.</div>
+            )}
+          </div>
+          <div>
+            <div className="text-2xl font-bold mb-4">Selecciona una Categoría</div>
+            <div className="flex items-center border rounded-lg px-3 py-2 mb-5 bg-gray-50 shadow-inner">
               <FiSearch className="text-xl text-gray-400 mr-2" />
               <input
                 type="text"
-                placeholder="Search category..."
+                placeholder="Buscar categoría..."
                 value={catSearch}
                 onChange={e => setCatSearch(e.target.value)}
                 className="w-full outline-none bg-transparent text-lg"
               />
             </div>
-            <div className="max-h-40 overflow-y-auto flex flex-col gap-2">
+            <div className="max-h-48 overflow-y-auto flex flex-col gap-3">
               {filteredCategories.length === 0 && (
-                <div className="text-gray-400 py-4 text-center">No categories found.</div>
+                <div className="text-gray-400 py-4 text-center">No hay categorías.</div>
               )}
               {filteredCategories.map(c => (
                 <button
-                  key={c.id}
+                  key={c.categoria_id}
                   type="button"
-                  onClick={() => setCatId(c.id)}
+                  onClick={() => setCategoriaId(c.categoria_id)}
                   className={`
                     flex flex-col items-start p-4 rounded-xl border w-full transition
                     text-left shadow-sm
-                    ${catId === c.id
+                    ${categoriaId === c.categoria_id
                       ? "bg-purple-500 text-white border-purple-500"
                       : "bg-white border-gray-200 hover:bg-purple-100"}
                   `}
                 >
                   <div className="flex items-center w-full">
-                    <span className="font-bold text-lg flex-1">{c.name}</span>
-                    {catId === c.id && <FiCheck className="text-2xl ml-2 font-bold" />}
+                    <span className="font-bold text-lg flex-1">{c.nombre}</span>
+                    {categoriaId === c.categoria_id && <FiCheck className="text-2xl ml-2 font-bold" />}
                   </div>
-                  <span className={`text-xs mt-1 ${catId === c.id ? "text-purple-100" : "text-gray-500"}`}>
-                    {c.description || "No description"}
+                  <span className={`text-xs mt-2 ${categoriaId === c.categoria_id ? "text-purple-100" : "text-gray-500"}`}>
+                    {c.descripcion || "Sin descripción"}
                   </span>
                 </button>
               ))}
             </div>
-            {touched && !catId && (
-              <div className="text-red-500 text-sm mt-2">Select a category.</div>
+            {touched && !categoriaId && (
+              <div className="text-red-500 text-sm mt-3">Selecciona una categoría.</div>
             )}
           </div>
         </div>
         {/* Footer */}
-        <div className="flex justify-end gap-3 pt-8">
+        <div className="flex justify-end gap-8 pt-10">
           <button
             type="button"
             onClick={toggle}
             className="px-8 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium text-lg"
           >
-            Cancel
+            Cancelar
           </button>
           <button
             type="submit"
             className="px-8 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition text-lg shadow"
             disabled={!valid}
           >
-            Create
+            Crear
           </button>
         </div>
       </form>
