@@ -16,6 +16,25 @@ export const authService = {
       // Guardar token en localStorage
       localStorage.setItem('token', token);
       
+      // Obtener información del usuario para redireccionar según rol
+      const usuarioRes = await api.get(`/usuario/cedula/${cedula}`);
+      const rolId = usuarioRes.data.rol?.rolId;
+      switch (rolId) {
+        case 1:
+          window.location.href = '/admin';
+          break;
+        case 2:
+          window.location.href = '/manager';
+          break;
+        case 3:
+          window.location.href = '/team';
+          break;
+        case 4:
+          window.location.href = '/client';
+          break;
+        default:
+          window.location.href = '/';
+      }
       return { success: true, token };
     } catch (error) {
       console.log("Error completo:", error); // Para debug

@@ -66,7 +66,7 @@ function Employees() {
       
       const employeesFromApi = response.data;
       const formattedEmployees = employeesFromApi.map((emp) => ({
-        id: emp.empleadoId || emp.usuarioId, // Ajustar según el campo ID de tu API
+        id: emp.empleadoId || emp.usuarioId,
         nombre: emp.nombre,
         apellido: emp.apellido,
         email: emp.email,
@@ -77,10 +77,20 @@ function Employees() {
         estado: emp.estado,
         fechaCreacion: emp.fechaCreacion,
         ultimoAcceso: emp.ultimoAcceso,
-        rol: emp.rolUsuario || emp.rol,
-        // Campos específicos de empleados (ajustar según tu API)
-        category: emp.categoria || emp.category || "Developer", // Campo por defecto si no existe
-        skills: emp.habilidades || emp.skills || [], // Array de habilidades
+        rol: emp.rol || emp.rolUsuario || null,
+        // Categoría: puede venir como objeto, string o array (tomar el primer nombre si es array de objetos)
+        category: Array.isArray(emp.categoria)
+          ? (emp.categoria[0]?.nombre || emp.categoria[0] || "Developer")
+          : (emp.categoria && emp.categoria.nombre)
+            ? emp.categoria.nombre
+            : (emp.categoria || emp.category || "Developer"),
+        // Skills: puede venir como array de objetos, strings o anidado en categoria
+        skills: Array.isArray(emp.habilidades)
+          ? emp.habilidades.map(h => h.nombre || h.skillName || h)
+          : (Array.isArray(emp.skills) ? emp.skills.map(s => s.nombre || s.skillName || s) :
+            (emp.categoria && Array.isArray(emp.categoria.skills))
+              ? emp.categoria.skills.map(s => s.nombre || s.skillName || s)
+              : []),
         departamento: emp.departamento,
         puesto: emp.puesto,
         salario: emp.salario,

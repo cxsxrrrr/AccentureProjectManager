@@ -1,16 +1,15 @@
 package com.Accenture.backend.controller;
 
+import com.Accenture.backend.domain.dto.CategoriaDTO;
 import com.Accenture.backend.domain.dto.CategoriaUsuarioDTO;
 import com.Accenture.backend.domain.service.CategoriaUsuarioService;
-import com.Accenture.backend.model.CategoriaUsuario;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = {"/api/category/user", "/api/category"})
+@RequestMapping("/api/category/user")
 public class CategoriaUsuarioController {
     private final CategoriaUsuarioService categoriaUsuarioService;
 
@@ -37,20 +36,11 @@ public class CategoriaUsuarioController {
     }
 
     /**
-     * Listar categorías asociadas a un usuario
+     * Obtener categorías asociadas al usuario (solo detalles de categoría)
      */
-    @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<CategoriaUsuarioDTO>> listarPorUsuario(@PathVariable Long usuarioId) {
-        List<CategoriaUsuarioDTO> dtos = new ArrayList<>();
-        for (CategoriaUsuario cu : categoriaUsuarioService.listarPorUsuarioId(usuarioId)) {
-            dtos.add(
-                CategoriaUsuarioDTO.builder()
-                    .usuarioId(cu.getUsuario().getUsuarioId())
-                    .categoriaId(cu.getCategoria().getCategoriaId())
-                    .experiencia(null)
-                    .build()
-            );
-        }
-        return ResponseEntity.ok(dtos);
+    @GetMapping("/{usuarioId}")
+    public ResponseEntity<List<CategoriaDTO>> listarCategoriasUsuario(@PathVariable Long usuarioId) {
+        List<CategoriaDTO> categorias = categoriaUsuarioService.listarCategoriasPorUsuario(usuarioId);
+        return ResponseEntity.ok(categorias);
     }
 }
