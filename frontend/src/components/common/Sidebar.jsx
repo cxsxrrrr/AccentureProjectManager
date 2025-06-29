@@ -1,16 +1,27 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import Boton from "./buttons/SB_boton";
-import userIcon from "../../assets/icons/user_rol.svg"; 
-import logoutIcon from "../../assets/icons/logout.svg"; 
+import userIcon from "../../assets/icons/user_rol.svg";
+import logoutIcon from "../../assets/icons/logout.svg";
 import "../../stylesheets/sidebar.css";
 
-// MOCKS TEMPORALES hasta que se conecte al backend
+// MOCKS TEMPORALES
 const mockUser = {
   name: "Luis I.",
   role: "Admin",
 };
 
 function Sidebar({ menuItems, vista, logo, title }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Limpiar storage
+    localStorage.clear();
+    sessionStorage.clear();
+    // Redirigir a login ("/" es tu pantalla de Login)
+    navigate("/");
+  };
+
   return (
     <div className="Contenedor-Principal">
       {/* LOGO + TÍTULO */}
@@ -30,7 +41,7 @@ function Sidebar({ menuItems, vista, logo, title }) {
 
       {/* BOTONES DE NAVEGACIÓN */}
       <div className="Contenedor-Botones">
-        {menuItems.map(item => (
+        {menuItems.map((item) => (
           <Boton
             key={item.path}
             texto={item.texto}
@@ -46,7 +57,7 @@ function Sidebar({ menuItems, vista, logo, title }) {
         <Boton
           texto="Log out"
           icon={logoutIcon}
-          path="/logout"
+          onClick={handleLogout}
           active={false}
         />
       </div>

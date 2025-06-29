@@ -2,7 +2,7 @@ import React from "react";
 import "../../stylesheets/topbar.css";
 import notificationIcon from "../../assets/icons/notification.svg";
 
-function Topbar({ title, showSearch = true, children }) {
+function Topbar({ title, showSearch = false, children }) {
   return (
     <div className="topbar-container">
       <div className="topbar-header">
