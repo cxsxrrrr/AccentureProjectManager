@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Topbar from "../../components/common/Topbar";
+import api from "../../services/axios";
 import "../../stylesheets/page.css";
 
 // Mockup de proyectos asignados al trabajador
@@ -40,7 +41,25 @@ const mockProjects = [
 ];
 
 function AssignedProject() {
-  const [projects] = useState(mockProjects);
+  const [projects, setProjects] = useState([]);
+
+  // Fetch assigned projects for current user
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user?.usuarioId) {
+          const response = await api.get(
+            `/miembros-proyectos/usuario/${user.usuarioId}`
+          );
+          setProjects(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching assigned projects:", error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   return (
     <div className="admin-page">
@@ -73,7 +92,7 @@ function AssignedProject() {
             <tbody>
               {projects.map((proj, idx) => (
                 <tr
-                  key={proj.proyecto_id}
+                  key={proj.id}
                   className={`
                     transition
                     ${idx % 2 ? "bg-gray-50" : ""}
@@ -81,31 +100,33 @@ function AssignedProject() {
                   `}
                 >
                   <td className="py-4 px-6 font-semibold text-gray-800 whitespace-nowrap">
-                    {proj.nombre_proyecto}
+                    {proj.proyecto.nombreProyecto}
                   </td>
-                  <td className="py-4 px-6 text-gray-700">{proj.gerente_nombre}</td>
+                  <td className="py-4 px-6 text-gray-700">
+                    {`${proj.proyecto.gerenteProyecto.nombre} ${proj.proyecto.gerenteProyecto.apellido}`}
+                  </td>
                   <td className="py-4 px-6">
                     <span
                       className={`
                         px-4 py-1 rounded-full font-bold text-sm
                         ${
-                          proj.estado === "Completado"
+                          proj.proyecto.estado === "Completado"
                             ? "bg-green-100 text-green-700"
-                            : proj.estado === "En progreso"
+                            : proj.proyecto.estado === "En progreso"
                             ? "bg-yellow-100 text-yellow-700"
-                            : proj.estado === "Pendiente"
+                            : proj.proyecto.estado === "Pendiente"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-gray-100 text-gray-600"
                         }
                       `}
                     >
-                      {proj.estado}
+                      {proj.proyecto.estado}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-gray-700">{proj.fecha_inicio}</td>
-                  <td className="py-4 px-6 text-gray-700">{proj.fecha_fin}</td>
-                  <td className="py-4 px-6 text-gray-600 max-w-[300px] truncate" title={proj.descripcion_proyecto}>
-                    {proj.descripcion_proyecto}
+                  <td className="py-4 px-6 text-gray-700">{proj.proyecto.fechaInicio}</td>
+                  <td className="py-4 px-6 text-gray-700">{proj.proyecto.fechaFin}</td>
+                  <td className="py-4 px-6 text-gray-600 max-w-[300px] truncate" title={proj.proyecto.descripcionProyecto}>
+                    {proj.proyecto.descripcionProyecto}
                   </td>
                 </tr>
               ))}
