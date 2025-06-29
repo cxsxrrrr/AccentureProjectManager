@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { authService } from "../../services/authService"; // Importar el servicio de auth
+import api from "../../services/axios"; // Usar la instancia configurada de axios
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
@@ -6,90 +8,104 @@ import AssignResourceModal from "../../components/admin/modals/Resources/AssignR
 import UpdateResourceModalWizard from "../../components/admin/modals/Resources/UpdateResourceModalWizard";
 import DisableResourceModal from "../../components/admin/modals/Resources/DisableResourceModal";
 
-const initialResources = [
-  {
-    id: 1,
-    name: "Maria Gonzalez",
-    type: "Human",
-    availability: "Available",
-    cost: "$3500",
-    unit_measure: 1,
-    description: "FullStack Developer",
-  },
-  {
-    id: 2,
-    name: "Laptop Dell",
-    type: "Material",
-    availability: "Disabled",
-    cost: "$600",
-    unit_measure: 0,
-    description: "Laptop for develop",
-  },
-  {
-    id: 3,
-    name: "budget for project A",
-    type: "Financial",
-    availability: "Available",
-    cost: "$1000",
-    unit_measure: 10,
-    description: "Total budget assigned for project",
-  },
-];
-
 function AllocateResources() {
-  // State principal de recursos y selección
-  const [resources, setResources] = useState(initialResources);
-  const [selectedResourceId, setSelectedResourceId] = useState(null);
+  const [resources, setResources] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Estados para modales
+  const [selectedResourceId, setSelectedResourceId] = useState(null);
+  const [selectedResource, setSelectedResource] = useState(null);
+
   const [isAssignOpen, setAssignOpen] = useState(false);
   const [isUpdateOpen, setUpdateOpen] = useState(false);
   const [resourceToEdit, setResourceToEdit] = useState(null);
   const [isDisableOpen, setDisableOpen] = useState(false);
 
-  // Proyectos (puedes expandir después)
   const [projects] = useState([
     { id: 1, name: "WINDBREAKER SOLUTIONS" },
     { id: 2, name: "HP TECHNLOGY" },
   ]);
 
-  // Obtener recurso seleccionado (para update)
-  const selectedResource = resources.find((r) => r.id === selectedResourceId);
+  // Verificar autenticación al cargar el componente
+  useEffect(() => {
+    if (!authService.isAuthenticated()) {
+      // Si no está autenticado, redirigir al login
+      window.location.href = '/login';
+      return;
+    }
+    loadResources();
+  }, []);
 
-  // Handler para asignar recurso
-  const handleAssignResource = ({ resourceName, projectId }) => {
-    setResources((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((r) => r.id)) + 1 : 1,
-        name: resourceName,
-        type: "Human",
-        availability: "Available",
-        cost: "$0",
-        unit_measure: 0,
-        description: "",
-        projectId,
-      },
-    ]);
-    setAssignOpen(false);
+  const loadResources = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Verificar que el usuario esté autenticado
+      if (!authService.isAuthenticated()) {
+        throw new Error('No authenticated');
+      }
+
+      // Usar la instancia de axios configurada que incluye automáticamente el token
+      const response = await api.get('/recursos');
+      
+      const resourcesFromApi = response.data;
+      setResources(resourcesFromApi);
+    } catch (err) {
+      console.error("Error loading resources:", err);
+      
+      // Manejo específico de errores
+      if (err.response?.status === 401) {
+        // Token expirado o inválido - el interceptor ya maneja esto
+        setError("Session expired. Please login again.");
+        authService.logout();
+      } else if (err.response?.status === 403) {
+        setError("You don't have permission to view resources.");
+      } else if (err.message === 'No authenticated') {
+        setError("Please login to continue.");
+        authService.logout();
+      } else {
+        setError("Error loading resources. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Handler para actualizar recurso
-  const handleUpdateResource = (updatedResource) => {
-    setResources((prev) =>
-      prev.map((r) =>
-        r.id === updatedResource.id ? { ...r, ...updatedResource } : r
-      )
-    );
-    setUpdateOpen(false);
-    setResourceToEdit(null);
+  const handleAssignResource = async ({ resourceName, projectId }) => {
+    try {
+      await loadResources();
+      setAssignOpen(false);
+    } catch (error) {
+      console.error("Error assigning resource:", error);
+      setError("Error assigning resource. Please try again.");
+    }
   };
 
-  // Handler para eliminar recurso
-  const handleDisableResource = (id) => {
-    setResources((prev) => prev.filter((r) => r.id !== id));
-    setDisableOpen(false);
-    setSelectedResourceId(null);
+  const handleUpdateResource = async (updatedResource) => {
+    try {
+      await loadResources();
+      setUpdateOpen(false);
+      setResourceToEdit(null);
+    } catch (error) {
+      console.error("Error updating resource:", error);
+      setError("Error updating resource. Please try again.");
+    }
+  };
+
+  const handleDisableResource = async (id) => {
+    try {
+      await loadResources();
+      setDisableOpen(false);
+      setSelectedResourceId(null);
+    } catch (error) {
+      console.error("Error disabling resource:", error);
+      setError("Error disabling resource. Please try again.");
+    }
+  };
+
+  const handleRefresh = () => {
+    loadResources();
   };
 
   return (
@@ -107,6 +123,7 @@ function AllocateResources() {
               : undefined
           }
           onDisable={() => setDisableOpen(true)}
+          onRefresh={handleRefresh}
         />
       </Topbar>
 
@@ -148,52 +165,96 @@ function AllocateResources() {
 
       {/* Tabla de recursos */}
       <div className="admin-content">
-        <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
-          <thead>
-            <tr>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">TYPE</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">AVAILABILITY</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">COST</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">UNIT_MEASURE</th>
-              <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
-            </tr>
-          </thead>
-          <tbody>
-            {resources.map((resource) => (
-              <tr
-                key={resource.id}
-                onClick={() => setSelectedResourceId(resource.id)}
-                className={`cursor-pointer transition
-                  ${selectedResourceId === resource.id
-                    ? "bg-purple-50 ring-2 ring-purple-200"
-                    : "hover:bg-gray-50"
-                  }
-                `}
+        {isLoading ? (
+          <div className="text-center text-gray-500 py-4">
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              Loading resources...
+            </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+                <span className="material-icons">error</span>
+                <span className="font-semibold">Error</span>
+              </div>
+              <p className="text-red-600 text-sm">{error}</p>
+              <button 
+                onClick={handleRefresh}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
               >
-                <td className="px-6 py-4 font-semibold">{resource.name}</td>
-                <td className="px-6 py-4">{resource.type}</td>
-                <td className="px-6 py-4">
-                  <span className={`
-                    px-4 py-1 rounded-full font-bold text-sm
-                    ${resource.availability === "Available"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-600"
-                    }
-                  `}>
-                    {resource.availability}
-                  </span>
-                </td>
-                <td className="px-6 py-4">{resource.cost}</td>
-                <td className="px-6 py-4">{resource.unit_measure}</td>
-                <td className="px-6 py-4">{resource.description}</td>
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : (
+          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
+            <thead>
+              <tr>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">TYPE</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">AVAILABILITY</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">COST</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">UNIT_MEASURE</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {resources.map((resource) => (
+                <tr
+                  key={resource.id}
+                  onClick={() => {
+                    setSelectedResourceId(resource.id);
+                    setSelectedResource(resource);
+                  }}
+                  className={`cursor-pointer transition
+                    ${selectedResourceId === resource.id
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                    }
+                  `}
+                >
+                  <td className="px-6 py-4 font-semibold">{resource.name}</td>
+                  <td className="px-6 py-4">{resource.type}</td>
+                  <td className="px-6 py-4">
+                    <span className={`
+                      px-4 py-1 rounded-full font-bold text-sm
+                      ${resource.availability === "Available"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-600"
+                      }
+                    `}>
+                      {resource.availability}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">{resource.cost}</td>
+                  <td className="px-6 py-4">{resource.unit_measure}</td>
+                  <td className="px-6 py-4">{resource.description}</td>
+                </tr>
+              ))}
+              {resources.length === 0 && !isLoading && !error && (
+                <tr>
+                  <td colSpan={6} className="text-center py-10 text-gray-400">
+                    <div className="flex flex-col items-center gap-2">
+                      <span className="material-icons text-4xl text-gray-300">inventory_2</span>
+                      <span>No resources found.</span>
+                      <button 
+                        onClick={handleRefresh}
+                        className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
+                      >
+                        Refresh
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </div>
     </div>
   );
 }
-
 export default AllocateResources;
+
