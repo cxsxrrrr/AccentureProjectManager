@@ -5,6 +5,8 @@ import com.Accenture.backend.model.*;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public class SkillsUsuarioDAOImpl implements SkillsUsuarioDAO {
 
@@ -34,5 +36,11 @@ public class SkillsUsuarioDAOImpl implements SkillsUsuarioDAO {
                 .findByUsuario_UsuarioIdAndSkill_SkillId(usuarioId, skillId)
                 .orElseThrow(() -> new IllegalArgumentException("No existe esa asociación"));
         skillsUsuarioRepository.delete(cu);
+    }
+
+    @Transactional
+    @Override
+    public List<SkillsUsuario> listarPorUsuarioId(Long usuarioId) {
+        return skillsUsuarioRepository.findAllByUsuario_UsuarioId(usuarioId);
     }
 }

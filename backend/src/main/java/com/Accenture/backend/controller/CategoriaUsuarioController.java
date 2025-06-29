@@ -1,9 +1,12 @@
 package com.Accenture.backend.controller;
 
+import com.Accenture.backend.domain.dto.CategoriaDTO;
 import com.Accenture.backend.domain.dto.CategoriaUsuarioDTO;
 import com.Accenture.backend.domain.service.CategoriaUsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/category/user")
@@ -30,5 +33,14 @@ public class CategoriaUsuarioController {
     public ResponseEntity<String> removerCategoriaAUsuario(@RequestBody CategoriaUsuarioDTO dto) {
         categoriaUsuarioService.removerCategoriaAUsuario(dto.getUsuarioId(), dto.getCategoriaId());
         return ResponseEntity.ok("Categoría removida del usuario correctamente");
+    }
+
+    /**
+     * Obtener categorías asociadas al usuario (solo detalles de categoría)
+     */
+    @GetMapping("/{usuarioId}")
+    public ResponseEntity<List<CategoriaDTO>> listarCategoriasUsuario(@PathVariable Long usuarioId) {
+        List<CategoriaDTO> categorias = categoriaUsuarioService.listarCategoriasPorUsuario(usuarioId);
+        return ResponseEntity.ok(categorias);
     }
 }

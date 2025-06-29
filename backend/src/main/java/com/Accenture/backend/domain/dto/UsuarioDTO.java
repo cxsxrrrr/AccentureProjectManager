@@ -3,6 +3,7 @@ package com.Accenture.backend.domain.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -39,7 +40,7 @@ public class UsuarioDTO {
 
     private LocalDateTime ultimoAcceso;
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private int intentosLogin;
+    private Integer intentosLogin;
 
 
 }

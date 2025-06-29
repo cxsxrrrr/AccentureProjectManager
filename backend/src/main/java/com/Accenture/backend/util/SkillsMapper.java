@@ -19,6 +19,7 @@ import org.mapstruct.ReportingPolicy;
 )
 public interface SkillsMapper {
     @org.mapstruct.Mapping(source = "categoria.categoriaId", target = "categoriaId")
+    @org.mapstruct.Mapping(source = "categoria.nombre", target = "categoriaNombre")
     SkillsDTO toDTO(Skills skill);
 
     @org.mapstruct.Mapping(target = "skillId", ignore = true)

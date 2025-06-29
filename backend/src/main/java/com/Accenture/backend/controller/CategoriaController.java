@@ -1,7 +1,7 @@
 package com.Accenture.backend.controller;
 
 import com.Accenture.backend.domain.dto.CategoriaDTO;
-import com.Accenture.backend.domain.dto.UsuarioDTO;
+import com.Accenture.backend.domain.dto.CategoryUsersResponseDTO;
 import com.Accenture.backend.domain.service.CategoriaService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,11 +24,20 @@ public class CategoriaController {
         this.categoriaService = categoriaService;
     }
 
-    // Obtener usuarios asociados a una categoría
+    /**
+     * Obtener Categoria por ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoriaDTO> getCategoryById(@PathVariable Long id) {
+        CategoriaDTO dto = categoriaService.obtenerCategoriaPorId(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    // Obtener usuarios asociados a una categoría con nombre e ID
     @GetMapping("/{id}/users")
-    public ResponseEntity<List<UsuarioDTO>> getUsersByCategory(@PathVariable("id") Long id) {
-        List<UsuarioDTO> users = categoriaService.listarUsuariosPorCategoria(id);
-        return ResponseEntity.ok(users);
+    public ResponseEntity<CategoryUsersResponseDTO> getUsersByCategory(@PathVariable("id") Long id) {
+        CategoryUsersResponseDTO response = categoriaService.obtenerUsuariosCategoria(id);
+        return ResponseEntity.ok(response);
     }
 
     // Crear Categoria

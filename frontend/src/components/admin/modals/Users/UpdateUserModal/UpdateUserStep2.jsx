@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 
 export default function UpdateUserStep2({
   values,
   categories,
   skills,
-  roles,          // <-- NUEVO: recibes los roles
+  roles,
+  isLoadingData = false,
   onBack,
   onSave,
   onCancel,
@@ -27,6 +28,16 @@ export default function UpdateUserStep2({
       rol: values.rol?.nombre || "", // precarga el nombre del rol
     });
   }, [values]);
+
+
+  // Filtrar categorías activas
+  const activeCategories = useMemo(() => {
+    return categories?.filter((cat) =>
+      typeof cat.estado === "string"
+        ? cat.estado.toLowerCase() === "activo"
+        : false
+    ) || [];
+  }, [categories]);
 
   // Filtrar skills activas según categoría seleccionada
   const filteredSkills = useMemo(() => {
