@@ -17,6 +17,26 @@ function RoleManagement() {
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId);
 
+  // Array of color combinations for role names (matching your example)
+  const colorVariants = [
+    { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' }, // Admin style
+    { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' }, // Manager style
+    { bg: 'bg-red-50', text: 'text-red-500', border: 'border-red-200' }, // Customer style
+    { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' }, // Team Member style
+    { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200' },
+    { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200' },
+    { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-200' },
+    { bg: 'bg-teal-50', text: 'text-teal-600', border: 'border-teal-200' },
+    { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200' },
+    { bg: 'bg-cyan-50', text: 'text-cyan-600', border: 'border-cyan-200' },
+  ];
+
+  // Function to get color based on role index or ID
+  const getRoleColor = (index, roleId) => {
+    const colorIndex = roleId ? (roleId % colorVariants.length) : (index % colorVariants.length);
+    return colorVariants[colorIndex];
+  };
+
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -27,7 +47,15 @@ function RoleManagement() {
           },
         });
         console.log("Roles cargados:", response.data);
-        setRoles(response.data || []);
+
+        const mappedRoles = response.data.map((r) => ({
+          id: r.rolId,
+          nombre: r.nombre,
+          descripcion: r.descripcion,
+          status: "Active", // Ajusta si tu backend tiene otro campo para estado
+        }));
+
+        setRoles(mappedRoles);
       } catch (err) {
         console.error("Error loading roles", err);
         setError("Error loading roles.");
@@ -37,33 +65,105 @@ function RoleManagement() {
     fetchRoles();
   }, []);
 
+  // Helper function to handle API errors
+  const handleApiError = (error, defaultMessage) => {
+    if (error.response?.status === 400) {
+      // Check if the error message indicates duplicate name
+      const errorMessage = error.response?.data?.message || error.response?.data?.error || '';
+      
+      // Common patterns that indicate duplicate name error
+      const duplicatePatterns = [
+        /duplicate/i,
+        /already exists/i,
+        /nombre.*existe/i,
+        /name.*exists/i,
+        /unique/i,
+        /constraint/i
+      ];
+      
+      const isDuplicateName = duplicatePatterns.some(pattern => pattern.test(errorMessage));
+      
+      if (isDuplicateName) {
+        return "Role with duplicate name";
+      }
+      
+      // If it's a 400 error but not duplicate name, return the server message or default
+      return errorMessage || "Invalid request";
+    }
+    
+    // For other error statuses, return default message
+    return defaultMessage;
+  };
+
+  // para crear los Roles
   const handleCreateRole = async (roleData) => {
     try {
+      setError(null); // Clear previous errors
       const token = localStorage.getItem("token");
       const response = await axios.post(
         "http://localhost:8080/api/roles",
-        { ...roleData, status: "Active" },
+        {
+          nombre: roleData.name,
+          descripcion: roleData.description, 
+          status: "Active",
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         }
       );
-      setRoles((prev) => [...prev, response.data]);
+      
+      // Map the response to match your frontend structure
+      const newRole = {
+        id: response.data.rolId || response.data.id,
+        nombre: response.data.nombre,
+        descripcion: response.data.descripcion,
+        status: "Active"
+      };
+      
+      setRoles((prev) => [...prev, newRole]);
+      setCreateOpen(false);
     } catch (err) {
       console.error("Error creating role", err);
-      setError("Error creating role.");
-    } finally {
-      setCreateOpen(false);
+      const errorMessage = handleApiError(err, "Error creating role.");
+      setError(errorMessage);
     }
   };
 
-  const handleUpdateRole = (updatedRole) => {
-    setRoles((prev) =>
-      prev.map((r) => (r.id === roleToEdit.id ? { ...r, ...updatedRole } : r))
-    );
-    setUpdateOpen(false);
-    setRoleToEdit(null);
+  const handleUpdateRole = async (updatedRole) => {
+    try {
+      setError(null); // Clear previous errors
+      const token = localStorage.getItem("token");
+      
+      await axios.put(
+        `http://localhost:8080/api/roles/${roleToEdit.id}`,
+        {
+          nombre: updatedRole.name || updatedRole.nombre,
+          descripcion: updatedRole.description || updatedRole.descripcion,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Update local state
+      setRoles((prev) =>
+        prev.map((r) => (r.id === roleToEdit.id ? { 
+          ...r, 
+          nombre: updatedRole.name || updatedRole.nombre || r.nombre,
+          descripcion: updatedRole.description || updatedRole.descripcion || r.descripcion
+        } : r))
+      );
+      setUpdateOpen(false);
+      setRoleToEdit(null);
+    } catch (err) {
+      console.error("Error updating role", err);
+      const errorMessage = handleApiError(err, "Error updating role.");
+      setError(errorMessage);
+    }
   };
 
   const handleDisableRole = (role) => {
@@ -139,21 +239,21 @@ function RoleManagement() {
                 <tr
                   key={role.id ?? `role-${i}`}
                   onClick={() => setSelectedRoleId(role.id)}
-                  className={`cursor-pointer transition ${
+                  className={`cursor-pointer transition-all duration-200 ${
                     selectedRoleId === role.id
-                      ? "bg-purple-50 ring-2 ring-purple-200"
-                      : "hover:bg-gray-50"
+                      ? "bg-purple-50 ring-2 ring-purple-200 shadow-sm"
+                      : "hover:bg-purple-50/50 hover:ring-1 hover:ring-purple-100 hover:shadow-sm"
                   }`}
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
                   <td>
-                    <span className="px-5 py-2 rounded-xl font-bold shadow">
-                      {role.name ?? "Unnamed"}
+                    <span className={`px-4 py-2 rounded-lg font-semibold text-sm border ${getRoleColor(i, role.id).bg} ${getRoleColor(i, role.id).text} ${getRoleColor(i, role.id).border} transition-all duration-200 hover:shadow-md`}>
+                      {role.nombre ?? "Unnamed"}
                     </span>
                   </td>
                   <td>
                     <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
-                      {role.description ?? "No description"}
+                      {role.descripcion ?? "No description"}
                     </span>
                   </td>
                   <td>

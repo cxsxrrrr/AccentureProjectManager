@@ -138,6 +138,21 @@ function TopControls({
 
     return common;
   };
+  
+  if (module === "custom_assignedtasks") {
+    // Solo botón de Update Status
+    return [
+      <button
+        key="update-status"
+        className="control-button"
+        onClick={onUpdate}
+        disabled={!onUpdate}
+      >
+        <img src={updateIcon} alt="" className="button-icon" />
+        Update Status
+      </button>,
+    ];
+  }
 
   const renderFilters = () => {
     const inputClass = "topbar-search";
