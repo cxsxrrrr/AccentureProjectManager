@@ -29,10 +29,14 @@ public class AuthController {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(usuarioDTO.getCedula(), usuarioDTO.getPassword())
             );
+            // Login exitoso: resetear intentos
+            usuarioService.resetearIntentosLogin(usuarioDTO.getCedula());
             String token = jwtService.generateToken(String.valueOf(usuarioDTO.getCedula()));
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
-            return ResponseEntity.status(401).body("Credenciales inválidas");
+            // Login fallido: registrar intento
+            usuarioService.registrarIntentoLoginFallido(usuarioDTO.getCedula());
+            return ResponseEntity.status(401).body("Credenciales inválidas o usuario inactivo");
         }
     }
 

@@ -38,6 +38,8 @@ public class UsuarioDTO {
     private LocalDateTime fechaCreacion;
 
     private LocalDateTime ultimoAcceso;
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private int intentosLogin;
 
 
 }

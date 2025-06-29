@@ -23,6 +23,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         Usuario usuario = usuarioDAO.buscarUsuarioxCedula(cedulaLong)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado con cédula: " + cedula));
 
+        // Si el usuario está inactivo, lanzar excepción
+        if (usuario.getEstado() != null && usuario.getEstado().equalsIgnoreCase("INACTIVO")) {
+            throw new UsernameNotFoundException("Usuario inactivo. Contacte al administrador.");
+        }
+
         return User.builder()
                 .username(String.valueOf(usuario.getCedula()))
                 .password(usuario.getPassword()) // Contraseña encriptada
