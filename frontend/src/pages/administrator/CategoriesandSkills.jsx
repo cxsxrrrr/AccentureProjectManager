@@ -58,6 +58,7 @@ function CategoriesandSkills() {
 
       const token = localStorage.getItem("token");
 
+<<<<<<< HEAD
       const [categoriesResponse, skillsResponse] = await Promise.all([
         axios.get("http://localhost:8080/api/categories", {
           headers: { Authorization: `Bearer ${token}` },
@@ -67,6 +68,19 @@ function CategoriesandSkills() {
         }),
       ]);
 
+=======
+      // Primero cargar categorías
+      const categoriesResponse = await axios.get(
+        "http://localhost:8080/api/category", 
+        config
+      );
+      
+      // Verificar si la respuesta tiene datos
+      if (!categoriesResponse.data) {
+        throw new Error("No se recibieron datos de categorías");
+      }
+      
+>>>>>>> 3ada313 (test pt 4)
       setCategories(categoriesResponse.data);
       setSkills(sskillsResponse.data);
     } catch (err) {
