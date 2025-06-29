@@ -367,25 +367,20 @@ function CategoriesandSkills() {
               </tr>
             </thead>
             <tbody>
-              {categories.map((cat, i) => (
-                <tr
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`cursor-pointer transition ${
-                    selectedCategoryId === cat.id
-                      ? "bg-purple-50 ring-2 ring-purple-200"
-                      : "hover:bg-gray-50"
-                  }`}
-                >
-                  <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                  <td className="px-6 py-4 font-semibold text-lg">{cat.name}</td>
-                  <td>
-                    <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
-                      {cat.description}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+            {categories.map((cat, i) => (
+              <tr
+                key={cat.id}  // <--- Aquí tienes key, parece correcto
+                onClick={() => setSelectedCategoryId(cat.id)}
+                className={`cursor-pointer transition ${
+                  selectedCategoryId === cat.id
+                    ? "bg-purple-50 ring-2 ring-purple-200"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                {/* contenido */}
+              </tr>
+            ))}
+
             </tbody>
           </table>
         ) : (
