@@ -1,6 +1,19 @@
 import React from "react";
 import helpIcon from "../../../../assets/icons/help.svg"; // Usa cualquier ícono de advertencia
 
+// Asume que usuariosMock está definido global o lo pasas por props/context
+const usuariosMock = [
+  { usuarioId: 1, name: "Jane Smith" },
+  { usuarioId: 2, name: "John Doe" },
+  { usuarioId: 3, name: "Carlos Reyes" },
+];
+
+// Función para buscar nombre del usuario por ID
+function getUserNameById(id) {
+  const u = usuariosMock.find((u) => u.usuarioId === Number(id));
+  return u ? u.name : "Unknown";
+}
+
 function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
   if (!isOpen || !task) return null;
 
@@ -14,7 +27,9 @@ function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
           </span>
           <div>
             <h2 className="text-2xl font-bold">Disable Task</h2>
-            <p className="text-sm text-gray-500">This will mark the task as disabled. You can’t assign or complete it while disabled.</p>
+            <p className="text-sm text-gray-500">
+              This will mark the task as disabled. You can’t assign or complete it while disabled.
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -28,8 +43,21 @@ function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
         {/* Info */}
         <div className="bg-gray-50 rounded-xl p-5 mb-8">
           <div className="font-medium mb-2">Task:</div>
-          <div className="text-lg font-bold">{task.task}</div>
-          <div className="text-gray-500">Assigned to: <span className="font-semibold">{task.assignedTo}</span></div>
+          <div className="text-lg font-bold">{task.nombre}</div>
+          <div className="text-gray-500">
+            Created by:{" "}
+            <span className="font-semibold">
+              {getUserNameById(task.creadoPor?.usuarioId)}
+            </span>
+          </div>
+          <div className="text-gray-500 mt-1">
+            <span className="font-semibold">Status:</span>{" "}
+            {task.estado === "NO_INICIADA" && "Not Started"}
+            {task.estado === "EN_PROGRESO" && "In Progress"}
+            {task.estado === "COMPLETADA" && "Completed"}
+            {task.estado === "BLOQUEADA" && "Blocked"}
+            {task.estado === "DISABLED" && "Disabled"}
+          </div>
         </div>
         {/* Footer */}
         <div className="flex justify-end gap-3 mt-4">
@@ -53,4 +81,5 @@ function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
     </div>
   );
 }
+
 export default DisableTaskModal;
