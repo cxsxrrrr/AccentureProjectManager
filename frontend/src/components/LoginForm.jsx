@@ -22,7 +22,8 @@ export default function LoginForm() {
         localStorage.setItem("token", result.token);
 
         const userRole = result.usuario?.rol?.nombre?.toLowerCase();
-
+        console.log("Datos del usuario:", result.usuario);
+        console.log("Rol detectado:", userRole);
         if (!userRole) {
           setError("Usuario sin rol asignado o sin acceso autorizado.");
           return;
