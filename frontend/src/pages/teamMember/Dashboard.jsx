@@ -152,10 +152,10 @@ return (
     <div className="admin-content" style={{ display: "block" }}>
 
       {/* Tareas asignadas */}
-      <div className="w-full mb-12">
+      <div className="w-full mb-20">
         <h2 className="text-xl font-bold text-gray-700 mb-4">Pending Tasks</h2>
         <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
+          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-6">
             <thead>
               <tr>
                 <th>Task</th>
@@ -168,10 +168,10 @@ return (
             <tbody>
               {pendingTasks.map((task, idx) => (
                 <tr key={task.id} className={`${idx % 2 ? "bg-gray-50" : ""} hover:bg-purple-50 transition`}>
-                  <td>{task.tarea?.nombre}</td>
-                  <td>{task.proyecto?.nombreProyecto}</td>
-                  <td>{forEnum(task.tarea?.prioridad)}</td>
-                  <td>{task.tarea?.fechaFinEstimada}</td>
+                  <td className="py-2">{task.tarea?.nombre}</td>
+                  <td className="py-2">{task.proyecto?.nombreProyecto}</td>
+                  <td className="py-2">{forEnum(task.tarea?.prioridad)}</td>
+                  <td className="py-2">{task.tarea?.fechaFinEstimada}</td>
                   <td>
                     <span className={
                       task.tarea?.estado === "EN_PROGRESO"
@@ -199,7 +199,7 @@ return (
       <div className="w-full mb-8">
         <h2 className="text-xl font-bold text-gray-700 mb-4">Active Projects</h2>
         <div className="overflow-x-auto">
-          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
+          <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-6">
             <thead>
               <tr>
                 <th>Project</th>
@@ -214,9 +214,9 @@ return (
                 const avance = calcularAvanceProyecto(proj.proyecto?.proyectoId);
                 return (
                   <tr key={proj.id} className={`${idx % 2 ? "bg-gray-50" : ""} hover:bg-purple-50 transition`}>
-                    <td>{proj.proyecto?.nombreProyecto}</td>
-                    <td>{`${proj.proyecto?.gerenteProyecto?.nombre ?? ""} ${proj.proyecto?.gerenteProyecto?.apellido}`}</td>
-                    <td>
+                    <td className="py-2" >{proj.proyecto?.nombreProyecto}</td>
+                    <td className="py-2">{`${proj.proyecto?.gerenteProyecto?.nombre ?? ""} ${proj.proyecto?.gerenteProyecto?.apellido}`}</td>
+                    <td className="py-2">
                       <div className="w-3/4 bg-gray-200 rounded-full h-2.5">
                         <div
                           className="bg-purple-600 h-2.5 rounded-full"
@@ -225,8 +225,8 @@ return (
                       </div>
                       <div className="text-xs text-gray-500 mt-1">{avance}% complete</div>
                     </td>
-                    <td>{proj.proyecto?.fechaFin}</td>
-                    <td>
+                    <td className="py-2">{proj.proyecto?.fechaFin}</td>
+                    <td className="py-2">
                       <span className={
                         proj.proyecto?.estado === "EN_PROGRESO"
                           ? "px-4 py-1 rounded-full font-bold text-sm bg-yellow-100 text-yellow-700"
@@ -249,7 +249,6 @@ return (
           </table>
         </div>
       </div>
-
     </div>
   </div>
 );
