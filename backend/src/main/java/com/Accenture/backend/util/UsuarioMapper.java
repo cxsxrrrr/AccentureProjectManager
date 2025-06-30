@@ -41,5 +41,6 @@ public interface UsuarioMapper {
     @org.mapstruct.Mapping(target = "rol", ignore = true)
     Usuario toEntity(UsuarioDTO usuarioDTO);
 
+    @org.mapstruct.Mapping(target = "rol", ignore = true)
     void updateUsuarioFromDto(UsuarioDTO dto, @MappingTarget Usuario entity);
 }
