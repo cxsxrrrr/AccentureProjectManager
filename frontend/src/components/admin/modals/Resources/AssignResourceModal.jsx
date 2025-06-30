@@ -52,9 +52,21 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
 
   if (!isOpen) return null;
 
-  // Filter resources by name
-  const filteredResources = resources.filter((r) =>
-    r.nombreRecurso.toLowerCase().includes(resourceSearch.trim().toLowerCase())
+  // Normaliza recursos a la estructura estándar para el modal
+  const normalizedResources = resources.map((r) => ({
+    id: r.id || r.recursoId,
+    name: r.name || r.nombreRecurso,
+    type: r.type || r.tipo,
+    availability: r.availability || r.disponibilidad || r.estado,
+    cost: r.cost || r.coste,
+    unit_measure: r.unit_measure || r.unit || r.cantidad,
+    description: r.description || r.descripcionRecurso,
+    raw: r // Guarda el objeto original por si se necesita
+  }));
+
+  // Filtrar recursos por nombre
+  const filteredResources = normalizedResources.filter((r) =>
+    (r.name || "").toLowerCase().includes(resourceSearch.trim().toLowerCase())
   );
 
   // Filter projects by name
@@ -82,16 +94,16 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
           ) : (
             filteredResources.map((r) => (
               <div
-                key={r.recursoId}
+                key={r.id}
                 className={`px-4 py-3 rounded border cursor-pointer font-semibold flex items-center justify-between transition
-                  ${selectedResourceId === r.recursoId
+                  ${selectedResourceId === r.id
                     ? "bg-purple-100 border-purple-400"
                     : "hover:bg-gray-50 border-gray-300"
                   }`}
-                onClick={() => setSelectedResourceId(r.recursoId)}
+                onClick={() => setSelectedResourceId(r.id)}
               >
-                <span>{r.nombreRecurso}</span>
-                {selectedResourceId === r.recursoId && <span>✓</span>}
+                <span>{r.name}</span>
+                {selectedResourceId === r.id && <span>✓</span>}
               </div>
             ))
           )}
