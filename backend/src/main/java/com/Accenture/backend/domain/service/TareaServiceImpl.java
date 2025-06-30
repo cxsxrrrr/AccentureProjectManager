@@ -48,14 +48,16 @@ public class TareaServiceImpl implements TareaService {
         Tarea tarea = tareaMapper.toEntity(dto);
 
         if (dto.getProyectoId() != null) {
-            Proyecto proyecto = new Proyecto();
-            proyecto.setProyectoId(dto.getProyectoId());
+            // Load managed Proyecto entity
+            Proyecto proyecto = proyectoRepository.findById(dto.getProyectoId())
+                .orElseThrow(() -> new RuntimeException("Proyecto not found: " + dto.getProyectoId()));
             tarea.setProyecto(proyecto);
         }
 
         if (dto.getCreadoPorId() != null) {
-            Usuario usuario = new Usuario();
-            usuario.setUsuarioId(dto.getCreadoPorId());
+            // Load managed Usuario entity
+            Usuario usuario = usuarioRepository.findById(dto.getCreadoPorId())
+                .orElseThrow(() -> new RuntimeException("Usuario not found: " + dto.getCreadoPorId()));
             tarea.setCreadoPor(usuario);
         }
 
