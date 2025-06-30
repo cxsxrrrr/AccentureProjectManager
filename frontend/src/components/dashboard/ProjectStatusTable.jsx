@@ -8,9 +8,8 @@ const ProjectStatusTable = ({ data = [] }) => (
     <table className="w-full text-lg">
       <thead>
         <tr>
-          <th className="text-left px-6 py-3 font-semibold">Task Name</th>
-
-          <th className="text-left px-6 py-3 font-semibold">Status</th>
+          <th className="text-left px-6 py-3 font-semibold">Project Name</th>
+          <th className="text-left px-1 py-3 font-semibold whitespace-nowrap">Status</th>
         </tr>
       </thead>
       <tbody>
@@ -18,8 +17,7 @@ const ProjectStatusTable = ({ data = [] }) => (
           data.map((e, i) => (
             <tr key={i} className="border-t">
               <td className="px-6 py-4">{e.task}</td>
-
-              <td className="px-6 py-4">
+              <td className="px-1 py-4 whitespace-nowrap">
                 <span
                   className={`px-4 py-2 rounded-full text-base font-bold
                     ${

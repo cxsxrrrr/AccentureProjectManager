@@ -29,7 +29,6 @@ function Dashboard() {
         setCategories(categoriesRes.data || []);
       })
       .catch((err) => {
-        // Optionally handle error
         setUsers([]);
         setProjects([]);
         setCategories([]);
@@ -39,36 +38,51 @@ function Dashboard() {
 
   // KPIs
   const totalEmployees = users.length;
-  const activeEmployees = users.filter(u => u.estado === "ACTIVO" || u.active === true).length;
+  // Adaptación: filtro robusto para activos/inactivos
+  const activeEmployees = users.filter(
+    u =>
+      (typeof u.estado === "string" && u.estado.trim().toUpperCase() === "ACTIVO") ||
+      u.active === true
+  ).length;
   const inactiveEmployees = totalEmployees - activeEmployees;
 
   // Bar chart: Example - projects per month (customize as needed)
-  const barData = (() => {
-    // Group projects by month (assuming fechaInicioEstimada is ISO string)
-    const months = [
-      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-    ];
-    const data = {};
-    projects.forEach(proj => {
-      if (!proj.fechaInicioEstimada) return;
-      const date = new Date(proj.fechaInicioEstimada);
-      const month = months[date.getMonth()];
-      if (!data[month]) data[month] = { month, JobView: 0, JobApplied: 0 };
-      data[month].JobView += 1;
-      // Example: count applied jobs if you have that info
-      // data[month].JobApplied += proj.appliedCount || 0;
-    });
-    // For demo, JobApplied is random or same as JobView
-    Object.values(data).forEach(d => d.JobApplied = Math.floor(d.JobView * 0.7));
-    return Object.values(data);
-  })();
+  
+  // Bar chart: Example - projects per month (customize as needed)
+  // const barData = (() => {
+  //   // Group projects by month (assuming fechaInicioEstimada is ISO string)
+  //   const months = [
+  //     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  //     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  //   ];
+  //   const data = {};
+  //   projects.forEach(proj => {
+  //     if (!proj.fechaInicioEstimada) return;
+  //     const date = new Date(proj.fechaInicioEstimada);
+  //     const month = months[date.getMonth()];
+  //     if (!data[month]) data[month] = { month, JobView: 0, JobApplied: 0 };
+  //     data[month].JobView += 1;
+  //     // Example: count applied jobs if you have that info
+  //     // data[month].JobApplied += proj.appliedCount || 0;
+  //   });
+  //   // For demo, JobApplied is random or same as JobView
+  //   Object.values(data).forEach(d => d.JobApplied = Math.floor(d.JobView * 0.7));
+  //   return Object.values(data);
+  // })();
 
   // Donut chart: Most used categories (by number of projects)
   const donutData = categories.map(cat => ({
     name: cat.nombre || cat.name,
     value: projects.filter(p => p.categoria?.nombre === cat.nombre || p.categoria?.name === cat.name).length
   })).filter(d => d.value > 0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <span className="text-lg text-gray-500">Loading dashboard...</span>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -92,7 +106,7 @@ function Dashboard() {
         </div>
         {/* Main Cards */}
         <div className="bg-white rounded-3xl shadow-md p-4 md:p-8 flex flex-col gap-8">
-          <ManagerBarChart data={barData} />
+          {/* <ManagerBarChart data={barData} /> */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <ManagerProjectStatusTable projects={projects} />
