@@ -18,7 +18,7 @@ import java.util.List;
 
 // Ruta principal
 @RestController
-@RequestMapping("api/usuario")
+@RequestMapping("/api/usuario")
 public class UsuarioController {
     private final UsuarioService usuarioService;
 
@@ -60,6 +60,24 @@ public class UsuarioController {
 
         UsuarioDTO actualizado = usuarioService.actualizarUsuarioxId(id, usuarioDTO);
         return ResponseEntity.ok(actualizado);
+    }
+
+    // Endpoint para login (maneja intentos fallidos)
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UsuarioDTO loginDTO) {
+        try {
+            UsuarioDTO usuario = usuarioService.login(loginDTO.getEmail(), loginDTO.getPassword());
+            return ResponseEntity.ok(usuario);
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(e.getMessage());
+        }
+    }
+
+    // Buscar Usuario por cédula
+    @GetMapping("/cedula/{cedula}")
+    public ResponseEntity<UsuarioDTO> getUserByCedula(@PathVariable("cedula") Long cedula) {
+        UsuarioDTO usuario = usuarioService.obtenerUsuarioPorCedula(cedula);
+        return ResponseEntity.ok(usuario);
     }
 
 }

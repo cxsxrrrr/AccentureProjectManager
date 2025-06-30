@@ -18,9 +18,12 @@ import org.mapstruct.ReportingPolicy;
         unmappedTargetPolicy         = ReportingPolicy.IGNORE
 )
 public interface SkillsMapper {
+    @org.mapstruct.Mapping(source = "categoria.categoriaId", target = "categoriaId")
+    @org.mapstruct.Mapping(source = "categoria.nombre", target = "categoriaNombre")
     SkillsDTO toDTO(Skills skill);
 
     @org.mapstruct.Mapping(target = "skillId", ignore = true)
+    @org.mapstruct.Mapping(target = "categoria", ignore = true)
     Skills toEntity(SkillsDTO skillDTO);
 
     void updateSkillsFromDto(SkillsDTO dto, @MappingTarget Skills entity);
