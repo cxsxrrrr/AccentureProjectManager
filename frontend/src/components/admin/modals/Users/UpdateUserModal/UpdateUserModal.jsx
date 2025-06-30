@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import UpdateUserStep1 from "./UpdateUserStep1";
 import UpdateUserStep2 from "./UpdateUserStep2";
@@ -7,7 +6,6 @@ import { authService } from "../../../../../services/authService";
 
 function mapUserApiToUi(user) {
   if (!user) return {};
-  // Determinar el rolId del usuario si viene anidado
   let rolId = null;
   if (user.rol && (user.rol.rolId || user.rol.id)) {
     rolId = user.rol.rolId || user.rol.id;
@@ -24,9 +22,9 @@ function mapUserApiToUi(user) {
     password: "",
     email: user.email || "",
     numeroTelefono: user.numeroTelefono || "",
-    categoria: user.categoria || "",
+    categoria: user.categoria?.nombre || user.categoria || "", // cargar nombre categoría
     habilidades: user.habilidades?.map((h) => h.skillId || h.id) || [],
-    estado: user.estado || "Active",
+    estado: user.estado || "Activo",
     rol: rolId,
   };
 }
@@ -40,28 +38,23 @@ export default function UpdateUserModal({
   onUpdate,
 }) {
   const [step, setStep] = useState(1);
-
-  // Solo usar estado local si quieres modificar o cargar las categorías/skills aquí
   const [categories, setCategories] = useState(categoriesProp || []);
   const [skills, setSkills] = useState(skillsProp || []);
-
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataError, setDataError] = useState(null);
   const [form, setForm] = useState(mapUserApiToUi(user));
   const [isUpdating, setIsUpdating] = useState(false);
   const [roles, setRoles] = useState([]);
 
-
   useEffect(() => {
     const fetchUserAndData = async () => {
       if (isOpen && user && user.usuarioId) {
         setIsLoadingData(true);
         try {
-          // Cargar usuario actualizado desde backend (con categoria, rol y skills actualizados)
           const res = await api.get(`/usuario/${user.usuarioId}`);
           setForm(mapUserApiToUi(res.data));
         } catch (e) {
-          setForm(mapUserApiToUi(user)); // fallback
+          setForm(mapUserApiToUi(user));
         }
         await loadCategoriesAndSkills();
         await loadRoles();
@@ -77,7 +70,7 @@ export default function UpdateUserModal({
     };
     fetchUserAndData();
   }, [isOpen, user]);
-  // Cargar roles desde backend
+
   const loadRoles = async () => {
     try {
       const response = await api.get("/roles");
@@ -87,10 +80,7 @@ export default function UpdateUserModal({
     }
   };
 
-  // Ya se maneja en el useEffect anterior
-
   useEffect(() => {
-    // Cuando cambian las props categories o skills, actualizamos el estado local
     setCategories(categoriesProp || []);
     setSkills(skillsProp || []);
   }, [categoriesProp, skillsProp]);
@@ -99,21 +89,17 @@ export default function UpdateUserModal({
     try {
       setIsLoadingData(true);
       setDataError(null);
-
       if (!authService.isAuthenticated()) {
         throw new Error("No authenticated");
       }
-
       const [categoriesResponse, skillsResponse] = await Promise.all([
         api.get("/category"),
         api.get("/skills"),
       ]);
-
       setCategories(categoriesResponse.data);
       setSkills(skillsResponse.data);
     } catch (err) {
       console.error("Error loading categories and skills:", err);
-
       if (err.response?.status === 401) {
         setDataError("Session expired. Please login again.");
         authService.logout();
@@ -149,21 +135,31 @@ export default function UpdateUserModal({
     setStep(1);
   };
 
+  async function updateUserWithAssociations(
+    userData,
+    categoriaNombre,
+    habilidadesIds,
+    categoriesList,
+    rolNombre
+  ) {
+    console.log("=== INICIANDO ACTUALIZACIÓN DE USUARIO ===");
+    console.log("Usuario ID:", userData.usuarioId);
+    console.log("Categoría objetivo:", categoriaNombre);
+    console.log("Skills objetivo:", habilidadesIds);
 
-  // Lógica similar a createUserWithAssociations pero para actualizar
-  async function updateUserWithAssociations(userData, categoriaNombre, habilidadesIds, categoriesList, rolNombre) {
     try {
       const nowISO = new Date().toISOString();
-      // Busca el rol por nombre
+
       let rolId = null;
       if (rolNombre) {
-        const rol = roles.find(r => r.nombre === rolNombre);
+        const rol = roles.find((r) => r.nombre === rolNombre);
         if (rol) {
-          rolId = rol.id || rol.rolId;
+          rolId = Number(rol.id || rol.rolId);
         } else {
           console.warn("No se encontró el rol para asociar:", rolNombre);
         }
       }
+
       const updateUserBody = {
         usuarioId: userData.usuarioId,
         nombre: userData.nombre,
@@ -177,73 +173,189 @@ export default function UpdateUserModal({
         estado: userData.estado || "Activo",
         fechaCreacion: userData.fechaCreacion || nowISO,
         ultimoAcceso: nowISO,
-        rol: rolId ? { rolId } : null // Enviar objeto rol como espera el backend
+        rol: rolId !== null ? { rolId } : null,
+        // Enviar la categoría y habilidades también si el backend lo espera en el PUT
+        categoria: categoriesList.find((cat) => (cat.nombre || cat.name) === categoriaNombre) || null,
+        habilidades: habilidadesIds || [],
       };
 
-      // Actualizar usuario principal (incluyendo el rol)
+      console.log("=== ACTUALIZANDO DATOS BÁSICOS DEL USUARIO ===");
       await api.put(`/usuario/${userData.usuarioId}`, updateUserBody);
+      console.log("✅ Usuario básico actualizado");
 
-      // Asociar categoría
+      // === MANEJO DE CATEGORÍAS ===
+      console.log("=== GESTIONANDO CATEGORÍAS ===");
+      
+      // PASO 1: Obtener TODAS las categorías actuales del usuario
+      let currentCategoriasIds = [];
+      try {
+        const res = await api.get(`/category/user/${userData.usuarioId}`);
+        console.log("Respuesta de categorías actuales:", res.data);
+        
+        if (res.data) {
+          if (Array.isArray(res.data)) {
+            // Si devuelve un array de categorías
+            currentCategoriasIds = res.data.map(cat => cat.categoriaId || cat.id);
+          } else if (res.data.categoriaId || res.data.id) {
+            // Si devuelve una sola categoría
+            currentCategoriasIds = [res.data.categoriaId || res.data.id];
+          }
+        }
+      } catch (e) {
+        console.warn("Error al obtener categorías actuales:", e);
+        // Intentar otro endpoint si existe
+        try {
+          const res2 = await api.get(`/usuario/${userData.usuarioId}/categorias`);
+          if (res2.data && Array.isArray(res2.data)) {
+            currentCategoriasIds = res2.data.map(cat => cat.categoriaId || cat.id);
+          }
+        } catch (e2) {
+          console.warn("Segundo intento de obtener categorías falló:", e2);
+        }
+      }
+
+      console.log("Categorías actuales encontradas:", currentCategoriasIds);
+
+      // PASO 2: Buscar la nueva categoría
       const categoria = categoriesList.find(
         (cat) => (cat.nombre || cat.name) === categoriaNombre
       );
-      if (!categoria) throw new Error("Categoría no encontrada");
-      await api.post("/category/user/asociar", {
-        usuarioId: userData.usuarioId,
-        categoriaId: categoria.id || categoria.categoriaId,
-      });
+      if (!categoria) {
+        console.error("Categorías disponibles:", categoriesList.map(c => c.nombre || c.name));
+        throw new Error(`Categoría "${categoriaNombre}" no encontrada`);
+      }
+      const nuevaCategoriaId = categoria.id || categoria.categoriaId;
+      console.log("Nueva categoría ID:", nuevaCategoriaId);
 
-      // Remover todas las skills actuales del usuario
-      // 1. Obtener las skills actuales del usuario
-      let currentSkills = [];
+      // PASO 3: Remover TODAS las categorías actuales
+      if (currentCategoriasIds.length > 0) {
+        console.log("Removiendo todas las categorías actuales...");
+        for (const catId of currentCategoriasIds) {
+          try {
+            await api.delete("/category/user/remover", {
+              data: {
+                usuarioId: userData.usuarioId,
+                categoriaId: catId,
+              },
+            });
+            console.log(`✅ Categoría ${catId} removida exitosamente`);
+          } catch (e) {
+            console.warn(`⚠️ No se pudo remover la categoría ${catId}:`, e.response?.data || e.message);
+          }
+        }
+      }
+
+      // PASO 4: Asociar la nueva categoría
       try {
-        const res = await api.get(`/usuario/${userData.usuarioId}`);
-        if (res.data && Array.isArray(res.data.habilidades)) {
-          currentSkills = res.data.habilidades.map(h => h.skillId || h.id);
+        console.log("Asociando nueva categoría...");
+        await api.post("/category/user/asociar", {
+          usuarioId: userData.usuarioId,
+          categoriaId: nuevaCategoriaId,
+        });
+        console.log(`✅ Categoría ${nuevaCategoriaId} asociada exitosamente`);
+      } catch (e) {
+        console.error("❌ Error al asociar nueva categoría:", e.response?.data || e.message);
+        throw new Error(`Error al asociar la categoría: ${e.response?.data?.message || e.message}`);
+      }
+
+      // === MANEJO DE SKILLS ===
+      console.log("=== GESTIONANDO SKILLS ===");
+      
+      // PASO 1: Obtener TODAS las skills actuales del usuario
+      let currentSkillIds = [];
+      try {
+        const res = await api.get(`/skills/usuario/${userData.usuarioId}`);
+        console.log("Respuesta de skills actuales:", res.data);
+        
+        if (res.data && Array.isArray(res.data)) {
+          currentSkillIds = res.data.map((h) => Number(h.skillId || h.id));
         }
       } catch (e) {
-        console.warn("No se pudieron obtener las skills actuales del usuario", e);
-      }
-      // 2. Remover cada skill actual
-      for (const skillId of currentSkills) {
+        console.warn("Error al obtener skills actuales:", e);
+        // Intentar otro endpoint si existe
         try {
-          await api.delete("/skills/user/remover", {
-            data: {
-              usuarioId: userData.usuarioId,
-              skillId: skillId
-            }
-          });
-        } catch (e) {
-          // Si falla una, continuar con las demás
-          console.warn(`No se pudo remover la skill ${skillId} del usuario`, e);
+          const res2 = await api.get(`/usuario/${userData.usuarioId}/skills`);
+          if (res2.data && Array.isArray(res2.data)) {
+            currentSkillIds = res2.data.map((h) => Number(h.skillId || h.id));
+          }
+        } catch (e2) {
+          console.warn("Segundo intento de obtener skills falló:", e2);
         }
       }
-      // 3. Asociar las nuevas skills
-      for (const skillId of habilidadesIds) {
-        await api.post("/skills/user/asociar", {
-          usuarioId: userData.usuarioId,
-          skillId,
-        });
+
+      console.log("Skills actuales encontradas:", currentSkillIds);
+      
+      const newSkillIds = habilidadesIds.map(id => Number(id));
+      console.log("Skills nuevas:", newSkillIds);
+
+      // PASO 2: Remover TODAS las skills actuales
+      if (currentSkillIds.length > 0) {
+        console.log("Removiendo todas las skills actuales...");
+        for (const skillId of currentSkillIds) {
+          try {
+            await api.delete("/skills/user/remover", {
+              data: {
+                usuarioId: userData.usuarioId,
+                skillId: skillId,
+              },
+            });
+            console.log(`✅ Skill ${skillId} removida exitosamente`);
+          } catch (e) {
+            console.warn(`⚠️ No se pudo remover la skill ${skillId}:`, e.response?.data || e.message);
+          }
+        }
       }
+
+      // PASO 3: Asociar las nuevas skills
+      if (newSkillIds.length > 0) {
+        console.log("Asociando nuevas skills...");
+        for (const skillId of newSkillIds) {
+          try {
+            await api.post("/skills/user/asociar", {
+              usuarioId: userData.usuarioId,
+              skillId: skillId,
+            });
+            console.log(`✅ Skill ${skillId} asociada exitosamente`);
+          } catch (e) {
+            console.error(`❌ Error al asociar skill ${skillId}:`, e.response?.data || e.message);
+            // Continuar con las demás skills
+          }
+        }
+      }
+
+      console.log("=== ACTUALIZACIÓN COMPLETADA EXITOSAMENTE ===");
+
     } catch (error) {
+      console.error("❌ ERROR GENERAL en updateUserWithAssociations:", error);
+      
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || "";
+        const fullError = error.response.data;
+        
+        console.error("Status:", status);
+        console.error("Message:", message);
+        console.error("Full error:", fullError);
+        
         if (status === 400 || status === 409) {
-          if (message.includes("cedula")) {
+          if (message.includes("cedula") || message.includes("cédula")) {
             throw new Error("La cédula ya está registrada.");
-          } else if (message.includes("email")) {
+          } else if (message.includes("email") || message.includes("correo")) {
             throw new Error("El correo electrónico ya está registrado.");
-          } else if (message.includes("numeroTelefono")) {
+          } else if (message.includes("numeroTelefono") || message.includes("teléfono")) {
             throw new Error("El número de teléfono ya está registrado.");
+          } else if (message.includes("categoría") || message.includes("category")) {
+            throw new Error(`Error con categoría: ${message}`);
+          } else if (message.includes("skill") || message.includes("habilidad")) {
+            throw new Error(`Error con habilidades: ${message}`);
           } else {
-            throw new Error("Datos inválidos o duplicados.");
+            throw new Error(`Error ${status}: ${message}`);
           }
         } else {
-          throw new Error("Error en la solicitud: " + message);
+          throw new Error(`Error ${status}: ${message}`);
         }
       } else {
-        throw new Error("Error desconocido al actualizar usuario.");
+        throw new Error("Error de conexión: " + error.message);
       }
     }
   }
@@ -257,7 +369,7 @@ export default function UpdateUserModal({
         finalUser.categoria,
         finalUser.habilidades,
         categories,
-        finalUser.rol // nombre del rol
+        finalUser.rol
       );
       alert("Usuario actualizado correctamente");
       if (onUpdate) onUpdate();
