@@ -8,7 +8,6 @@ function UpdateProjectModal({
   onSave,
   initialData,
   clients = [],
-  managers = [],
 }) {
   const [form, setForm] = useState({
     title: "",
@@ -16,7 +15,6 @@ function UpdateProjectModal({
     startDate: "",
     endDate: "",
     client: "",
-    manager: "",
     status: "Active", // Incluimos status
   });
 
@@ -31,7 +29,7 @@ function UpdateProjectModal({
         startDate: initialData.startDate || "",
         endDate: initialData.endDate || "",
         client: initialData.client || "",
-        manager: initialData.manager || "",
+        // manager: omitido
         status: initialData.status || "Active",
       });
   }, [initialData]);
@@ -45,15 +43,17 @@ function UpdateProjectModal({
     setSubmitting(true);
     setError("");
     try {
+      // Obtener el usuario logueado (ajusta según tu auth)
+      const user = JSON.parse(localStorage.getItem("user")) || {};
       const payload = {
         nombreProyecto: form.title,
         descripcionProyecto: form.description,
         fechaInicio: form.startDate,
         fechaFin: form.endDate,
         estado: form.status,
-        cliente: { usuarioId: clients.find(c => c.name === form.client)?.id || 1 },
-        gerenteProyecto: { usuarioId: managers.find(m => m.name === form.manager)?.id || 1 },
-        creadoPor: { usuarioId: 1 }, // Cambia por el usuario real si lo tienes
+        cliente: { usuarioId: Number(form.client) },
+        gerenteProyecto: { usuarioId: user.usuarioId || user.id || 1 },
+        creadoPor: { usuarioId: user.usuarioId || user.id || 1 },
       };
 
       // PUT a la ruta `/proyectos/{id}`
@@ -163,22 +163,11 @@ function UpdateProjectModal({
                 >
                   <option value="">Client</option>
                   {clients.map((c) => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
                   ))}
                 </select>
               </label>
-              <label className="font-semibold text-sm">
-                Manager *
-                <input
-                  name="manager"
-                  value={form.manager}
-                  onChange={handleChange}
-                  required
-                  disabled={submitting}
-                  placeholder="Enter project manager"
-                  className="mt-1 border rounded w-full px-3 py-2"
-                />
-              </label>
+              {/* El campo Manager ha sido eliminado porque el manager es el usuario logueado */}
               {/* STATUS */}
               <label className="font-semibold text-sm">
                 Status *

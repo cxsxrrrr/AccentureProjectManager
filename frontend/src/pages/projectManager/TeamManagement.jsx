@@ -4,7 +4,7 @@ import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
 import UnassignProjectModal from "../../components/manager/modals/Teams/UnassignProjectModal";
 import AssignProjectModal from "../../components/manager/modals/Teams/AssignProjectModal";
-import api from "../../services/axios"; // Ajusta el path según tu estructura
+import api from "../../services/axios";
 
 function TeamManagement() {
   // Estados para datos reales de API
@@ -26,52 +26,106 @@ function TeamManagement() {
 
   // Cargar datos desde la API al montar
   useEffect(() => {
-    // Cargar miembros del equipo
-    api
-      .get("/usuario")
-      .then((res) => {
-        if (Array.isArray(res.data)) {
-          setTeam(res.data);
-        } else {
-          setTeam([]);
-        }
-      })
-      .catch(() => setTeam([]));
-    // Cargar categorías (o skills si tienes endpoint)
-    api
-      .get("/category")
-      .then((res) => setCategorias(res.data))
+    // Cargar miembros del equipo y normalizar category/skills igual que Employees.jsx
+    const fetchTeam = async () => {
+      try {
+        const res = await api.get("/usuario");
+        const allowedRoles = [
+          "member", "team member", "team", "miembro de equipo", "miembro"
+        ];
+        const usersRaw = Array.isArray(res.data) ? res.data : [res.data];
+        const users = await Promise.all(
+          usersRaw
+            .filter(u => u.rol && allowedRoles.includes((u.rol.nombre || "").toLowerCase()))
+            .map(async (u) => {
+              // Obtener categoría (como string)
+              let category = "";
+              try {
+                const catRes = await api.get(`/category/user/${u.usuarioId || u.id}`);
+                // Puede venir como array o como objeto
+                if (Array.isArray(catRes.data)) {
+                  category = catRes.data[0]?.nombre || "";
+                } else if (catRes.data && catRes.data.nombre) {
+                  category = catRes.data.nombre;
+                }
+              } catch {}
+              // Obtener skills (array de strings)
+              let skills = [];
+              try {
+                const skillsRes = await api.get(`/skills/usuario/${u.usuarioId || u.id}`);
+                if (Array.isArray(skillsRes.data)) {
+                  skills = skillsRes.data.map(s => s.nombre);
+                }
+              } catch {}
+              return {
+                ...u,
+                categoria: { nombre: category },
+                habilidades: skills
+              };
+            })
+        );
+        setTeam(users);
+      } catch {
+        setTeam([]);
+      }
+    };
+    fetchTeam();
+    // Cargar categorías
+    api.get("/category")
+      .then(res => setCategorias(res.data))
       .catch(() => setCategorias([]));
     // Cargar proyectos
     api
       .get("/proyectos")
       .then((res) => setProyectos(res.data))
       .catch(() => setProyectos([]));
-    // Si tienes endpoint de habilidades, usa GET /habilidades. Si no, extrae desde miembros:
-    api
-      .get("/skills")
-      .then((res) => setAllSkills(res.data.map((h) => h.nombre)))
-      .catch(() => {
-        setAllSkills([]);
-      });
+    // Cargar todas las skills únicas del sistema
+    api.get("/skills")
+      .then(res => setAllSkills(res.data.map(h => h.nombre)))
+      .catch(() => setAllSkills([]));
   }, []);
 
-  // Filtros
-  const filteredTeam = team.filter((member) => {
-    const matchSearch =
-      !search || (member.cedula && String(member.cedula).includes(search));
-    const matchCategoria =
-      !categoriaFilter ||
-      (member.categoria && member.categoria.nombre === categoriaFilter);
-    const matchSkill =
-      !skillFilter ||
-      (member.habilidades && member.habilidades.includes(skillFilter));
-    const matchProject =
-      !projectFilter ||
-      (member.proyecto && member.proyecto.nombreProyecto === projectFilter);
+  // Filtros y normalización de datos
+  const allowedRoles = [
+    "member",
+    "team member",
+    "team",
+    "miembro de equipo",
+    "miembro"
+  ];
 
-    return matchSearch && matchCategoria && matchSkill && matchProject;
-  });
+  // Normaliza y filtra el equipo para mostrar solo los roles permitidos
+  const filteredTeam = team
+    .filter((member) => {
+      // Normaliza el nombre del rol
+      const roleName = (member.rol?.nombre || "").toLowerCase().trim();
+      return allowedRoles.includes(roleName);
+    })
+    .map((member) => ({
+      ...member,
+      // Normaliza categoría: si no está, intenta cargarla del backend
+      categoria: member.categoria || null,
+      // Normaliza habilidades: si no están, intenta cargar del backend
+      habilidades: Array.isArray(member.habilidades)
+        ? member.habilidades
+        : [],
+    }))
+    .filter((member) => {
+      // Filtros conectados
+      const matchSearch =
+        !search ||
+        (member.cedula && String(member.cedula).includes(search));
+      const matchCategoria =
+        !categoriaFilter ||
+        (member.categoria && member.categoria.nombre === categoriaFilter);
+      const matchSkill =
+        !skillFilter ||
+        (member.habilidades && member.habilidades.includes(skillFilter));
+      const matchProject =
+        !projectFilter ||
+        (member.proyecto && member.proyecto.nombreProyecto === projectFilter);
+      return matchSearch && matchCategoria && matchSkill && matchProject;
+    });
 
   // Selección robusta de usuario
   const selectedUser = team.find((u) => getMemberKey(u) === selectedId);
@@ -97,11 +151,42 @@ function TeamManagement() {
     setShowUnassign(false);
   };
 
-  // Refrescar lista de usuarios
+  // Refrescar lista de usuarios (conectado igual que Employees.jsx)
   const reloadTeam = async () => {
     try {
       const res = await api.get("/usuario");
-      setTeam(res.data);
+      const allowedRoles = [
+        "member", "team member", "team", "miembro de equipo", "miembro"
+      ];
+      const usersRaw = Array.isArray(res.data) ? res.data : [res.data];
+      const users = await Promise.all(
+        usersRaw
+          .filter(u => u.rol && allowedRoles.includes((u.rol.nombre || "").toLowerCase()))
+          .map(async (u) => {
+            let category = "";
+            try {
+              const catRes = await api.get(`/category/user/${u.usuarioId || u.id}`);
+              if (Array.isArray(catRes.data)) {
+                category = catRes.data[0]?.nombre || "";
+              } else if (catRes.data && catRes.data.nombre) {
+                category = catRes.data.nombre;
+              }
+            } catch {}
+            let skills = [];
+            try {
+              const skillsRes = await api.get(`/skills/usuario/${u.usuarioId || u.id}`);
+              if (Array.isArray(skillsRes.data)) {
+                skills = skillsRes.data.map(s => s.nombre);
+              }
+            } catch {}
+            return {
+              ...u,
+              categoria: { nombre: category },
+              habilidades: skills
+            };
+          })
+      );
+      setTeam(users);
     } catch {
       setTeam([]);
     }
@@ -179,30 +264,14 @@ function TeamManagement() {
           <table className="min-w-full w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 mt-4">
             <thead>
               <tr>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  NAME
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  ID DOCUMENT
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  EMAIL
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  ROLE
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  CATEGORY
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  SKILLS
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  PROJECT
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
-                  STATUS
-                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">NAME</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ID DOCUMENT</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">EMAIL</th>
+                {/* <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ROLE</th> */}
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">CATEGORY</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">SKILLS</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">PROJECT</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">STATUS</th>
               </tr>
             </thead>
             <tbody>
@@ -219,6 +288,10 @@ function TeamManagement() {
                   <td className="py-5 px-6 font-semibold text-gray-800 whitespace-nowrap">
                     {member.nombre} {member.apellido}
                   </td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.cedula}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.email}</td>
+                  {/* <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol?.nombre}</td> */}
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.categoria?.nombre || "-"}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
                     {member.cedula}
                   </td>
@@ -264,7 +337,7 @@ function TeamManagement() {
               ))}
               {filteredTeam.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">
+                  <td colSpan={7} className="text-center py-10 text-gray-400">
                     No team members found.
                   </td>
                 </tr>

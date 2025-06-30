@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./backend/initdb:/docker-entrypoint-initdb.d
+    networks:
+      - pmnet
+
+  backend:
+    image: eclipse-temurin:21-jdk-alpine
+    container_name: pm-backend
+    working_dir: /app
+    command: sh -c "./gradlew bootRun"
+    volumes:
+      - ./backend:/app
+    env_file:
+      - ./backend/.env.backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    networks:
+      - pmnet
+
+  frontend:
+    image: node:24-bookworm
+    container_name: pm-frontend
+    working_dir: /app
+    command: sh -c "rm -rf node_modules package-lock.json && npm install && npm run dev --host 0.0.0.0"
+    volumes:
+      - ./frontend:/app
+    env_file:
+      - ./frontend/.env.frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - pmnet
+
+volumes:
+  db_data:
+
+networks:
+  pmnet:
+    driver: bridge
