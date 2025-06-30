@@ -81,10 +81,10 @@ function TopControls({
     if (module === "user") {
       return [
         ...common,
-        <button key="assign-role" className="control-button" onClick={onAssign}>
-          <img src={assignRoleIcon} alt="" className="button-icon" />
-          Assign Role
-        </button>,
+        // <button key="assign-role" className="control-button" onClick={onAssign}>
+        //   <img src={assignRoleIcon} alt="" className="button-icon" />
+        //   Assign Role
+        // </button>,
       ];
     }
 
