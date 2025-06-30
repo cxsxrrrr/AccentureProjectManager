@@ -66,6 +66,9 @@ function UserManagement() {
   };
 
   const openAssignRoleModal = (user) => {
+    // Permitir asignar rol solo si el usuario no tiene rol, es null, vacío, undefined o "null"
+    const hasRole = user && (user.rol?.nombre || user.rol || user.role);
+    if (hasRole && hasRole !== "null" && hasRole !== null && hasRole !== "" && typeof hasRole !== "undefined") return;
     setSelectedUser(user);
     setIsAssignOpen(true);
     setSelectedUserId(user.id);
@@ -138,8 +141,18 @@ function UserManagement() {
     }
   };
 
-  const handleAssignRole = async () => {
+  // Recibe el payload { rol: { rolId, nombre } } desde el modal
+  const handleAssignRole = async (payload) => {
+    if (!selectedUser || !payload?.rol) return;
     try {
+      // Actualizar solo el campo rol del usuario
+      await api.put(`/usuario/${selectedUser.id}`, {
+        ...selectedUser,
+        rol: {
+          rolId: payload.rol.rolId,
+          nombre: payload.rol.nombre
+        }
+      });
       await loadUsers();
       closeAssignRoleModal();
     } catch (error) {
