@@ -7,11 +7,18 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
   const [catSearch, setCatSearch] = useState("");
   const [touched, setTouched] = useState(false);
 
+  // Normaliza categorías para que funcionen con el nuevo modelo del frontend
+  const normalizedCategories = categories.map(c => ({
+    id: c.id || c.categoriaId,
+    name: c.name || c.nombre,
+    description: c.description || c.descripcion
+  }));
+
   useEffect(() => {
     if (isOpen && skill) {
       setName(skill.name || "");
       // Encuentra el id de la categoría (puede ser por nombre o por id según tu modelo)
-      const currentCategory = categories.find(
+      const currentCategory = normalizedCategories.find(
         c =>
           (c.id && c.id === skill.category_id) ||
           (c.name && c.name.toLowerCase() === (skill.category || "").toLowerCase())
@@ -23,7 +30,7 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
   }, [isOpen, skill, categories]);
 
   const valid = name.trim() && catId;
-  const filteredCategories = categories.filter(
+  const filteredCategories = normalizedCategories.filter(
     c =>
       (c.name && c.name.toLowerCase().includes(catSearch.toLowerCase())) ||
       (c.description && c.description.toLowerCase().includes(catSearch.toLowerCase()))
@@ -33,9 +40,9 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
-    const category = categories.find(c => c.id === catId);
+    const category = normalizedCategories.find(c => c.id === catId);
     onUpdate &&
-      onUpdate({ ...skill, name: name.trim(), category: category.name, category_id: catId });
+      onUpdate({ ...skill, name: name.trim(), category: category ? category.name : '', category_id: catId });
     toggle();
   };
 

@@ -26,6 +26,13 @@ export default function LoginForm() {
       const usuario = usuarioRes.data;
       localStorage.setItem("user", JSON.stringify(usuario));
 
+      // Also store friendly name and role for Sidebar display
+      const fullName = `${usuario.nombre}${
+        usuario.apellido ? " " + usuario.apellido : ""
+      }`;
+      localStorage.setItem("username", fullName);
+      localStorage.setItem("roleName", usuario.rol?.nombre || "");
+
       // Redirect by role, support multiple possible backend field names
       const roleObj = usuario.rol || {};
       const roleId = roleObj.rolId ?? roleObj.rol ?? roleObj.id;

@@ -5,20 +5,43 @@ import userIcon from "../../assets/icons/user_rol.svg";
 import logoutIcon from "../../assets/icons/logout.svg";
 import "../../stylesheets/sidebar.css";
 
-// MOCKS TEMPORALES
-const mockUser = {
-  name: "Luis I.",
-  role: "Admin",
-};
-
 function Sidebar({ menuItems, vista, logo, title }) {
   const navigate = useNavigate();
 
+  // Lee el usuario REAL desde localStorage/sessionStorage
+  let storedUser = null;
+  try {
+    storedUser = JSON.parse(localStorage.getItem("user")) || JSON.parse(sessionStorage.getItem("user"));
+  } catch {
+    storedUser = null;
+  }
+
+  const getUserName = () => {
+    // Check for explicit stored username
+    const name = localStorage.getItem('username');
+    if (name) return name;
+    // Fallback to storedUser fields
+    if (!storedUser) return "Usuario";
+    if (storedUser.nombre && storedUser.apellido) return `${storedUser.nombre} ${storedUser.apellido}`;
+    if (storedUser.nombre) return storedUser.nombre;
+    if (storedUser.email) return storedUser.email;
+    return "Usuario";
+  };
+
+  const getUserRole = () => {
+    // Check for explicit stored roleName
+    const roleName = localStorage.getItem('roleName');
+    if (roleName) return roleName;
+    // Fallback to storedUser fields
+    if (storedUser && storedUser.rol && storedUser.rol.nombre) return storedUser.rol.nombre;
+    if (storedUser && storedUser.role) return storedUser.role;
+    return "User";
+  };
+
   const handleLogout = () => {
-    // Limpiar storage
+    // Limpia storage y redirige
     localStorage.clear();
     sessionStorage.clear();
-    // Redirigir a login ("/" es tu pantalla de Login)
     navigate("/");
   };
 
@@ -34,8 +57,8 @@ function Sidebar({ menuItems, vista, logo, title }) {
       <div className="Sidebar-Usuario">
         <img src={userIcon} alt="User Icon" className="Sidebar-UserIcon" />
         <div className="Sidebar-UserInfo">
-          <span className="Sidebar-UserName">{mockUser.name}</span>
-          <span className="Sidebar-UserRole">{mockUser.role}</span>
+          <span className="Sidebar-UserName">{getUserName()}</span>
+          <span className="Sidebar-UserRole">{getUserRole()}</span>
         </div>
       </div>
 
