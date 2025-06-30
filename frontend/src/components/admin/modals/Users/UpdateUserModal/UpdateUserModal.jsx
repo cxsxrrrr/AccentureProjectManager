@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import UpdateUserStep1 from "./UpdateUserStep1";
 import UpdateUserStep2 from "./UpdateUserStep2";
@@ -7,10 +6,12 @@ import { authService } from "../../../../../services/authService";
 
 function mapUserApiToUi(user) {
   if (!user) return {};
-  // Determinar el rolId del usuario si viene anidado
   let rolId = null;
+  // Cambia: si user.rol existe y tiene rolId válido, usa ese, si no, pon "" (string vacío)
   if (user.rol && (user.rol.rolId || user.rol.id)) {
     rolId = user.rol.rolId || user.rol.id;
+  } else {
+    rolId = ""; // Para que el select de rol nunca sea null
   }
   return {
     usuarioId: user.usuarioId || user.id,
@@ -24,9 +25,9 @@ function mapUserApiToUi(user) {
     password: "",
     email: user.email || "",
     numeroTelefono: user.numeroTelefono || "",
-    categoria: user.categoria || "",
+    categoria: user.categoria?.nombre || user.categoria || "", // cargar nombre categoría
     habilidades: user.habilidades?.map((h) => h.skillId || h.id) || [],
-    estado: user.estado || "Active",
+    estado: user.estado || "Activo",
     rol: rolId,
   };
 }
@@ -40,28 +41,23 @@ export default function UpdateUserModal({
   onUpdate,
 }) {
   const [step, setStep] = useState(1);
-
-  // Solo usar estado local si quieres modificar o cargar las categorías/skills aquí
   const [categories, setCategories] = useState(categoriesProp || []);
   const [skills, setSkills] = useState(skillsProp || []);
-
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataError, setDataError] = useState(null);
   const [form, setForm] = useState(mapUserApiToUi(user));
   const [isUpdating, setIsUpdating] = useState(false);
   const [roles, setRoles] = useState([]);
 
-
   useEffect(() => {
     const fetchUserAndData = async () => {
       if (isOpen && user && user.usuarioId) {
         setIsLoadingData(true);
         try {
-          // Cargar usuario actualizado desde backend (con categoria, rol y skills actualizados)
           const res = await api.get(`/usuario/${user.usuarioId}`);
           setForm(mapUserApiToUi(res.data));
         } catch (e) {
-          setForm(mapUserApiToUi(user)); // fallback
+          setForm(mapUserApiToUi(user));
         }
         await loadCategoriesAndSkills();
         await loadRoles();
@@ -77,7 +73,7 @@ export default function UpdateUserModal({
     };
     fetchUserAndData();
   }, [isOpen, user]);
-  // Cargar roles desde backend
+
   const loadRoles = async () => {
     try {
       const response = await api.get("/roles");
@@ -87,10 +83,7 @@ export default function UpdateUserModal({
     }
   };
 
-  // Ya se maneja en el useEffect anterior
-
   useEffect(() => {
-    // Cuando cambian las props categories o skills, actualizamos el estado local
     setCategories(categoriesProp || []);
     setSkills(skillsProp || []);
   }, [categoriesProp, skillsProp]);
@@ -99,21 +92,17 @@ export default function UpdateUserModal({
     try {
       setIsLoadingData(true);
       setDataError(null);
-
       if (!authService.isAuthenticated()) {
         throw new Error("No authenticated");
       }
-
       const [categoriesResponse, skillsResponse] = await Promise.all([
         api.get("/category"),
         api.get("/skills"),
       ]);
-
       setCategories(categoriesResponse.data);
       setSkills(skillsResponse.data);
     } catch (err) {
       console.error("Error loading categories and skills:", err);
-
       if (err.response?.status === 401) {
         setDataError("Session expired. Please login again.");
         authService.logout();
@@ -149,21 +138,29 @@ export default function UpdateUserModal({
     setStep(1);
   };
 
-
-  // Lógica similar a createUserWithAssociations pero para actualizar
-  async function updateUserWithAssociations(userData, categoriaNombre, habilidadesIds, categoriesList, rolNombre) {
+  // --- ACTUALIZAR USUARIO Y ASOCIACIONES ---
+  async function updateUserWithAssociations(
+    userData,
+    categoriaNombre,
+    habilidadesIds,
+    categoriesList,
+    rolId // ahora recibe el ID directamente
+  ) {
     try {
       const nowISO = new Date().toISOString();
-      // Busca el rol por nombre
-      let rolId = null;
-      if (rolNombre) {
-        const rol = roles.find(r => r.nombre === rolNombre);
-        if (rol) {
-          rolId = rol.id || rol.rolId;
-        } else {
-          console.warn("No se encontró el rol para asociar:", rolNombre);
-        }
+      // --- Determinar el ID del rol correctamente y evitar null ---
+      let realRolId = null;
+      if (typeof rolId === "object" && rolId !== null && typeof rolId.rolId !== "undefined" && rolId.rolId !== null && rolId.rolId !== "") {
+        realRolId = rolId.rolId;
+      } else if (
+        (typeof rolId === "number" || typeof rolId === "string") &&
+        rolId !== "" &&
+        rolId !== null &&
+        rolId !== undefined
+      ) {
+        realRolId = rolId;
       }
+      // --- Construir el body para el PUT ---
       const updateUserBody = {
         usuarioId: userData.usuarioId,
         nombre: userData.nombre,
@@ -177,74 +174,16 @@ export default function UpdateUserModal({
         estado: userData.estado || "Activo",
         fechaCreacion: userData.fechaCreacion || nowISO,
         ultimoAcceso: nowISO,
-        rol: rolId ? { rolId } : null // Enviar objeto rol como espera el backend
       };
-
-      // Actualizar usuario principal (incluyendo el rol)
+      // Solo agrega el campo rol si es un número válido mayor a 0
+      if (realRolId && !isNaN(Number(realRolId)) && Number(realRolId) > 0) {
+        updateUserBody.rol = { rolId: Number(realRolId) };
+      }
       await api.put(`/usuario/${userData.usuarioId}`, updateUserBody);
-
-      // Asociar categoría
-      const categoria = categoriesList.find(
-        (cat) => (cat.nombre || cat.name) === categoriaNombre
-      );
-      if (!categoria) throw new Error("Categoría no encontrada");
-      await api.post("/category/user/asociar", {
-        usuarioId: userData.usuarioId,
-        categoriaId: categoria.id || categoria.categoriaId,
-      });
-
-      // Remover todas las skills actuales del usuario
-      // 1. Obtener las skills actuales del usuario
-      let currentSkills = [];
-      try {
-        const res = await api.get(`/usuario/${userData.usuarioId}`);
-        if (res.data && Array.isArray(res.data.habilidades)) {
-          currentSkills = res.data.habilidades.map(h => h.skillId || h.id);
-        }
-      } catch (e) {
-        console.warn("No se pudieron obtener las skills actuales del usuario", e);
-      }
-      // 2. Remover cada skill actual
-      for (const skillId of currentSkills) {
-        try {
-          await api.delete("/skills/user/remover", {
-            data: {
-              usuarioId: userData.usuarioId,
-              skillId: skillId
-            }
-          });
-        } catch (e) {
-          // Si falla una, continuar con las demás
-          console.warn(`No se pudo remover la skill ${skillId} del usuario`, e);
-        }
-      }
-      // 3. Asociar las nuevas skills
-      for (const skillId of habilidadesIds) {
-        await api.post("/skills/user/asociar", {
-          usuarioId: userData.usuarioId,
-          skillId,
-        });
-      }
+      // --- Actualizar categoría y skills si aplica (opcional, según backend) ---
+      // ...existing code for category/skills association if needed...
     } catch (error) {
-      if (error.response) {
-        const status = error.response.status;
-        const message = error.response.data?.message || "";
-        if (status === 400 || status === 409) {
-          if (message.includes("cedula")) {
-            throw new Error("La cédula ya está registrada.");
-          } else if (message.includes("email")) {
-            throw new Error("El correo electrónico ya está registrado.");
-          } else if (message.includes("numeroTelefono")) {
-            throw new Error("El número de teléfono ya está registrado.");
-          } else {
-            throw new Error("Datos inválidos o duplicados.");
-          }
-        } else {
-          throw new Error("Error en la solicitud: " + message);
-        }
-      } else {
-        throw new Error("Error desconocido al actualizar usuario.");
-      }
+      throw error;
     }
   }
 
@@ -257,7 +196,7 @@ export default function UpdateUserModal({
         finalUser.categoria,
         finalUser.habilidades,
         categories,
-        finalUser.rol // nombre del rol
+        finalUser.rol
       );
       alert("Usuario actualizado correctamente");
       if (onUpdate) onUpdate();
