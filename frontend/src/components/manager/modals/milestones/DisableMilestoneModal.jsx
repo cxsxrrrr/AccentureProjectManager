@@ -1,59 +1,11 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 function DisableMilestoneModal({ isOpen, onClose, onDisable, milestone }) {
-  useEffect(() => {
-    if (isOpen && !milestone) {
-      console.error("Milestone data is missing or invalid.");
-    }
-  }, [isOpen, milestone]);
-
   if (!isOpen || !milestone) return null;
 
-  const handleDisable = async () => {
-    try {
-      if (!milestone || !milestone.hitoId) {
-        console.error("Milestone or hitoId is missing.");
-        return;
-      }
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        console.error("Authentication token is missing.");
-        return;
-      }
-
-      console.log("Disabling milestone with ID:", milestone.hitoId);
-      const baseURL = window.REACT_APP_BASE_URL || "http://localhost:8080";
-      console.log("Base URL:", baseURL);
-      console.log("Request body:", JSON.stringify({ estado: "Completada" }));
-
-      const response = await fetch(`${baseURL}/api/hitos/${milestone.hitoId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          estado: "Desactivado", 
-        }),
-      });
-
-      console.log("Response status:", response.status);
-      if (response.ok) {
-        console.log("Milestone disabled successfully.");
-        if (typeof onDisable === "function") {
-          onDisable(milestone.hitoId);
-        } else {
-          console.warn("onDisable is not a function or is undefined.");
-        }
-        onClose();
-      } else {
-        const errorText = await response.text();
-        console.error("Failed to disable milestone:", response.statusText, errorText);
-      }
-    } catch (error) {
-      console.error("Error disabling milestone:", error);
-    }
+  const handleDisable = () => {
+    onDisable(milestone.id);
+    onClose();
   };
 
   return (
