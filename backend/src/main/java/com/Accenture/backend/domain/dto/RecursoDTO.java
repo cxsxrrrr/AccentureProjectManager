@@ -20,8 +20,5 @@ public class RecursoDTO {
     private String estado;
     private String coste;
     private String tipo;
-    private Long proyectoId;
-    private UsuarioDTO gerenteProyecto;
-    private UsuarioDTO creadoPor;
-    private LocalDateTime fechaCreacion;
+    private Integer cantidad;
 }

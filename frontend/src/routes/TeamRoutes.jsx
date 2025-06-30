@@ -6,7 +6,6 @@ import TeamDashboard from "../pages/teamMember/Dashboard";
 import AssignedProject from "../pages/teamMember/AssignedProject";
 import AssignedTasks from "../pages/teamMember/AssignedTasks";
 import TeamHelp from "../pages/teamMember/Help";
-import DocumentsManagement from "../pages/teamMember/DocumentsManagement";
 
 const TeamRoutes = () => (
   <>
@@ -15,7 +14,6 @@ const TeamRoutes = () => (
       <Route path="dashboard" element={<TeamDashboard />} />
       <Route path="assignedproject" element={<AssignedProject />} />
       <Route path="assignedtasks" element={<AssignedTasks />} />
-      <Route path="documents" element={<DocumentsManagement />} />
       <Route path="help" element={<TeamHelp />} />
     </Route>
   </>

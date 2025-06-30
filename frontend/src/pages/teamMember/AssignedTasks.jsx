@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../services/axios";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import UpdateStatusModal from "../../components/teamMember/modals/Task/UpdateStatusModal";
@@ -58,19 +59,41 @@ const mockTasks = [
 ];
 
 function AssignedTasks() {
-  const [tasks, setTasks] = useState(mockTasks);
+  const [tasks, setTasks] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [showUpdateStatus, setShowUpdateStatus] = useState(false);
 
+  // Fetch assigned tasks for current user
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const user = JSON.parse(localStorage.getItem("user"));
+        if (user?.usuarioId) {
+          const response = await api.get(
+            `/miembro-tareas/usuario/${user.usuarioId}`
+          );
+          setTasks(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching assigned tasks:", error);
+      }
+    };
+    fetchTasks();
+  }, []);
+
   // Tarea seleccionada
-  const selectedTask = tasks.find(t => t.tareas_id === selectedId);
+  const selectedTask = tasks.find(t => t.id === selectedId);
 
   // Actualizar el estado de una tarea (cuando vuelve del modal)
   const handleUpdateTaskStatus = (newStatus) => {
     setTasks(prev =>
       prev.map(task =>
-        task.tareas_id === selectedId
-          ? { ...task, estado: newStatus, ultima_actualizacion: new Date().toISOString() }
+        task.id === selectedId
+          ? { 
+              ...task, 
+              // update nested estado and ultima_actualizacion in tarea DTO
+              tarea: { ...task.tarea, estado: newStatus, ultimaActualizacion: new Date().toISOString() }
+            }
           : task
       )
     );
@@ -113,12 +136,12 @@ function AssignedTasks() {
             <tbody>
               {tasks.map((task, idx) => (
                 <tr
-                  key={task.tareas_id}
-                  onClick={() => setSelectedId(task.tareas_id)}
+                  key={task.id}
+                  onClick={() => setSelectedId(task.id)}
                   className={`
                     cursor-pointer transition 
                     ${
-                      selectedId === task.tareas_id
+                      selectedId === task.id
                         ? "bg-purple-100 ring-2 ring-purple-200"
                         : idx % 2
                         ? "bg-gray-50"
@@ -128,34 +151,33 @@ function AssignedTasks() {
                   `}
                 >
                   <td className="py-4 px-6 font-semibold text-gray-800 whitespace-nowrap">
-                    {task.nombre}
+                    {task.tarea.nombre}
                   </td>
-                  <td className="py-4 px-6 text-gray-700">{task.proyecto_nombre}</td>
+                  <td className="py-4 px-6 text-gray-700">{task.proyecto.nombreProyecto}</td>
                   <td className="py-4 px-6">
                     <span
                       className={`
                         px-4 py-1 rounded-full font-bold text-sm
                         ${
-                          task.estado === "Completada"
+                          task.tarea.estado === "COMPLETADA" || task.tarea.estado === "Completada"
                             ? "bg-green-100 text-green-700"
-                            : task.estado === "En progreso"
+                            : task.tarea.estado === "EN_PROGRESO" || task.tarea.estado === "En progreso"
                             ? "bg-yellow-100 text-yellow-700"
-                            : task.estado === "Pendiente"
+                            : task.tarea.estado === "PENDIENTE" || task.tarea.estado === "Pendiente"
                             ? "bg-blue-100 text-blue-700"
                             : "bg-gray-100 text-gray-600"
                         }
                       `}
                     >
-                      {task.estado}
+                      {task.tarea.estado}
                     </span>
                   </td>
-                  <td className="py-4 px-6 text-gray-700">{task.prioridad}</td>
+                  <td className="py-4 px-6 text-gray-700">{task.tarea.prioridad}</td>
                   <td className="py-4 px-6 text-gray-700">
-                    {task.fecha_fin_estimada}
+                    {task.tarea.fechaFinEstimada}
                   </td>
                   <td className="py-4 px-6 text-gray-400">
-                    {task.ultima_actualizacion &&
-                      new Date(task.ultima_actualizacion).toLocaleString()}
+                    {task.tarea.descripcion}
                   </td>
                 </tr>
               ))}

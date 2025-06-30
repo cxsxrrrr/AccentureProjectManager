@@ -10,46 +10,51 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const result = await authService.login(cedula, password);
+  try {
+    const result = await authService.login(cedula, password);
 
-      if (result.success) {
-        // Guarda token
-        localStorage.setItem("token", result.token);
+    if (result.success) {
+      localStorage.setItem("token", result.token);
 
-        // Redireccionar según el ID del rol
-        const roleId = result.roleId;
-        switch (roleId) {
-          case 1:
-            navigate("/admin");
-            break;
-          case 2:
-            navigate("/manager");
-            break;
-          case 3:
-            navigate("/team");
-            break;
-          case 4:
-            navigate("/client");
-            break;
-          default:
-            navigate("/");
-        }
-      } else {
-        setError(result.error || "Credenciales inválidas");
+      // Obtén el ID del rol del usuario autenticado
+      const roleId = result.usuario?.rol?.rolId;
+      if (!roleId) {
+        setError("Usuario sin rol asignado o sin acceso autorizado.");
+        return;
       }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("Error de conexión con el servidor");
-    } finally {
-      setLoading(false);
+
+      // Redirecciona según el rol
+      switch (roleId) {
+        case 1:
+          navigate("/admin");
+          break;
+        case 2:
+          navigate("/manager");
+          break;
+        case 3:
+          navigate("/team");
+          break;
+        case 4:
+          navigate("/client");
+          break;
+        default:
+          setError("Rol no reconocido. Acceso denegado.");
+      }
+    } else {
+      setError(result.error || "Credenciales inválidas");
     }
-  };
+  } catch (err) {
+    console.error("Login error:", err);
+    setError("Error de conexión con el servidor");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col space-y-6" data-element="login-form">

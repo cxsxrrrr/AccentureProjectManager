@@ -14,8 +14,8 @@ const DisableResourceModal = ({
 
   // Filtrar recursos por nombre o descripción (case-insensitive)
   const filteredResources = resources.filter((r) =>
-    r.name.toLowerCase().includes(search.toLowerCase()) ||
-    (r.description && r.description.toLowerCase().includes(search.toLowerCase()))
+    r.nombreRecurso.toLowerCase().includes(search.toLowerCase()) ||
+    (r.descripcionRecurso && r.descripcionRecurso.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -45,15 +45,15 @@ const DisableResourceModal = ({
         <div className="space-y-2 max-h-40 overflow-y-auto mb-4">
           {filteredResources.map((resource) => (
             <div
-              key={resource.id}
+              key={resource.recursoId}
               className={`flex items-center justify-between p-3 rounded border cursor-pointer font-semibold
-                ${selectedId === resource.id
+                ${selectedId === resource.recursoId
                   ? "bg-red-600 text-white border-red-400"
                   : "hover:bg-gray-100 bg-white border-gray-200 text-black"
                 }`}
-              onClick={() => setSelectedId(resource.id)}
+              onClick={() => setSelectedId(resource.recursoId)}
             >
-              <span>{resource.name}</span>
+              <span>{resource.nombreRecurso}</span>
               {selectedId === resource.id && (
                 <FaCheck className="text-2xl text-white ml-2" />
               )}
@@ -73,8 +73,7 @@ const DisableResourceModal = ({
             disabled={!selectedId}
             onClick={() => selectedId && onDisable(selectedId)}
           >
-            
-            Delete Resource
+            Disable Resource
           </button>
         </div>
       </div>

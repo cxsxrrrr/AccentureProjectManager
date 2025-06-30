@@ -6,7 +6,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 
-@Mapper(componentModel = "spring")
+@Mapper(
+    componentModel = "spring",
+    uses = {UsuarioMapper.class, TareaMapper.class, ProyectoMapper.class}
+)
 public interface MiembroTareaMapper {
 
     @Mappings({
@@ -22,6 +25,10 @@ public interface MiembroTareaMapper {
             @Mapping(source = "tarea.tareasId", target = "tareaId"),
             @Mapping(source = "proyecto.proyectoId", target = "proyectoId"),  // <- Agregado
             @Mapping(source = "asignadoPor.usuarioId", target = "asignadoPorId")
+            , @Mapping(source = "usuario", target = "usuario")
+            , @Mapping(source = "tarea", target = "tarea")
+            , @Mapping(source = "proyecto", target = "proyecto")
+            , @Mapping(source = "asignadoPor", target = "asignadoPor")
     })
     MiembroTareaDTO toDTO(MiembroTarea entity);
 }
