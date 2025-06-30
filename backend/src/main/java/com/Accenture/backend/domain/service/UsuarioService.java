@@ -16,6 +16,7 @@ import com.Accenture.backend.model.Rol;
 
 import java.text.Normalizer;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -262,5 +263,62 @@ public class UsuarioService {
             dto.setRol(rolDto);
         }
         return dto;
+    }
+
+    // PATCH: Actualización parcial de usuario
+    public UsuarioDTO patchUsuarioById(Long usuarioId, Map<String, Object> updates) {
+        Usuario usuario = Optional.ofNullable(usuarioDAO.buscarUsuarioxId(usuarioId))
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no encontrado"));
+
+        // Actualizar campos simples
+        if (updates.containsKey("nombre")) {
+            usuario.setNombre((String) updates.get("nombre"));
+        }
+        if (updates.containsKey("apellido")) {
+            usuario.setApellido((String) updates.get("apellido"));
+        }
+        if (updates.containsKey("cedula")) {
+            usuario.setCedula(Long.valueOf(updates.get("cedula").toString()));
+        }
+        if (updates.containsKey("genero")) {
+            Object generoObj = updates.get("genero");
+            if (generoObj instanceof String && !((String)generoObj).isEmpty()) {
+                usuario.setGenero(((String)generoObj).charAt(0));
+            }
+        }
+        if (updates.containsKey("fechaNacimiento")) {
+            usuario.setFechaNacimiento(java.time.LocalDate.parse((String) updates.get("fechaNacimiento")));
+        }
+        if (updates.containsKey("numeroTelefono")) {
+            usuario.setNumeroTelefono((String) updates.get("numeroTelefono"));
+        }
+        if (updates.containsKey("email")) {
+            usuario.setEmail((String) updates.get("email"));
+        }
+        if (updates.containsKey("password")) {
+            String rawPassword = (String) updates.get("password");
+            if (rawPassword != null && !rawPassword.isEmpty()) {
+                usuario.setPassword(passwordEncoder.encode(rawPassword));
+            }
+        }
+        if (updates.containsKey("estado")) {
+            usuario.setEstado((String) updates.get("estado"));
+        }
+        if (updates.containsKey("rol")) {
+            Object rolObj = updates.get("rol");
+            if (rolObj instanceof Map) {
+                Map<?,?> rolMap = (Map<?,?>) rolObj;
+                Object rolIdObj = rolMap.get("rolId");
+                if (rolIdObj != null) {
+                    Long rolId = Long.valueOf(rolIdObj.toString());
+                    Rol rol = rolRepository.findById(rolId)
+                            .orElseThrow(() -> new ResourceNotFoundException("Rol no encontrado con id: " + rolId));
+                    usuario.setRol(rol);
+                }
+            }
+        }
+        // Guardar cambios
+        Usuario actualizado = usuarioDAO.actualizarUsuario(usuario);
+        return usuarioMapper.toDTO(actualizado);
     }
 }
