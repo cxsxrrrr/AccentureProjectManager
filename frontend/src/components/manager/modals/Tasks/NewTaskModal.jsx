@@ -14,12 +14,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
     prioridad: "MEDIA",
     fechaInicioEstimada: "",
     fechaFinEstimada: "",
-    creadoPorId: "", // Se asigna automáticamente
+    creadoPorId: "",
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (isOpen && currentUser && currentUser.usuarioId) {
+    if (isOpen && currentUser && currentUser.usuarioId && Number(currentUser.usuarioId) > 0) {
       setForm({
         proyectoId: "",
         nombre: "",
@@ -75,6 +75,26 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
     let valid = true;
     let errs = {};
 
+    if (!form.proyectoId || Number(form.proyectoId) <= 0) {
+      errs.proyectoId = "Project is required";
+      valid = false;
+    }
+    if (!form.creadoPorId || Number(form.creadoPorId) <= 0) {
+      errs.creadoPorId = "Invalid user";
+      valid = false;
+    }
+    if (!form.nombre) {
+      errs.nombre = "Task name is required";
+      valid = false;
+    }
+    if (!form.fechaInicioEstimada) {
+      errs.fechaInicioEstimada = "Start date is required";
+      valid = false;
+    }
+    if (!form.fechaFinEstimada) {
+      errs.fechaFinEstimada = "End date is required";
+      valid = false;
+    }
     if (form.fechaInicioEstimada < today) {
       errs.fechaInicioEstimada = "Start date cannot be in the past";
       valid = false;
@@ -104,7 +124,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
 
     // Construye el objeto igual que el JSON backend
     const tareaNueva = {
-      proyecto: { proyectoId: Number(form.proyectoId) },
+      proyecto: { proyectoId: Number(form.proyectoId) }, // <-- Debe ser número y existir
       nombre: form.nombre,
       descripcion: form.descripcion,
       estado: "NO_INICIADA",
@@ -117,6 +137,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
       fechaCreacion: new Date().toISOString(),
       ultimaActualizacion: new Date().toISOString(),
     };
+    console.log("Tarea a enviar:", tareaNueva); // Para depuración
     onSave(tareaNueva);
   };
 
@@ -167,6 +188,9 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
                   </option>
                 ))}
               </select>
+              {errors.proyectoId && (
+                <span className="text-xs text-red-500">{errors.proyectoId}</span>
+              )}
             </label>
             <label className="font-semibold text-sm flex flex-col">
               Created By *
@@ -285,15 +309,17 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
               disabled={
                 Object.keys(errors).length > 0 ||
                 !form.proyectoId ||
+                Number(form.proyectoId) <= 0 ||
                 !form.nombre ||
                 !form.fechaInicioEstimada ||
                 !form.fechaFinEstimada ||
-                !form.creadoPorId // <-- Añade esto
+                !form.creadoPorId ||
+                Number(form.creadoPorId) <= 0
               }
+              className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
             >
               Create
             </button>

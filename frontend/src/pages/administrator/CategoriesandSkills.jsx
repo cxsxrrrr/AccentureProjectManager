@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
@@ -8,124 +8,162 @@ import UpdateCategoryModal from "../../components/admin/modals/CategorySkills/Up
 import UpdateSkillModal from "../../components/admin/modals/CategorySkills/UpdateSkillModal";
 import DisableCategoryModal from "../../components/admin/modals/CategorySkills/DisableCategoryModal";
 import DisableSkillModal from "../../components/admin/modals/CategorySkills/DisableSkillModal";
+import api from "../../services/axios"; // Ajusta el path si tu configuración cambia
 
 function CategoriesandSkills() {
-  // Estado para seleccion
+  // Selección
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
 
-  // Tabs: 'categories' o 'skills'
+  // Tabs
   const [tab, setTab] = useState("categories");
 
-  // Mock inicial de categorías y skills
-  const [categories, setCategories] = useState([
-    {
-      id: 1,
-      name: "Software Development",
-      description:
-        "Design and maintenance of software applications and systems.",
-    },
-    {
-      id: 2,
-      name: "Marketing and Advertising",
-      description:
-        "Campaigns to promote products, services, or brand awareness.",
-    },
-    {
-      id: 3,
-      name: "Construction and Civil Works",
-      description:
-        "Modernization of processes through digital tools and automation.",
-    },
-  ]);
+  // Datos reales de API
+  const [categories, setCategories] = useState([]);
+  const [skills, setSkills] = useState([]);
 
-  const [skills, setSkills] = useState([
-    { id: 1, name: "Java", category: "Software Development" },
-    { id: 2, name: "React", category: "Software Development" },
-    {
-      id: 3,
-      name: "Working with concrete and mortar",
-      category: "Construction and Civil Works",
-    },
-    { id: 4, name: "Marketing Digital", category: "Marketing and Advertising" },
-  ]);
+  // ==== CARGA INICIAL DESDE BACKEND ====
+  useEffect(() => {
+    // Categorías
+    api.get("/category")
+      .then(res =>
+        setCategories(res.data.map(cat => ({
+          id: cat.categoriaId,
+          name: cat.nombre,
+          description: cat.descripcion,
+        })))
+      )
+      .catch(() => setCategories([]));
 
-  // --- CRUD handlers y modales ---
+    // Skills
+    api.get("/skills")
+      .then(res =>
+        setSkills(res.data.map(skill => ({
+          id: skill.skillId, // o id si tu backend lo entrega así
+          name: skill.nombre,
+          category: skill.categoria?.nombre || skill.categoriaNombre || "",
+        })))
+      )
+      .catch(() => setSkills([]));
+  }, []);
+
+  // ==== CRUD Categoría ====
   const [isCreateCatOpen, setCreateCatOpen] = useState(false);
-  const [isCreateSkillOpen, setCreateSkillOpen] = useState(false);
-
-  const handleCreateCategory = (newCat) => {
-    setCategories((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((c) => c.id)) + 1 : 1,
-        ...newCat,
-      },
-    ]);
-  };
-  const handleCreateSkill = (newSkill) => {
-    setSkills((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((s) => s.id)) + 1 : 1,
-        ...newSkill,
-      },
-    ]);
-  };
-
-  // Update
-
   const [isUpdateCatOpen, setUpdateCatOpen] = useState(false);
+  const [isDisableCategoryOpen, setDisableCategoryOpen] = useState(false);
   const [catToEdit, setCatToEdit] = useState(null);
 
-  const [isUpdateSkillOpen, setUpdateSkillOpen] = useState(false);
-  const [skillToEdit, setSkillToEdit] = useState(null);
-
-  // Borrar
-
-  // Estados para los modales
-  const [isDisableCategoryOpen, setDisableCategoryOpen] = useState(false);
-  const [isDisableSkillOpen, setDisableSkillOpen] = useState(false);
-
-  // Abrir/Cerrar modales
-  const handleOpenDisableCategory = () => setDisableCategoryOpen(true);
-  const handleCloseDisableCategory = () => setDisableCategoryOpen(false);
-
-  const handleOpenDisableSkill = () => setDisableSkillOpen(true);
-  const handleCloseDisableSkill = () => setDisableSkillOpen(false);
-
-  // Lógica para deshabilitar (borrar)
-  const handleDisableCategory = (categoryId) => {
-    setCategories((prev) => prev.filter((c) => c.id !== categoryId));
-    handleCloseDisableCategory();
-  };
-  const handleDisableSkill = (skillId) => {
-    setSkills((prev) => prev.filter((s) => s.id !== skillId));
-    handleCloseDisableSkill();
+  const handleCreateCategory = async (newCat) => {
+    try {
+      const res = await api.post("/category", {
+        nombre: newCat.name,
+        descripcion: newCat.description
+      });
+      setCategories(prev => [
+        ...prev,
+        { id: res.data.categoriaId, name: res.data.nombre, description: res.data.descripcion }
+      ]);
+    } catch {
+      alert("Error al crear la categoría");
+    }
   };
 
-  // Handlers
   const openUpdateCategoryModal = (cat) => {
     setCatToEdit(cat);
     setUpdateCatOpen(true);
   };
+
+  const handleUpdateCategory = async (catData) => {
+    try {
+      await api.put(`/category/${catData.id}`, {
+        nombre: catData.name,
+        descripcion: catData.description
+      });
+      setCategories(prev =>
+        prev.map(c => (c.id === catData.id ? catData : c))
+      );
+    } catch {
+      alert("Error al actualizar");
+    } finally {
+      setUpdateCatOpen(false);
+    }
+  };
+
+  const handleDisableCategory = async (categoryId) => {
+    try {
+      await api.delete(`/category/${categoryId}`);
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+    } catch {
+      alert("Error al eliminar la categoría");
+    } finally {
+      setDisableCategoryOpen(false);
+    }
+  };
+
+  // ==== CRUD Skill ====
+  const [isCreateSkillOpen, setCreateSkillOpen] = useState(false);
+  const [isUpdateSkillOpen, setUpdateSkillOpen] = useState(false);
+  const [isDisableSkillOpen, setDisableSkillOpen] = useState(false);
+  const [skillToEdit, setSkillToEdit] = useState(null);
+
+  const handleCreateSkill = async (newSkill) => {
+    // Busca la categoría por nombre para conseguir el ID
+    const catObj = categories.find(c => c.name === newSkill.category);
+    if (!catObj || !catObj.id) {
+      alert("Debes seleccionar una categoría válida para la habilidad.");
+      return;
+    }
+    try {
+      const res = await api.post("/skills", {
+        nombre: newSkill.name,
+        estado: "ACTIVA",
+        categoriaId: catObj.id
+      });
+      setSkills(prev => [
+        ...prev,
+        { id: res.data.skillId, name: res.data.nombre, category: catObj.name || "" }
+      ]);
+    } catch {
+      alert("Error al crear habilidad");
+    }
+  };
+
   const openUpdateSkillModal = (skill) => {
     setSkillToEdit(skill);
     setUpdateSkillOpen(true);
   };
-  const handleUpdateCategory = (catData) => {
-    setCategories((prev) =>
-      prev.map((c) => (c.id === catData.id ? catData : c))
-    );
-    setUpdateCatOpen(false);
-  };
-  const handleUpdateSkill = (skillData) => {
-    setSkills((prev) =>
-      prev.map((s) => (s.id === skillData.id ? skillData : s))
-    );
-    setUpdateSkillOpen(false);
+
+  const handleUpdateSkill = async (skillData) => {
+    try {
+      // Busca la categoría por nombre para conseguir el ID
+      const catObj = categories.find(c => c.name === skillData.category);
+      await api.put(`/skills/${skillData.id}`, {
+        nombre: skillData.name,
+        estado: "ACTIVA",
+        categoriaId: catObj?.id
+      });
+      setSkills(prev =>
+        prev.map(s => (s.id === skillData.id ? skillData : s))
+      );
+    } catch {
+      alert("Error al actualizar habilidad");
+    } finally {
+      setUpdateSkillOpen(false);
+    }
   };
 
+  const handleDisableSkill = async (skillId) => {
+    try {
+      await api.delete(`/skills/${skillId}`);
+      setSkills(prev => prev.filter(s => s.id !== skillId));
+    } catch {
+      alert("Error al eliminar habilidad");
+    } finally {
+      setDisableSkillOpen(false);
+    }
+  };
+
+  // ==== Render ====
   return (
     <div className="admin-page">
       <Topbar title="Categories & Skills Management">
@@ -153,8 +191,8 @@ function CategoriesandSkills() {
           }
           onDisable={
             tab === "categories"
-              ? handleOpenDisableCategory
-              : handleOpenDisableSkill
+              ? () => setDisableCategoryOpen(true)
+              : () => setDisableSkillOpen(true)
           }
         />
       </Topbar>
@@ -188,14 +226,14 @@ function CategoriesandSkills() {
       <DisableCategoryModal
         isOpen={isDisableCategoryOpen}
         categories={categories}
-        onClose={handleCloseDisableCategory}
+        onClose={() => setDisableCategoryOpen(false)}
         onDisable={handleDisableCategory}
       />
       <DisableSkillModal
         isOpen={isDisableSkillOpen}
         skills={skills}
         categories={categories}
-        onClose={handleCloseDisableSkill}
+        onClose={() => setDisableSkillOpen(false)}
         onDisable={handleDisableSkill}
       />
 

@@ -13,4 +13,6 @@ public interface TareaService {
     List<TareaDTO> listarPorEstado(String estado);
 
     List<TareaDTO> listarPorPrioridad(String prioridad);
+
+    List<TareaDTO> listarTodasLasTareas();
 }
