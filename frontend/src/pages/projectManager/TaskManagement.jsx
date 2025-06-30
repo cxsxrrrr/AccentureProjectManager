@@ -16,9 +16,12 @@ const users = [
 ];
 
 function TaskManagement() {
+  // Utilidad para obtener una clave única de tarea como string
+  const getTaskKey = (task) => String(task.tareasId);
+
   const [tasks, setTasks] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [selectedTasks, setSelectedTasks] = useState([]);
+  const [selectedId, setSelectedId] = useState(null); // string o null
+  const [selectedTasks, setSelectedTasks] = useState([]); // array de string
   const [proyectos, setProyectos] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
 
@@ -54,18 +57,16 @@ function TaskManagement() {
     }
   };
 
-  // Tarea seleccionada
-  const selectedTask = tasks.find((t) => t.tareasId === selectedId);
+  // Tarea seleccionada robusta
+  const selectedTask = tasks.find((t) => getTaskKey(t) === selectedId);
 
-  // Selección múltiple
-  const handleSelect = (id, checked) => {
-    setSelectedTasks((prev) =>
-      checked ? [...prev, id] : prev.filter((tid) => tid !== id)
-    );
-  };
-  const handleSelectAll = (checked) => {
-    setSelectedTasks(checked ? tasks.map((t) => t.tareasId) : []);
-  };
+  // Selección múltiple robusta
+  // const handleSelect = (id, checked) => {
+  //   const key = String(id);
+  //   setSelectedTasks((prev) =>
+  //     checked ? [...prev, key] : prev.filter((tid) => tid !== key)
+  //   );
+  // };
 
   // Handlers para modals
   const handleCreate = () => setShowNew(true);
@@ -119,7 +120,7 @@ function TaskManagement() {
   const handleAssignTask = (userNames) => {
     setTasks((prev) =>
       prev.map((t) =>
-        selectedTasks.includes(t.tareasId)
+        selectedTasks.includes(getTaskKey(t))
           ? { ...t, assignedTo: userNames.join(", ") }
           : t
       )
@@ -188,15 +189,8 @@ function TaskManagement() {
           <table className="min-w-full w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 mt-4">
             <thead>
               <tr>
-                <th className="px-4 py-4 w-1">
-                  <input
-                    type="checkbox"
-                    checked={
-                      selectedTasks.length === tasks.length && tasks.length > 0
-                    }
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                  />
-                </th>
+                {/* Elimina el checkbox de seleccionar todo */}
+                <th className="px-4 py-4 w-1"></th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">Task Name</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">Project</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">Status</th>
@@ -209,11 +203,11 @@ function TaskManagement() {
             <tbody>
               {tasks.map((task, idx) => (
                 <tr
-                  key={task.tareasId}
-                  onClick={() => setSelectedId(task.tareasId)}
+                  key={getTaskKey(task)}
+                  onClick={() => setSelectedId(getTaskKey(task))}
                   className={`
                     cursor-pointer transition
-                    ${selectedId === task.tareasId
+                    ${selectedId === getTaskKey(task)
                       ? "bg-purple-100 ring-2 ring-purple-200"
                       : idx % 2
                         ? "bg-gray-50"
@@ -224,7 +218,7 @@ function TaskManagement() {
                   <td className="px-4 py-5 w-1" onClick={e => e.stopPropagation()}>
                     <input
                       type="checkbox"
-                      checked={selectedTasks.includes(task.tareasId)}
+                      checked={selectedTasks.includes(getTaskKey(task))}
                       onChange={(e) => handleSelect(task.tareasId, e.target.checked)}
                       onClick={e => e.stopPropagation()}
                     />
@@ -283,7 +277,7 @@ function TaskManagement() {
         onClose={() => setShowAssign(false)}
         onAssign={handleAssignTask}
         users={users}
-        tasksToAssign={tasks.filter((t) => selectedTasks.includes(t.tareasId))}
+        tasksToAssign={tasks.filter((t) => selectedTasks.includes(getTaskKey(t)))}
       />
     </div>
   );
