@@ -44,9 +44,10 @@ function TaskManagement() {
     fetchTasks();
   }, []);
 
+  // Obtener todas las tareas desde el backend
   const fetchTasks = async () => {
     try {
-      const res = await getTasks();
+      const res = await api.get('/tareas');
       setTasks(res.data);
     } catch (err) {
       alert("Error loading tasks");
