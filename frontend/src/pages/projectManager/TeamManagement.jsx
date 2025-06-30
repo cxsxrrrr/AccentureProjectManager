@@ -4,7 +4,7 @@ import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
 import UnassignProjectModal from "../../components/manager/modals/Teams/UnassignProjectModal";
 import AssignProjectModal from "../../components/manager/modals/Teams/AssignProjectModal";
-import api from "../../services/axios"; // Ajusta el path según tu estructura
+import api from "../../services/axios";
 
 function TeamManagement() {
   // Estados para datos reales de API
@@ -23,17 +23,62 @@ function TeamManagement() {
 
   // Cargar datos desde la API al montar
   useEffect(() => {
-    // Cargar miembros del equipo
-    api.get("/usuario")
-      .then(res => {
-        if (Array.isArray(res.data)) {
-          setTeam(res.data);
-        } else {
-          setTeam([]);
-        }
-      })
-      .catch(() => setTeam([]));
-    // Cargar categorías (o skills si tienes endpoint)
+    // Cargar miembros del equipo y normalizar category/skills igual que Employees.jsx
+    const fetchTeam = async () => {
+      try {
+        const res = await api.get("/usuario");
+        const allowedRoles = [
+          "member", "team member", "team", "miembro de equipo", "miembro"
+        ];
+        const usersRaw = Array.isArray(res.data) ? res.data : [res.data];
+        const users = await Promise.all(
+          usersRaw
+            .filter(u => u.rol && allowedRoles.includes((u.rol.nombre || "").toLowerCase()))
+            .map(async (u) => {
+              // Obtener categoría (como string)
+              let category = "";
+              try {
+                const catRes = await api.get(`/category/user/${u.usuarioId || u.id}`);
+
+                if (Array.isArray(catRes.data)) {
+                  category = catRes.data[0]?.nombre || "";
+                } else if (catRes.data && catRes.data.nombre) {
+                  category = catRes.data.nombre;
+                }
+              } catch {}
+              // Obtener skills (array de strings)
+              let skills = [];
+              try {
+                const skillsRes = await api.get(`/skills/usuario/${u.usuarioId || u.id}`);
+                if (Array.isArray(skillsRes.data)) {
+                  skills = skillsRes.data.map(s => s.nombre);
+                }
+              } catch {}
+              // Obtener todos los proyectos asignados
+              let proyectosAsignados = [];
+              try {
+                const projRes = await api.get(`/miembros-proyectos/usuario/${u.usuarioId || u.id}`);
+                if (Array.isArray(projRes.data) && projRes.data.length > 0) {
+                  proyectosAsignados = projRes.data.map(mp => mp.proyecto).filter(Boolean);
+                } else if (projRes.data && projRes.data.proyecto) {
+                  proyectosAsignados = [projRes.data.proyecto];
+                }
+              } catch {}
+              return {
+                ...u,
+                categoria: { nombre: category },
+                habilidades: skills,
+                proyectosAsignados
+              };
+            })
+        );
+        setTeam(users);
+      } catch {
+        setTeam([]);
+      }
+    };
+    fetchTeam();
+    // Cargar categorías
     api.get("/category")
       .then(res => setCategorias(res.data))
       .catch(() => setCategorias([]));
@@ -41,37 +86,68 @@ function TeamManagement() {
     api.get("/proyectos")
       .then(res => setProyectos(res.data))
       .catch(() => setProyectos([]));
-    // Si tienes endpoint de habilidades, usa GET /habilidades. Si no, extrae desde miembros:
+    // Cargar todas las skills únicas del sistema
     api.get("/skills")
       .then(res => setAllSkills(res.data.map(h => h.nombre)))
-      .catch(() => {
-        setAllSkills([]);
-      });
+      .catch(() => setAllSkills([]));
   }, []);
 
-  // Filtros
-  const filteredTeam = team.filter((member) => {
-    const matchSearch =
-      !search ||
-      (member.cedula && String(member.cedula).includes(search));
-    const matchCategoria =
-      !categoriaFilter ||
-      (member.categoria && member.categoria.nombre === categoriaFilter);
-    const matchSkill =
-      !skillFilter ||
-      (member.habilidades && member.habilidades.includes(skillFilter));
-    const matchProject =
-      !projectFilter ||
-      (member.proyecto && member.proyecto.nombreProyecto === projectFilter);
+  // Filtros y normalización de datos
+  const allowedRoles = [
+    "member",
+    "team member",
+    "team",
+    "miembro de equipo",
+    "miembro"
+  ];
 
-    return matchSearch && matchCategoria && matchSkill && matchProject;
-  });
+  // Normaliza y filtra el equipo para mostrar solo los roles permitidos
+  const filteredTeam = team
+    .filter((member) => {
+      // Normaliza el nombre del rol
+      const roleName = (member.rol?.nombre || "").toLowerCase().trim();
+      return allowedRoles.includes(roleName);
+    })
+    .map((member) => ({
+      ...member,
+      categoria: member.categoria || null,
+      habilidades: Array.isArray(member.habilidades)
+        ? member.habilidades
+        : [],
+      proyectosAsignados: member.proyectosAsignados || member.proyecto ? [member.proyecto].filter(Boolean) : []
+    }))
+    .filter((member) => {
+      // Filtros conectados
+      const matchSearch =
+        !search ||
+        (member.cedula && String(member.cedula).includes(search));
+      const matchCategoria =
+        !categoriaFilter ||
+        (member.categoria && member.categoria.nombre === categoriaFilter);
+      const matchSkill =
+        !skillFilter ||
+        (member.habilidades && member.habilidades.includes(skillFilter));
+      // Permitir filtrar por cualquier proyecto asignado
+      const matchProject =
+        !projectFilter ||
+        (Array.isArray(member.proyectosAsignados)
+          ? member.proyectosAsignados.some(p => p && p.nombreProyecto === projectFilter)
+          : false);
+      return matchSearch && matchCategoria && matchSkill && matchProject;
+    });
 
-  const selectedUser = team.find((u) => u.id === selectedId);
+  // Permitir seleccionar tanto por id como por usuarioId
+  const selectedUser = team.find((u) => u.id === selectedId || u.usuarioId === selectedId);
 
   // Asignación y desasignación
   const handleAssign = () => {
-    if (selectedUser) setShowAssign(true);
+    // Solo permitir asignar si el usuario no tiene ningún proyecto asignado
+    if (!selectedUser) return;
+    if (!Array.isArray(selectedUser.proyectosAsignados) || selectedUser.proyectosAsignados.length === 0) {
+      setShowAssign(true);
+    } else {
+      alert('Este usuario ya tiene un proyecto asignado. Debe desasignarlo antes de asignar uno nuevo.');
+    }
   };
   const handleUnassign = () => {
     if (selectedUser && selectedUser.proyecto) {
@@ -90,12 +166,56 @@ function TeamManagement() {
     setShowUnassign(false);
   };
 
-  // Refrescar lista de usuarios
+  // Refrescar lista de usuarios (conectado igual que Employees.jsx)
   const reloadTeam = async () => {
     try {
       const res = await api.get("/usuario");
-      setTeam(res.data);
-    } catch { setTeam([]); }
+      const allowedRoles = [
+        "member", "team member", "team", "miembro de equipo", "miembro"
+      ];
+      const usersRaw = Array.isArray(res.data) ? res.data : [res.data];
+      const users = await Promise.all(
+        usersRaw
+          .filter(u => u.rol && allowedRoles.includes((u.rol.nombre || "").toLowerCase()))
+          .map(async (u) => {
+            let category = "";
+            try {
+              const catRes = await api.get(`/category/user/${u.usuarioId || u.id}`);
+              if (Array.isArray(catRes.data)) {
+                category = catRes.data[0]?.nombre || "";
+              } else if (catRes.data && catRes.data.nombre) {
+                category = catRes.data.nombre;
+              }
+            } catch {}
+            let skills = [];
+            try {
+              const skillsRes = await api.get(`/skills/usuario/${u.usuarioId || u.id}`);
+              if (Array.isArray(skillsRes.data)) {
+                skills = skillsRes.data.map(s => s.nombre);
+              }
+            } catch {}
+            // Obtener proyecto asignado
+            let proyecto = null;
+            try {
+              const projRes = await api.get(`/miembros-proyectos/usuario/${u.usuarioId || u.id}`);
+              if (Array.isArray(projRes.data) && projRes.data.length > 0) {
+                proyecto = projRes.data[0].proyecto || null;
+              } else if (projRes.data && projRes.data.proyecto) {
+                proyecto = projRes.data.proyecto;
+              }
+            } catch {}
+            return {
+              ...u,
+              categoria: { nombre: category },
+              habilidades: skills,
+              proyecto
+            };
+          })
+      );
+      setTeam(users);
+    } catch {
+      setTeam([]);
+    }
   };
 
   return (
@@ -107,7 +227,11 @@ function TeamManagement() {
           <div className="flex gap-2 md:gap-3">
             <TopControls
               module="team"
-              onAssign={selectedUser ? handleAssign : undefined}
+              onAssign={
+                selectedUser && (!Array.isArray(selectedUser?.proyectosAsignados) || selectedUser.proyectosAsignados.length === 0)
+                  ? handleAssign
+                  : undefined
+              }
               onUnassign={selectedUser && selectedUser.proyecto ? handleUnassign : undefined}
             />
           </div>
@@ -169,7 +293,7 @@ function TeamManagement() {
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">NAME</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ID DOCUMENT</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">EMAIL</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ROLE</th>
+                {/* <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ROLE</th> */}
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">CATEGORY</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">SKILLS</th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">PROJECT</th>
@@ -180,9 +304,9 @@ function TeamManagement() {
               {filteredTeam.map((member) => (
                 <tr
                   key={member.id || member.usuarioId}
-                  onClick={() => setSelectedId(member.id)}
+                  onClick={() => setSelectedId(member.id || member.usuarioId)}
                   className={`cursor-pointer transition ${
-                    selectedId === member.id
+                    selectedId === (member.id || member.usuarioId)
                       ? "bg-purple-100 ring-2 ring-purple-200"
                       : ""
                   } hover:bg-purple-50`}
@@ -192,7 +316,7 @@ function TeamManagement() {
                   </td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.cedula}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.email}</td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol?.nombre}</td>
+                  {/* <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol?.nombre}</td> */}
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.categoria?.nombre || "-"}</td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
                     <div className="flex flex-wrap gap-1">
@@ -203,7 +327,15 @@ function TeamManagement() {
                       ))}
                     </div>
                   </td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.proyecto?.nombreProyecto || "Unassigned"}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {Array.isArray(member.proyectosAsignados) && member.proyectosAsignados.length > 0
+                      ? member.proyectosAsignados.map((p, idx) => (
+                          <span key={p.proyectoId || idx} className="inline-block bg-purple-50 text-purple-700 rounded-full px-2 py-1 text-xs font-semibold mr-1 mb-1">
+                            {p.nombreProyecto}
+                          </span>
+                        ))
+                      : "Unassigned"}
+                  </td>
                   <td className="py-5 px-6">
                     <span className={`
                       px-3 py-1 rounded-full font-bold text-xs
@@ -219,7 +351,7 @@ function TeamManagement() {
               ))}
               {filteredTeam.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="text-center py-10 text-gray-400">
+                  <td colSpan={7} className="text-center py-10 text-gray-400">
                     No team members found.
                   </td>
                 </tr>

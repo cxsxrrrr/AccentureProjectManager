@@ -25,6 +25,7 @@ function UserManagement() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -56,6 +57,11 @@ function UserManagement() {
   };
 
   const openDisableModal = (user) => {
+    // Solo permitir desactivar usuarios que estén activos
+    if (user.estado !== "Activo") {
+      setError("Only active users can be disabled.");
+      return;
+    }
     setSelectedUser(user);
     setIsDisableOpen(true);
     setSelectedUserId(user.id);
@@ -66,6 +72,9 @@ function UserManagement() {
   };
 
   const openAssignRoleModal = (user) => {
+    // Permitir asignar rol solo si el usuario no tiene rol, es null, vacío, undefined o "null"
+    const hasRole = user && (user.rol?.nombre || user.rol || user.role);
+    if (hasRole && hasRole !== "null" && hasRole !== null && hasRole !== "" && typeof hasRole !== "undefined") return;
     setSelectedUser(user);
     setIsAssignOpen(true);
     setSelectedUserId(user.id);
@@ -128,18 +137,42 @@ function UserManagement() {
     }
   };
 
+  // PATCH para deshabilitar usuario (cambiar estado a 'Inactivo')
   const handleDisableUser = async () => {
+    if (!selectedUser) {
+      setError("No user selected");
+      return;
+    }
     try {
+      setIsLoading(true);
+      setError(null);
+      // PATCH solo el campo estado
+      const response = await api.patch(`/usuario/${selectedUser.id}`, { estado: "Inactivo" });
+      // Actualizar localmente
+      setUsers(prevUsers => prevUsers.map(u => u.id === selectedUser.id ? { ...u, estado: "Inactivo" } : u));
       await loadUsers();
       closeDisableModal();
+      setSuccessMessage(`User ${selectedUser?.nombre} ${selectedUser?.apellido} has been disabled successfully!`);
     } catch (error) {
       console.error("Error disabling user:", error);
       setError("Error disabling user. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleAssignRole = async () => {
+  // Recibe el payload { rol: { rolId, nombre } } desde el modal
+  const handleAssignRole = async (payload) => {
+    if (!selectedUser || !payload?.rol) return;
     try {
+      // Actualizar solo el campo rol del usuario
+      await api.put(`/usuario/${selectedUser.id}`, {
+        ...selectedUser,
+        rol: {
+          rolId: payload.rol.rolId,
+          nombre: payload.rol.nombre
+        }
+      });
       await loadUsers();
       closeAssignRoleModal();
     } catch (error) {
@@ -148,7 +181,23 @@ function UserManagement() {
     }
   };
 
-  const handleRefresh = () => loadUsers();
+  const handleRefresh = () => {
+    setError(null);
+    setSuccessMessage(null);
+    loadUsers();
+  };
+
+  // Función para manejar la selección de usuario y mostrar botones apropiados
+  const handleUserSelection = (user) => {
+    setSelectedUser(user);
+    setSelectedUserId(user.id);
+  };
+
+  // Función para verificar si se puede desactivar el usuario seleccionado
+  const canDisableUser = () => {
+    return selectedUser && selectedUser.estado === "Activo";
+  };
+
   const formatDate = (str) => str ? new Date(str).toLocaleDateString("en-GB") : "-";
   const genderDisplay = (g) => g === "M" ? "Male" : g === "F" ? "Female" : "Other";
 
@@ -161,6 +210,9 @@ function UserManagement() {
           onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
           onDisable={() => selectedUser && openDisableModal(selectedUser)}
           onRefresh={handleRefresh}
+          // Pasar información sobre si se puede desactivar el usuario
+          canDisable={canDisableUser()}
+          selectedUser={selectedUser}
         />
       </Topbar>
 
@@ -171,6 +223,25 @@ function UserManagement() {
 
       <div className="admin-content h-full flex-1 p-0">
         <div className="overflow-x-auto h-full w-full min-h-[70vh] py-8 px-10">
+          
+          {/* Success Message */}
+          {successMessage && (
+            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center gap-2 text-green-600">
+                {/* Reemplazo del icono check_circle por un círculo SVG animado */}
+                <span className="inline-block">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#22c55e" strokeWidth="3" fill="#bbf7d0" />
+                  </svg>
+                </span>
+                <span className="font-semibold">Success</span>
+              </div>
+              <p className="text-green-600 text-sm mt-1">{successMessage}</p>
+            </div>
+          )}
+
+          {/* Eliminar mensaje de usuario seleccionado. El error de usuario inactivo se muestra arriba automáticamente. */}
+
           {isLoading ? (
             <div className="text-center text-gray-500 py-4">
               <div className="flex items-center justify-center gap-2">
@@ -206,8 +277,17 @@ function UserManagement() {
               </thead>
               <tbody>
                 {users.map((user, idx) => (
-                  <tr key={user.id} onClick={() => { setSelectedUser(user); setSelectedUserId(user.id); }}
-                    className={`cursor-pointer transition ${selectedUserId === user.id ? "bg-purple-100 ring-2 ring-purple-300" : idx % 2 === 1 ? "bg-gray-50" : ""} hover:bg-purple-50`}>
+                  <tr 
+                    key={user.id} 
+                    onClick={() => handleUserSelection(user)}
+                    className={`cursor-pointer transition ${
+                      selectedUserId === user.id 
+                        ? "bg-purple-100 ring-2 ring-purple-300" 
+                        : idx % 2 === 1 
+                          ? "bg-gray-50" 
+                          : ""
+                    } hover:bg-purple-50`}
+                  >
                     <td className="py-4 px-3 whitespace-nowrap font-semibold flex items-center gap-2">
                       <span className="inline-block rounded-full bg-gray-200 p-2">
                         <svg width="28" height="28" fill="none">

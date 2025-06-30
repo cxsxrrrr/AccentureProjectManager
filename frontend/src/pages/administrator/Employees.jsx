@@ -5,11 +5,9 @@ import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
 
-// Opciones de filtro
-const roles = ["All", "Admin", "Manager", "Customer"];
+// Opciones de filtro dinámicas
 const statuses = ["All", "Active", "Inactive"];
 const genders = ["All", "M", "F"];
-const categories = ["All", "Developer", "Designer", "Analyst"];
 
 // Traducción de roles y estado para UI
 const roleToEN = (role) => {
@@ -28,12 +26,15 @@ const roleToEN = (role) => {
 const statusToEN = (estado) =>
   estado === "Activo" ? "Active" : estado === "Inactivo" ? "Inactive" : estado;
 
+
 function Employees() {
   const [employees, setEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Estados de filtros
+  // Filtros dinámicos
+  const [roles, setRoles] = useState(["All"]);
+  const [categories, setCategories] = useState(["All"]);
   const [role, setRole] = useState("All");
   const [status, setStatus] = useState("All");
   const [gender, setGender] = useState("All");
@@ -41,14 +42,36 @@ function Employees() {
   const [search, setSearch] = useState("");
 
   // Verificar autenticación al cargar el componente
+
   useEffect(() => {
     if (!authService.isAuthenticated()) {
-      // Si no está autenticado, redirigir al login
       window.location.href = '/login';
       return;
     }
     loadEmployees();
+    loadRoles();
+    loadCategories();
   }, []);
+
+  // Cargar roles desde el backend
+  const loadRoles = async () => {
+    try {
+      const res = await api.get('/roles');
+      setRoles(["All", ...res.data.map(r => r.nombre)]);
+    } catch {
+      setRoles(["All"]);
+    }
+  };
+
+  // Cargar categorías desde el backend
+  const loadCategories = async () => {
+    try {
+      const res = await api.get('/category');
+      setCategories(["All", ...res.data.map(c => c.nombre)]);
+    } catch {
+      setCategories(["All"]);
+    }
+  };
 
   const loadEmployees = async () => {
     try {
@@ -59,22 +82,22 @@ function Employees() {
       const response = await api.get('/usuario');
       const employeesFromApi = Array.isArray(response.data) ? response.data : [response.data];
 
-      // Filtrar solo usuarios con rol "team", "member" o "team member" (case-insensitive)
-      const filtered = employeesFromApi.filter(emp => {
-        const roleName = (emp.rol?.nombre || "").toLowerCase();
-        return ["team", "member", "team member"].includes(roleName);
-      });
-
-      // Mapear categorías y skills para cada usuario
+      // Mapear categorías y skills para cada usuario (sin filtrar por rol aquí)
       const formattedEmployees = await Promise.all(
-        filtered.map(async (emp) => {
+        employeesFromApi.map(async (emp) => {
           // Obtener categoría
-          const categoryRes = await api.get(`/category/user/${emp.usuarioId}`);
-          const category = categoryRes.data[0]?.nombre || "";
+          let category = "";
+          try {
+            const categoryRes = await api.get(`/category/user/${emp.usuarioId}`);
+            category = categoryRes.data[0]?.nombre || "";
+          } catch {}
 
           // Obtener skills
-          const skillsRes = await api.get(`/skills/usuario/${emp.usuarioId}`);
-          const skills = skillsRes.data.map(skill => skill.nombre);
+          let skills = [];
+          try {
+            const skillsRes = await api.get(`/skills/usuario/${emp.usuarioId}`);
+            skills = skillsRes.data.map(skill => skill.nombre);
+          } catch {}
 
           return {
             id: emp.usuarioId,
@@ -111,12 +134,17 @@ function Employees() {
     const roleName = emp.rol?.nombre || "";
     const translatedRole = roleToEN(roleName);
     const translatedStatus = statusToEN(emp.estado);
-    
+
+    // Filtro de rol: si es "All" muestra todos, si no, compara con el nombre real del rol
+    const roleMatch = role === "All" || roleName === role || translatedRole === role;
+    // Filtro de categoría: si es "All" muestra todos, si no, compara con el nombre real de la categoría
+    const categoryMatch = category === "All" || emp.category === category;
+
     return (
-      (role === "All" || translatedRole === role) &&
+      roleMatch &&
       (status === "All" || translatedStatus === status) &&
       (gender === "All" || emp.genero === gender) &&
-      (category === "All" || emp.category === category) &&
+      categoryMatch &&
       (
         fullName.includes(search.toLowerCase()) ||
         emp.email.toLowerCase().includes(search.toLowerCase()) ||
