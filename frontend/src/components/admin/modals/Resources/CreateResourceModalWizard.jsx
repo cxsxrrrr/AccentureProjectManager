@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import api from "../../../../services/axios";
 import CreateResourceStep1 from "./CreateResourceStep1";
 import CreateResourceStep2 from "./CreateResourceStep2";
 
@@ -19,14 +20,15 @@ const CreateResourceModalWizard = ({
 
   // Resetear cuando abres/cierra
   React.useEffect(() => {
-    if (!isOpen) setForm({
-      name: "",
-      type: "",
-      cost: "",
-      availability: "",
-      unit: "",
-      description: "",
-    });
+    if (!isOpen)
+      setForm({
+        name: "",
+        type: "",
+        cost: "",
+        availability: "",
+        unit: "",
+        description: "",
+      });
     setStep(1);
   }, [isOpen]);
 
@@ -45,9 +47,23 @@ const CreateResourceModalWizard = ({
   };
 
   // Guardar recurso nuevo
-  const handleCreate = (data) => {
+  const handleCreate = async (data) => {
     const finalData = { ...form, ...data };
-    onCreate(finalData);
+    // Preparar payload para backend
+    const payload = {
+      nombreRecurso: finalData.name,
+      descripcionRecurso: finalData.description,
+      estado: finalData.availability,
+      coste: finalData.cost,
+      cantidad: Number(finalData.unit),
+      tipo: finalData.type,
+    };
+    try {
+      const res = await api.post("/recursos", payload);
+      onCreate(res.data);
+    } catch (error) {
+      console.error("Error creating resource:", error);
+    }
     setStep(1);
     onClose();
   };
