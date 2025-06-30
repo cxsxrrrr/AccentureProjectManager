@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import helpIcon from "../../../../assets/icons/help.svg";
-import api from "../../../../services/axios";
+import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el path si es necesario
+import api from "../../../../services/axios"; // Ajusta el path si es necesario
 
 function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) {
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -26,7 +26,7 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
   const handleSelect = (projectId) => setSelectedProject(projectId);
 
   const handleAssign = async () => {
-    if (!selectedProjectId || submitting) return;
+    if (!selectedProject || submitting) return;
     setSubmitting(true);
     setError("");
     setSuccess(false);
@@ -149,10 +149,10 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
           <button
             type="button"
-            disabled={!selectedProjectId || submitting}
+            disabled={!selectedProject || submitting}
             onClick={handleAssign}
             className={`px-8 py-2 rounded-xl font-semibold transition
-              ${selectedProjectId && !submitting
+              ${selectedProject && !submitting
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-200 text-white cursor-not-allowed"
               }`}

@@ -118,7 +118,7 @@ function TrackingProject({ project, onBack }) {
     );
   }
 
-  const { milestones, phases } = project;
+  const { milestones } = project;
   
   const percentProgress = Math.round(
     (milestones.filter(m => m.estado === "Completado").length / milestones.length) * 100
@@ -263,33 +263,6 @@ function TrackingProject({ project, onBack }) {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Avance por Etapa */}
-      <div className="bg-white rounded-2xl shadow-xl p-6 mb-12">
-        <h2 className="text-xl font-bold mb-8 text-gray-700">Avance por Etapa</h2>
-        <div>
-          {phases.map(phase => (
-            <div key={phase.nombre} className="mb-6">
-              <div className="mb-1 flex justify-between">
-                <span className="font-semibold">{phase.nombre}</span>
-                <span className="text-sm text-gray-600">{phase.porcentaje}%</span>
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-4">
-                <div
-                  className={`h-4 rounded-full ${
-                    phase.porcentaje === 100
-                      ? "bg-green-600"
-                      : phase.porcentaje > 0
-                      ? "bg-purple-600"
-                      : "bg-gray-400"
-                  } transition-all duration-700`}
-                  style={{ width: `${phase.porcentaje}%` }}
-                ></div>
-              </div>
-            </div>
-          ))}
         </div>
       </div>
 
