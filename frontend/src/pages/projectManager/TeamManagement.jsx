@@ -39,7 +39,7 @@ function TeamManagement() {
               let category = "";
               try {
                 const catRes = await api.get(`/category/user/${u.usuarioId || u.id}`);
-                // Puede venir como array o como objeto
+
                 if (Array.isArray(catRes.data)) {
                   category = catRes.data[0]?.nombre || "";
                 } else if (catRes.data && catRes.data.nombre) {
@@ -54,10 +54,21 @@ function TeamManagement() {
                   skills = skillsRes.data.map(s => s.nombre);
                 }
               } catch {}
+              // Obtener todos los proyectos asignados
+              let proyectosAsignados = [];
+              try {
+                const projRes = await api.get(`/miembros-proyectos/usuario/${u.usuarioId || u.id}`);
+                if (Array.isArray(projRes.data) && projRes.data.length > 0) {
+                  proyectosAsignados = projRes.data.map(mp => mp.proyecto).filter(Boolean);
+                } else if (projRes.data && projRes.data.proyecto) {
+                  proyectosAsignados = [projRes.data.proyecto];
+                }
+              } catch {}
               return {
                 ...u,
                 categoria: { nombre: category },
-                habilidades: skills
+                habilidades: skills,
+                proyectosAsignados
               };
             })
         );
@@ -99,12 +110,11 @@ function TeamManagement() {
     })
     .map((member) => ({
       ...member,
-      // Normaliza categoría: si no está, intenta cargarla del backend
       categoria: member.categoria || null,
-      // Normaliza habilidades: si no están, intenta cargar del backend
       habilidades: Array.isArray(member.habilidades)
         ? member.habilidades
         : [],
+      proyectosAsignados: member.proyectosAsignados || member.proyecto ? [member.proyecto].filter(Boolean) : []
     }))
     .filter((member) => {
       // Filtros conectados
@@ -117,17 +127,27 @@ function TeamManagement() {
       const matchSkill =
         !skillFilter ||
         (member.habilidades && member.habilidades.includes(skillFilter));
+      // Permitir filtrar por cualquier proyecto asignado
       const matchProject =
         !projectFilter ||
-        (member.proyecto && member.proyecto.nombreProyecto === projectFilter);
+        (Array.isArray(member.proyectosAsignados)
+          ? member.proyectosAsignados.some(p => p && p.nombreProyecto === projectFilter)
+          : false);
       return matchSearch && matchCategoria && matchSkill && matchProject;
     });
 
-  const selectedUser = team.find((u) => u.id === selectedId);
+  // Permitir seleccionar tanto por id como por usuarioId
+  const selectedUser = team.find((u) => u.id === selectedId || u.usuarioId === selectedId);
 
   // Asignación y desasignación
   const handleAssign = () => {
-    if (selectedUser) setShowAssign(true);
+    // Solo permitir asignar si el usuario no tiene ningún proyecto asignado
+    if (!selectedUser) return;
+    if (!Array.isArray(selectedUser.proyectosAsignados) || selectedUser.proyectosAsignados.length === 0) {
+      setShowAssign(true);
+    } else {
+      alert('Este usuario ya tiene un proyecto asignado. Debe desasignarlo antes de asignar uno nuevo.');
+    }
   };
   const handleUnassign = () => {
     if (selectedUser && selectedUser.proyecto) {
@@ -174,10 +194,21 @@ function TeamManagement() {
                 skills = skillsRes.data.map(s => s.nombre);
               }
             } catch {}
+            // Obtener proyecto asignado
+            let proyecto = null;
+            try {
+              const projRes = await api.get(`/miembros-proyectos/usuario/${u.usuarioId || u.id}`);
+              if (Array.isArray(projRes.data) && projRes.data.length > 0) {
+                proyecto = projRes.data[0].proyecto || null;
+              } else if (projRes.data && projRes.data.proyecto) {
+                proyecto = projRes.data.proyecto;
+              }
+            } catch {}
             return {
               ...u,
               categoria: { nombre: category },
-              habilidades: skills
+              habilidades: skills,
+              proyecto
             };
           })
       );
@@ -196,7 +227,11 @@ function TeamManagement() {
           <div className="flex gap-2 md:gap-3">
             <TopControls
               module="team"
-              onAssign={selectedUser ? handleAssign : undefined}
+              onAssign={
+                selectedUser && (!Array.isArray(selectedUser?.proyectosAsignados) || selectedUser.proyectosAsignados.length === 0)
+                  ? handleAssign
+                  : undefined
+              }
               onUnassign={selectedUser && selectedUser.proyecto ? handleUnassign : undefined}
             />
           </div>
@@ -269,9 +304,9 @@ function TeamManagement() {
               {filteredTeam.map((member) => (
                 <tr
                   key={member.id || member.usuarioId}
-                  onClick={() => setSelectedId(member.id)}
+                  onClick={() => setSelectedId(member.id || member.usuarioId)}
                   className={`cursor-pointer transition ${
-                    selectedId === member.id
+                    selectedId === (member.id || member.usuarioId)
                       ? "bg-purple-100 ring-2 ring-purple-200"
                       : ""
                   } hover:bg-purple-50`}
@@ -292,7 +327,15 @@ function TeamManagement() {
                       ))}
                     </div>
                   </td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.proyecto?.nombreProyecto || "Unassigned"}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {Array.isArray(member.proyectosAsignados) && member.proyectosAsignados.length > 0
+                      ? member.proyectosAsignados.map((p, idx) => (
+                          <span key={p.proyectoId || idx} className="inline-block bg-purple-50 text-purple-700 rounded-full px-2 py-1 text-xs font-semibold mr-1 mb-1">
+                            {p.nombreProyecto}
+                          </span>
+                        ))
+                      : "Unassigned"}
+                  </td>
                   <td className="py-5 px-6">
                     <span className={`
                       px-3 py-1 rounded-full font-bold text-xs
