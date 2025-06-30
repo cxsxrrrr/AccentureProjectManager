@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import api from "../../../../services/axios";
 
 function NewMilestoneModal({ isOpen, onClose, onCreate }) {
   const [milestone, setMilestone] = useState({
@@ -9,14 +10,79 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
     proyectoId: "",
   });
 
+  const [projects, setProjects] = useState([]);
+
+  useEffect(() => {
+    api
+      .get("http://localhost:8080/api/proyectos")
+      .then((res) => setProjects(res.data))
+      .catch((err) => console.error("Error fetching projects:", err));
+
+    const fetchMilestones = async () => {
+      try {
+        const response = await api.get("http://localhost:8080/api/hitos", {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.status === 200) {
+          const hitos = response.data;
+          console.log("Fetched milestones:", hitos);
+          setMilestone(hitos);
+        } else {
+          console.error(
+            "Failed to fetch milestones. Status:",
+            response.status,
+            "Message:",
+            response.statusText
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching milestones:", error);
+      }
+    };
+
+    if (isOpen) {
+      fetchMilestones();
+    }
+  }, [isOpen]);
+
   const handleChange = (e) => {
     setMilestone({ ...milestone, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = () => {
-    if (milestone.nombre && milestone.fechaPlaneada) {
-      onCreate(milestone);
-      onClose();
+  const handleSubmit = async () => {
+    try {
+      if (
+        !milestone.nombre ||
+        !milestone.descripcion ||
+        !milestone.fechaInicio ||
+        !milestone.fechaPlaneada ||
+        !milestone.proyectoId
+      ) {
+        console.error("All fields are required.");
+        alert("Please fill out all fields before submitting.");
+        return;
+      }
+
+      const response = await api.post("http://localhost:8080/api/hitos", {
+        ...milestone,
+        proyecto: milestone.proyectoId
+          ? { proyectoId: milestone.proyectoId }
+          : null,
+      });
+      console.log("Request sent to endpoint: http://localhost:8080/api/hitos");
+
+      if (response.status === 200) {
+        const createdMilestone = response.data;
+        onCreate(createdMilestone);
+        onClose();
+      } else {
+        console.error("Failed to create milestone:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error creating milestone:", error);
     }
   };
 
@@ -24,11 +90,16 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-      <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg relative">
-        <button onClick={onClose} className="absolute top-3 right-4 text-2xl text-gray-500 hover:text-gray-700">
+      <div className="bg-white p-6 rounded-2xl shadow-xl w-full max-w-lg relative overflow-y-auto max-h-[80vh]">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-2xl text-gray-500 hover:text-gray-700"
+        >
           &times;
         </button>
-        <h2 className="text-xl font-bold mb-4 text-center">Create Milestone</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          Create Milestone
+        </h2>
 
         <div className="space-y-4">
           <input
@@ -62,13 +133,44 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
               className="w-1/2 px-4 py-2 border rounded-xl"
             />
           </div>
-          <input
-            name="proyectoId"
-            placeholder="Project ID"
-            value={milestone.proyectoId}
-            onChange={handleChange}
-            className="w-full px-4 py-2 border rounded-xl"
-          />
+          <div className="border rounded-xl p-4 max-h-40 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-2">Select Project</h3>
+            <input
+              type="text"
+              placeholder="Search projects..."
+              className="w-full px-4 py-2 border rounded-xl mb-2"
+              onChange={(e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                if (searchTerm) {
+                  setProjects((prevProjects) =>
+                    prevProjects.filter((project) =>
+                      project.nombreProyecto.toLowerCase().includes(searchTerm)
+                    )
+                  );
+                } else {
+                  api
+                    .get("http://localhost:8080/api/proyectos")
+                    .then((res) => setProjects(res.data))
+                    .catch((err) => console.error("Error fetching projects:", err));
+                }
+              }}
+            />
+            <ul className="space-y-2">
+              {projects.map((project) => (
+                <li
+                  key={project.proyectoId}
+                  className={`p-2 border rounded-lg cursor-pointer ${
+                    milestone.proyectoId === project.proyectoId ? "bg-purple-100" : ""
+                  }`}
+                  onClick={() =>
+                    setMilestone({ ...milestone, proyectoId: project.proyectoId })
+                  }
+                >
+                  {project.nombreProyecto}
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="mt-6 text-right">
