@@ -27,27 +27,21 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
     }
   }, [isOpen]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    setErrors((prevErrors) => ({ ...prevErrors, [name]: "" }));
-  };
-
-  const validate = () => {
-    const errs = {};
-    if (!form.resourceName.trim()) errs.resourceName = "Resource name is required";
-    if (!form.projectId) errs.projectId = "Project is required";
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (!validate()) return;
-    onAssign({
-      resourceName: form.resourceName,
-      projectId: form.projectId,
-    });
-    onClose();
+  const handleAssign = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!selectedResourceId || !selectedProjectId || !user?.usuarioId) return;
+    try {
+      const body = {
+        recursoId: selectedResourceId,
+        proyectoId: selectedProjectId,
+        asignadoPor: user.usuarioId
+      };
+      const res = await api.post("/recursos-proyecto", body);
+      if (onAssign) onAssign(res.data);
+      onClose();
+    } catch (err) {
+      alert("Error assigning resource: " + (err.response?.data?.message || err.message));
+    }
   };
 
   if (!isOpen) return null;
@@ -150,7 +144,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
           <button
             className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
             disabled={!selectedResourceId || !selectedProjectId}
-            onClick={() => onAssign({ resourceId: selectedResourceId, projectId: selectedProjectId })}
+            onClick={handleAssign}
             type="button"
           >
             Assign

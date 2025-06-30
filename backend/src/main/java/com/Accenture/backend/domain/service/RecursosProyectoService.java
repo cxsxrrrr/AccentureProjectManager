@@ -58,6 +58,6 @@ public class RecursosProyectoService {
     }
 
     public List<RecursosProyectoDTO> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta) {
-        return recursosProyectoDAO.findByFechaAsignacionBetween(desde, hasta).stream().map(mapper::toDTO).collect(Collectors.toList());
+        throw new UnsupportedOperationException("Método eliminado: fechaAsignacion ya no existe");
     }
 }

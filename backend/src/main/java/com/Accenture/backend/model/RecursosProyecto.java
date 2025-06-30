@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "RecursosProyecto")
@@ -25,17 +24,6 @@ public class RecursosProyecto {
     @ManyToOne(optional = false)
     @JoinColumn(name = "proyecto_id", referencedColumnName = "proyectoId")
     private Proyecto proyectoId;
-
-    @Column(nullable = false)
-    private Float cantidadAsignada;
-
-    @Column(nullable = false)
-    private LocalDateTime fechaAsignacion;
-
-    private LocalDateTime fechaLiberacion;
-
-    @Column(nullable = false)
-    private Float costoTotal;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "asignado_por", referencedColumnName = "usuarioId")

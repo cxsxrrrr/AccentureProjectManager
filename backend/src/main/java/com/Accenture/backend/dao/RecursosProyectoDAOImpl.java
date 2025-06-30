@@ -57,8 +57,7 @@ public class RecursosProyectoDAOImpl implements RecursosProyectoDAO {
         return repository.findByRecursoId_RecursoId(recursoId);
     }
 
-    @Override
-    public List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta) {
-        return repository.findByFechaAsignacionBetween(desde, hasta);
-    }
+    // public List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta) {
+    //     throw new UnsupportedOperationException("Método eliminado: fechaAsignacion ya no existe");
+    // }
 }
