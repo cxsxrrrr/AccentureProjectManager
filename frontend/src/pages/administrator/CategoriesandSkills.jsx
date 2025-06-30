@@ -194,8 +194,15 @@ function CategoriesandSkills() {
               ? () => setDisableCategoryOpen(true)
               : () => setDisableSkillOpen(true)
           }
+          onRefresh={handleRefresh}
         />
       </Topbar>
+
+      {error && (
+        <div className="text-center p-4 bg-red-100 text-red-700 mb-4 rounded">
+          {error}
+        </div>
+      )}
 
       <CreateCategoryModal
         isOpen={isCreateCatOpen}
@@ -263,63 +270,63 @@ function CategoriesandSkills() {
 
       {/* Tab Content */}
       <div className="admin-content mt-4">
-        {tab === "categories" && (
+        {isLoading ? (
+          <div className="text-center text-gray-500 py-4">
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+              Loading data...
+            </div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-w-md mx-auto">
+              <div className="flex items-center justify-center gap-2 text-red-600 mb-2">
+                <span className="material-icons">error</span>
+                <span className="font-semibold">Error</span>
+              </div>
+              <p className="text-red-600 text-sm">{error}</p>
+              <button 
+                onClick={handleRefresh}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        ) : tab === "categories" ? (
           <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  NAME
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  DESCRIPTION
-                </th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">#</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">DESCRIPTION</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map((cat, i) => (
-                <tr
-                  key={cat.id}
-                  onClick={() => setSelectedCategoryId(cat.id)}
-                  className={`
-                      cursor-pointer transition
-                      ${
-                        selectedCategoryId === cat.id
-                          ? "bg-purple-50 ring-2 ring-purple-200"
-                          : "hover:bg-gray-50"
-                      }
-                    `}
-                >
-                  <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                  <td className="px-6 py-4 font-semibold text-lg">
-                    {cat.name}
-                  </td>
-                  <td>
-                    <span className="bg-gray-100 rounded-lg px-5 py-2 text-gray-600 text-sm shadow">
-                      {cat.description}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+            {categories.map((category, i) => (
+              <tr
+                key={category.id} // usa la propiedad que el backend te está enviando
+                onClick={() => setSelectedCategoryId(category.id)}
+                className={`cursor-pointer transition ${
+                  selectedCategoryId === category.categoriaId
+                    ? "bg-purple-50 ring-2 ring-purple-200"
+                    : "hover:bg-gray-50"
+                }`}
+              >
+                <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
+                <td className="px-6 py-4 font-semibold text-lg">{category.name}</td>
+                <td className="px-6 py-4">{category.description}</td>
+              </tr>
+            ))}
             </tbody>
           </table>
-        )}
-
-        {tab === "skills" && (
+        ) : (
           <table className="w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
             <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">
-                  #
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  NAME
-                </th>
-                <th className="px-6 py-3 text-left text-gray-500 font-bold">
-                  CATEGORY
-                </th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold w-12">#</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">NAME</th>
+                <th className="px-6 py-3 text-left text-gray-500 font-bold">CATEGORY</th>
               </tr>
             </thead>
             <tbody>
@@ -327,19 +334,14 @@ function CategoriesandSkills() {
                 <tr
                   key={skill.id}
                   onClick={() => setSelectedSkillId(skill.id)}
-                  className={`
-                    cursor-pointer transition
-                    ${
-                      selectedSkillId === skill.id
-                        ? "bg-purple-50 ring-2 ring-purple-200"
-                        : "hover:bg-gray-50"
-                    }
-                  `}
+                  className={`cursor-pointer transition ${
+                    selectedSkillId === skill.id
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                  }`}
                 >
                   <td className="px-6 py-4 text-center font-bold">{i + 1}</td>
-                  <td className="px-6 py-4 font-semibold text-lg">
-                    {skill.name}
-                  </td>
+                  <td className="px-6 py-4 font-semibold text-lg">{skill.name}</td>
                   <td className="px-6 py-4">{skill.category}</td>
                 </tr>
               ))}

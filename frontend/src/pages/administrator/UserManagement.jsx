@@ -10,16 +10,6 @@ import DisableUserModal from "../../components/admin/modals/Users/DisableUserMod
 import AssignRoleModal from "../../components/admin/modals/Users/AssignRoleModal";
 
 const roleToEN = (role) => {
-  if (!role) return "No Role";
-  if (typeof role === "object") {
-    const roleName = role.nombre || role.name;
-    switch (roleName) {
-      case "Administrador": return "Admin";
-      case "Gerente": return "Manager";
-      case "Cliente": return "Customer";
-      default: return roleName || "Unknown";
-    }
-  }
   switch (role) {
     case "Administrador": return "Admin";
     case "Gerente": return "Manager";
@@ -35,7 +25,6 @@ function UserManagement() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -52,21 +41,6 @@ function UserManagement() {
     }
     loadUsers();
   }, []);
-
-  // Limpiar mensajes después de 5 segundos
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => setError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error]);
 
   const handleOpenCreateModal = () => setCreateOpen(true);
   const handleCloseCreateModal = () => setCreateOpen(false);
@@ -107,10 +81,8 @@ function UserManagement() {
       setError(null);
       if (!authService.isAuthenticated()) throw new Error('No authenticated');
 
-      console.log('Loading users...');
       const response = await api.get('/usuario');
       const usersFromApi = response.data;
-      console.log('Users from API:', usersFromApi);
 
       const formattedUsers = usersFromApi.map((u) => ({
         id: u.usuarioId,
@@ -127,7 +99,6 @@ function UserManagement() {
         rol: u.rol || u.rolUsuario || null,
       }));
 
-      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (err) {
       console.error("Error loading users:", err);
@@ -151,7 +122,6 @@ function UserManagement() {
     try {
       await loadUsers();
       closeUpdateModal();
-      setSuccessMessage("User updated successfully!");
     } catch (error) {
       console.error("Error updating user:", error);
       setError("Error updating user. Please try again.");
@@ -162,112 +132,23 @@ function UserManagement() {
     try {
       await loadUsers();
       closeDisableModal();
-      setSuccessMessage("User status updated successfully!");
     } catch (error) {
       console.error("Error disabling user:", error);
-      setError("Error updating user status. Please try again.");
+      setError("Error disabling user. Please try again.");
     }
   };
 
-  // Función corregida para asignar rol
-  const handleAssignRole = async (rolePayload) => {
-    if (!selectedUser) {
-      setError("No user selected");
-      return;
-    }
-
+  const handleAssignRole = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
-      
-      console.log('Assigning role to user:', selectedUser);
-      console.log('Role payload received:', rolePayload);
-      
-      // Verificar que tenemos los datos necesarios
-      if (!rolePayload || !rolePayload.rol) {
-        throw new Error("Invalid role data");
-      }
-
-      // Diferentes opciones de payload según tu API:
-      
-      // Opción 1: Usuario completo (más probable que funcione con PUT)
-      const updatePayload = {
-        ...selectedUser,
-        rol: rolePayload.rol
-      };
-      
-      // Opción 2: Solo actualizar el rol
-      // const updatePayload = {
-      //   rol: rolePayload.rol
-      // };
-      
-      // Opción 3: Si tu API espera solo el rolId
-      // const updatePayload = {
-      //   rolId: rolePayload.rol.rolId
-      // };
-      
-      console.log('Sending update payload:', updatePayload);
-      console.log('API endpoint:', `/usuario/${selectedUser.id}`);
-      
-      // Usar PUT ya que PATCH no está soportado por tu API
-      const response = await api.put(`/usuario/${selectedUser.id}`, updatePayload);
-      
-      // Si el PUT tampoco funciona, prueba estos endpoints alternativos:
-      // const response = await api.post(`/usuario/${selectedUser.id}/rol`, { rolId: rolePayload.rol.rolId });
-      // const response = await api.put(`/usuario/${selectedUser.id}/rol`, rolePayload.rol);
-      // const response = await api.patch(`/usuario/${selectedUser.id}/rol`, rolePayload.rol);
-      
-      console.log('API response:', response.data);
-      
-      // Actualizar el usuario en el estado local inmediatamente
-      setUsers(prevUsers => 
-        prevUsers.map(user => 
-          user.id === selectedUser.id 
-            ? { ...user, rol: rolePayload.rol }
-            : user
-        )
-      );
-      
-      // Recargar usuarios para asegurar sincronización
       await loadUsers();
-      
-      // Cerrar modal y mostrar mensaje de éxito
       closeAssignRoleModal();
-      setSuccessMessage(`Role assigned successfully to ${selectedUser.nombre} ${selectedUser.apellido}!`);
-      
     } catch (error) {
       console.error("Error assigning role:", error);
-      console.error("Error response:", error.response?.data);
-      
-      let errorMessage = "Error assigning role. Please try again.";
-      
-      if (error.response?.status === 400) {
-        errorMessage = "Invalid data sent to server. Please check the role assignment.";
-      } else if (error.response?.status === 403) {
-        errorMessage = "You don't have permission to assign roles.";
-      } else if (error.response?.status === 404) {
-        errorMessage = "User or role not found.";
-      } else if (error.response?.status === 422) {
-        errorMessage = "Invalid role data. Please select a valid role.";
-      } else if (error.response?.data?.message) {
-        errorMessage = `Error: ${error.response.data.message}`;
-      } else if (error.message) {
-        errorMessage = `Error: ${error.message}`;
-      }
-      
-      setError(errorMessage);
-      
-    } finally {
-      setIsLoading(false);
+      setError("Error assigning role. Please try again.");
     }
   };
 
-  const handleRefresh = () => {
-    setError(null);
-    setSuccessMessage(null);
-    loadUsers();
-  };
-
+  const handleRefresh = () => loadUsers();
   const formatDate = (str) => str ? new Date(str).toLocaleDateString("en-GB") : "-";
   const genderDisplay = (g) => g === "M" ? "Male" : g === "F" ? "Female" : "Other";
 
@@ -284,44 +165,13 @@ function UserManagement() {
         />
       </Topbar>
 
-      <CreateUserModal 
-        isOpen={isCreateOpen} 
-        toggle={handleCloseCreateModal} 
-        onCreate={loadUsers} 
-      />
-      <UpdateUserModal 
-        isOpen={isUpdateOpen} 
-        toggle={closeUpdateModal} 
-        user={selectedUser} 
-        onUpdate={handleUpdateUser} 
-      />
-      <DisableUserModal 
-        isOpen={isDisableOpen} 
-        toggle={closeDisableModal} 
-        user={selectedUser} 
-        onDisable={handleDisableUser} 
-      />
-      <AssignRoleModal 
-        isOpen={isAssignOpen} 
-        toggle={closeAssignRoleModal} 
-        user={selectedUser} 
-        onAssign={handleAssignRole} 
-      />
+      <CreateUserModal isOpen={isCreateOpen} toggle={handleCloseCreateModal} onCreate={loadUsers} />
+      <UpdateUserModal isOpen={isUpdateOpen} toggle={closeUpdateModal} user={selectedUser} onUpdate={handleUpdateUser} />
+      <DisableUserModal isOpen={isDisableOpen} toggle={closeDisableModal} user={selectedUser} onDisable={handleDisableUser} />
+      <AssignRoleModal isOpen={isAssignOpen} toggle={closeAssignRoleModal} user={selectedUser} onAssign={handleAssignRole} />
 
       <div className="admin-content h-full flex-1 p-0">
         <div className="overflow-x-auto h-full w-full min-h-[70vh] py-8 px-10">
-          
-          {/* Success Message */}
-          {successMessage && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 text-green-600">
-                <span className="material-icons">check_circle</span>
-                <span className="font-semibold">Success</span>
-              </div>
-              <p className="text-green-600 text-sm mt-1">{successMessage}</p>
-            </div>
-          )}
-
           {isLoading ? (
             <div className="text-center text-gray-500 py-4">
               <div className="flex items-center justify-center gap-2">
@@ -337,10 +187,7 @@ function UserManagement() {
                   <span className="font-semibold">Error</span>
                 </div>
                 <p className="text-red-600 text-sm">{error}</p>
-                <button 
-                  onClick={handleRefresh} 
-                  className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                >
+                <button onClick={handleRefresh} className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
                   Try Again
                 </button>
               </div>
@@ -360,20 +207,8 @@ function UserManagement() {
               </thead>
               <tbody>
                 {users.map((user, idx) => (
-                  <tr 
-                    key={user.id} 
-                    onClick={() => { 
-                      setSelectedUser(user); 
-                      setSelectedUserId(user.id); 
-                    }}
-                    className={`cursor-pointer transition ${
-                      selectedUserId === user.id 
-                        ? "bg-purple-100 ring-2 ring-purple-300" 
-                        : idx % 2 === 1 
-                          ? "bg-gray-50" 
-                          : ""
-                    } hover:bg-purple-50`}
-                  >
+                  <tr key={user.id} onClick={() => { setSelectedUser(user); setSelectedUserId(user.id); }}
+                    className={`cursor-pointer transition ${selectedUserId === user.id ? "bg-purple-100 ring-2 ring-purple-300" : idx % 2 === 1 ? "bg-gray-50" : ""} hover:bg-purple-50`}>
                     <td className="py-4 px-3 whitespace-nowrap font-semibold flex items-center gap-2">
                       <span className="inline-block rounded-full bg-gray-200 p-2">
                         <svg width="28" height="28" fill="none">
@@ -403,15 +238,11 @@ function UserManagement() {
                     <td className="py-4 px-3 whitespace-nowrap text-gray-800 text-sm">{formatDate(user.fechaNacimiento)}</td>
                     <td className="py-4 px-3 whitespace-nowrap">
                       <span className="px-3 py-1 rounded-full font-bold text-xs bg-purple-100 text-purple-700">
-                        {roleToEN(user.rol)}
+                        {roleToEN(user.rol?.nombre)}
                       </span>
                     </td>
                     <td className="py-4 px-3 whitespace-nowrap">
-                      <span className={`px-4 py-1 rounded-full font-bold text-sm ${
-                        statusToEN(user.estado) === "Active" 
-                          ? "bg-green-100 text-green-700" 
-                          : "bg-red-100 text-red-600"
-                      }`}>
+                      <span className={`px-4 py-1 rounded-full font-bold text-sm ${statusToEN(user.estado) === "Active" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}`}>
                         {statusToEN(user.estado)}
                       </span>
                     </td>
@@ -423,10 +254,7 @@ function UserManagement() {
                       <div className="flex flex-col items-center gap-2">
                         <span className="material-icons text-4xl text-gray-300">people_outline</span>
                         <span>No users found.</span>
-                        <button 
-                          onClick={handleRefresh} 
-                          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm"
-                        >
+                        <button onClick={handleRefresh} className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors text-sm">
                           Refresh
                         </button>
                       </div>

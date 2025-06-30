@@ -27,11 +27,40 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
     }
   }, [isOpen]);
 
+  const handleAssign = async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!selectedResourceId || !selectedProjectId || !user?.usuarioId) return;
+    try {
+      const body = {
+        recursoId: selectedResourceId,
+        proyectoId: selectedProjectId,
+        asignadoPor: user.usuarioId
+      };
+      const res = await api.post("/recursos-proyecto", body);
+      if (onAssign) onAssign(res.data);
+      onClose();
+    } catch (err) {
+      alert("Error assigning resource: " + (err.response?.data?.message || err.message));
+    }
+  };
+
   if (!isOpen) return null;
 
-  // Filter resources by name
-  const filteredResources = resources.filter((r) =>
-    r.nombreRecurso.toLowerCase().includes(resourceSearch.trim().toLowerCase())
+  // Normaliza recursos a la estructura estándar para el modal
+  const normalizedResources = resources.map((r) => ({
+    id: r.id || r.recursoId,
+    name: r.name || r.nombreRecurso,
+    type: r.type || r.tipo,
+    availability: r.availability || r.disponibilidad || r.estado,
+    cost: r.cost || r.coste,
+    unit_measure: r.unit_measure || r.unit || r.cantidad,
+    description: r.description || r.descripcionRecurso,
+    raw: r // Guarda el objeto original por si se necesita
+  }));
+
+  // Filtrar recursos por nombre
+  const filteredResources = normalizedResources.filter((r) =>
+    (r.name || "").toLowerCase().includes(resourceSearch.trim().toLowerCase())
   );
 
   // Filter projects by name
@@ -59,16 +88,16 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
           ) : (
             filteredResources.map((r) => (
               <div
-                key={r.recursoId}
+                key={r.id}
                 className={`px-4 py-3 rounded border cursor-pointer font-semibold flex items-center justify-between transition
-                  ${selectedResourceId === r.recursoId
+                  ${selectedResourceId === r.id
                     ? "bg-purple-100 border-purple-400"
                     : "hover:bg-gray-50 border-gray-300"
                   }`}
-                onClick={() => setSelectedResourceId(r.recursoId)}
+                onClick={() => setSelectedResourceId(r.id)}
               >
-                <span>{r.nombreRecurso}</span>
-                {selectedResourceId === r.recursoId && <span>✓</span>}
+                <span>{r.name}</span>
+                {selectedResourceId === r.id && <span>✓</span>}
               </div>
             ))
           )}
@@ -115,7 +144,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
           <button
             className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
             disabled={!selectedResourceId || !selectedProjectId}
-            onClick={() => onAssign({ resourceId: selectedResourceId, projectId: selectedProjectId })}
+            onClick={handleAssign}
             type="button"
           >
             Assign

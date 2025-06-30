@@ -12,10 +12,22 @@ const DisableResourceModal = ({
 
   if (!isOpen) return null;
 
+  // Normaliza recursos a la estructura estándar
+  const normalizedResources = resources.map((r) => ({
+    id: r.id || r.recursoId,
+    name: r.name || r.nombreRecurso,
+    type: r.type || r.tipo,
+    availability: r.availability || r.disponibilidad || r.estado,
+    cost: r.cost || r.coste,
+    unit_measure: r.unit_measure || r.unit || r.cantidad,
+    description: r.description || r.descripcionRecurso,
+    raw: r
+  }));
+
   // Filtrar recursos por nombre o descripción (case-insensitive)
-  const filteredResources = resources.filter((r) =>
-    r.nombreRecurso.toLowerCase().includes(search.toLowerCase()) ||
-    (r.descripcionRecurso && r.descripcionRecurso.toLowerCase().includes(search.toLowerCase()))
+  const filteredResources = normalizedResources.filter((r) =>
+    (r.name || "").toLowerCase().includes(search.toLowerCase()) ||
+    (r.description && r.description.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -45,15 +57,15 @@ const DisableResourceModal = ({
         <div className="space-y-2 max-h-40 overflow-y-auto mb-4">
           {filteredResources.map((resource) => (
             <div
-              key={resource.recursoId}
+              key={resource.id}
               className={`flex items-center justify-between p-3 rounded border cursor-pointer font-semibold
-                ${selectedId === resource.recursoId
+                ${selectedId === resource.id
                   ? "bg-red-600 text-white border-red-400"
                   : "hover:bg-gray-100 bg-white border-gray-200 text-black"
                 }`}
-              onClick={() => setSelectedId(resource.recursoId)}
+              onClick={() => setSelectedId(resource.id)}
             >
-              <span>{resource.nombreRecurso}</span>
+              <span>{resource.name}</span>
               {selectedId === resource.id && (
                 <FaCheck className="text-2xl text-white ml-2" />
               )}

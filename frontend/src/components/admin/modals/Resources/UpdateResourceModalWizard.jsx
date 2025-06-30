@@ -9,19 +9,31 @@ const UpdateResourceModalWizard = ({
   onSave, // recibe el objeto final editado
 }) => {
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState(resource || {
+  // Normaliza el recurso a la estructura estándar
+  const normalizeResource = (r) => ({
+    id: r?.id || r?.recursoId || "",
+    name: r?.name || r?.nombreRecurso || "",
+    type: r?.type || r?.tipo || "",
+    cost: r?.cost || r?.costo || r?.coste || "",
+    availability: r?.availability || r?.disponibilidad || r?.estado || "",
+    unit_measure: r?.unit_measure || r?.unit || r?.cantidad || "",
+    description: r?.description || r?.descripcionRecurso || "",
+  });
+
+  const [form, setForm] = useState(resource ? normalizeResource(resource) : {
+    id: "",
     name: "",
     type: "",
     cost: "",
     availability: "",
-    unit: "",
+    unit_measure: "",
     description: "",
   });
 
   // Cuando abres el modal con otro recurso, actualiza el form
   useEffect(() => {
     if (resource) {
-      setForm(resource);
+      setForm(normalizeResource(resource));
       setStep(1);
     }
   }, [resource, isOpen]);
