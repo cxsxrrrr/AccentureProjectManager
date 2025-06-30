@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
@@ -6,39 +6,10 @@ import AssignResourceModal from "../../components/admin/modals/Resources/AssignR
 import UpdateResourceModalWizard from "../../components/admin/modals/Resources/UpdateResourceModalWizard";
 import DisableResourceModal from "../../components/admin/modals/Resources/DisableResourceModal";
 import CreateResourceModalWizard from "../../components/admin/modals/Resources/CreateResourceModalWizard";
-
-const initialResources = [
-  {
-    id: 1,
-    name: "Maria Gonzalez",
-    type: "Human",
-    availability: "Available",
-    cost: "$3500",
-    unit_measure: 1,
-    description: "FullStack Developer",
-  },
-  {
-    id: 2,
-    name: "Laptop Dell",
-    type: "Material",
-    availability: "Disabled",
-    cost: "$600",
-    unit_measure: 0,
-    description: "Laptop for develop",
-  },
-  {
-    id: 3,
-    name: "budget for project A",
-    type: "Financial",
-    availability: "Available",
-    cost: "$1000",
-    unit_measure: 10,
-    description: "Total budget assigned for project",
-  },
-];
+import api from "../../services/axios";
 
 function ResourcesManagement() {
-  const [resources, setResources] = useState(initialResources);
+  const [resources, setResources] = useState([]);
   const [selectedResourceId, setSelectedResourceId] = useState(null);
 
   // Modal handlers
@@ -54,8 +25,16 @@ function ResourcesManagement() {
     { id: 2, name: "HP TECHNLOGY" },
   ]);
 
-  // Find selected resource for update
-  const selectedResource = resources.find((r) => r.id === selectedResourceId);
+  // Selected resource based on ID
+  const selectedResource = resources.find((r) => r.recursoId === selectedResourceId);
+
+  // Fetch resources from backend
+  useEffect(() => {
+    api
+      .get("/recursos")
+      .then((res) => setResources(res.data))
+      .catch((err) => console.error("Error fetching resources:", err));
+  }, []);
 
   // Handlers
   const handleCreateResource = (newResource) => {
@@ -89,27 +68,59 @@ function ResourcesManagement() {
     setAssignOpen(false);
   };
 
-  const handleUpdateResource = (updatedResource) => {
-    setResources((prev) =>
-      prev.map((r) =>
-        r.id === updatedResource.id
-          ? {
-              ...r,
-              ...updatedResource,
-              unit_measure:
-                updatedResource.unit !== undefined
-                  ? updatedResource.unit
-                  : r.unit_measure,
-            }
-          : r
-      )
-    );
+  // Update resource via backend and update state
+  const handleUpdateResource = async (updatedResource) => {
+    try {
+      // Prepare payload for API
+      const payload = {
+        nombreRecurso: updatedResource.name,
+        descripcionRecurso: updatedResource.description,
+        estado: updatedResource.availability,
+        coste: updatedResource.cost,
+        cantidad: Number(updatedResource.unit),
+        tipo: updatedResource.type,
+      };
+      // Send PUT request to update resource
+      const res = await api.put(`/recursos/${updatedResource.recursoId}`, payload);
+      const updated = res.data;
+      // Update local state with server response
+      setResources((prev) =>
+        prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
+      );
+    } catch (error) {
+      console.error("Error updating resource:", error);
+    }
     setUpdateOpen(false);
     setResourceToEdit(null);
   };
 
-  const handleDisableResource = (id) => {
-    setResources((prev) => prev.filter((r) => r.id !== id));
+  // Disable a resource via API (set estado to Disabled) and update state
+  const handleDisableResource = async (id) => {
+    // Find resource to disable
+    const resToDisable = resources.find((r) => r.recursoId === id);
+    if (!resToDisable) {
+      setDisableOpen(false);
+      setSelectedResourceId(null);
+      return;
+    }
+    try {
+      const payload = {
+        nombreRecurso: resToDisable.nombreRecurso,
+        descripcionRecurso: resToDisable.descripcionRecurso,
+        estado: "Disabled",
+        coste: resToDisable.coste,
+        cantidad: resToDisable.cantidad,
+        tipo: resToDisable.tipo,
+      };
+      const res = await api.put(`/recursos/${id}`, payload);
+      const updated = res.data;
+      // Update local state with server response
+      setResources((prev) =>
+        prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
+      );
+    } catch (error) {
+      console.error("Error disabling resource:", error);
+    }
     setDisableOpen(false);
     setSelectedResourceId(null);
   };
@@ -188,40 +199,35 @@ function ResourcesManagement() {
           <tbody>
             {resources.map((resource) => (
               <tr
-                key={resource.id}
-                onClick={() => setSelectedResourceId(resource.id)}
+                key={resource.recursoId}
+                onClick={() => setSelectedResourceId(resource.recursoId)}
                 className={`cursor-pointer transition ${
-                  selectedResourceId === resource.id
+                  selectedResourceId === resource.recursoId
                     ? "bg-purple-50 ring-2 ring-purple-200"
                     : "hover:bg-gray-50"
                 }`}
               >
-                <td className="px-6 py-4 font-semibold">{resource.name}</td>
-                <td className="px-6 py-4">{resource.type}</td>
+                <td className="px-6 py-4 font-semibold">{resource.nombreRecurso}</td>
+                <td className="px-6 py-4">{resource.tipo}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`
                       px-4 py-1 rounded-full font-bold text-sm
                       ${
-                        (resource.availability || resource.status) === "Available"
+                        resource.estado === "Available" || resource.estado === "Disponible"
                           ? "bg-green-100 text-green-700"
                           : "bg-red-100 text-red-600"
                       }
                     `}
                   >
-                    {(resource.availability || resource.status) === "Available"
+                    {resource.estado === "Available" || resource.estado === "Disponible"
                       ? "Activo"
                       : "Inactivo"}
                   </span>
                 </td>
-                <td className="px-6 py-4">{resource.cost}</td>
-                <td className="px-6 py-4">
-                  {/* Unit measure o unit, para soportar ambos keys */}
-                  {resource.unit_measure !== undefined
-                    ? resource.unit_measure
-                    : resource.unit}
-                </td>
-                <td className="px-6 py-4">{resource.description}</td>
+                <td className="px-6 py-4">{resource.coste}</td>
+                <td className="px-6 py-4">{resource.cantidad}</td>
+                <td className="px-6 py-4">{resource.descripcionRecurso}</td>
               </tr>
             ))}
           </tbody>
