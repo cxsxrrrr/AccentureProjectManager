@@ -25,7 +25,8 @@ export default function UpdateUserStep2({
       numeroTelefono: values.numeroTelefono || "",
       categoria: values.categoria || "",
       habilidades: values.habilidades || [],
-      rol: values.rol?.nombre || "", // precarga el nombre del rol
+      rol: values.rol || "",
+      estado: values.estado === "Activo" || values.estado === "Active" ? "Active" : "Inactive",
     });
   }, [values]);
 
@@ -82,7 +83,12 @@ export default function UpdateUserStep2({
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(local); // body en español, rol será el nombre seleccionado
+    // Normaliza el estado a "Activo" o "Inactivo" para el backend
+    const dataToSend = {
+      ...local,
+      estado: local.estado === "Active" ? "Activo" : "Inactivo",
+    };
+    onSave(dataToSend);
   };
 
   return (
@@ -154,7 +160,7 @@ export default function UpdateUserStep2({
           >
             <option value="">Select Role</option>
             {(roles || []).map((r) => (
-              <option key={r.nombre} value={r.nombre}>
+              <option key={r.rolId || r.id} value={r.rolId || r.id}>
                 {r.nombre} - {r.descripcion}
               </option>
             ))}
