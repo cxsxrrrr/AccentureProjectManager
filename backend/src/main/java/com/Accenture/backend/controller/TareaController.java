@@ -43,4 +43,11 @@ public class TareaController {
         TareaDTO tareaGuardada = tareaService.guardar(tareaDTO);
         return ResponseEntity.ok(tareaGuardada);
     }
+
+    // Obtener todas las tareas
+    @GetMapping
+    public ResponseEntity<List<TareaDTO>> listarTodasLasTareas() {
+        List<TareaDTO> tareas = tareaService.listarTodasLasTareas();
+        return ResponseEntity.ok(tareas);
+    }
 }

@@ -44,9 +44,10 @@ function TaskManagement() {
     fetchTasks();
   }, []);
 
+  // Obtener todas las tareas desde el backend
   const fetchTasks = async () => {
     try {
-      const res = await getTasks();
+      const res = await api.get('/tareas');
       setTasks(res.data);
     } catch (err) {
       alert("Error loading tasks");
@@ -77,7 +78,12 @@ function TaskManagement() {
   // Guardar nueva tarea
   const handleSaveNew = async (data) => {
     try {
-      const res = await createTask(data);
+      // Elimina objetos anidados y deja solo los IDs planos
+      const { proyecto, creadoPor, ...flatData } = data;
+      // Si el modal aún manda los objetos, extrae los IDs
+      if (proyecto && proyecto.proyectoId) flatData.proyectoId = proyecto.proyectoId;
+      if (creadoPor && creadoPor.usuarioId) flatData.creadoPorId = creadoPor.usuarioId;
+      const res = await createTask(flatData);
       setTasks((prev) => [...prev, res.data]);
       setShowNew(false);
     } catch (err) {
