@@ -60,42 +60,58 @@ function Employees() {
         throw new Error('No authenticated');
       }
 
-      // Usar la instancia de axios configurada que incluye automáticamente el token
-      // Asumiendo que el endpoint para empleados es '/empleados' o '/employees'
-      const response = await api.get('/usuario'); // Ajusta la ruta según tu API
-      
-      const employeesFromApi = response.data;
-      const formattedEmployees = employeesFromApi.map((emp) => ({
-        id: emp.empleadoId || emp.usuarioId,
-        nombre: emp.nombre,
-        apellido: emp.apellido,
-        email: emp.email,
-        numeroTelefono: emp.numeroTelefono,
-        cedula: emp.cedula,
-        genero: emp.genero,
-        fechaNacimiento: emp.fechaNacimiento,
-        estado: emp.estado,
-        fechaCreacion: emp.fechaCreacion,
-        ultimoAcceso: emp.ultimoAcceso,
-        rol: emp.rol || emp.rolUsuario || null,
-        // Categoría: puede venir como objeto, string o array (tomar el primer nombre si es array de objetos)
-        category: Array.isArray(emp.categoria)
-          ? (emp.categoria[0]?.nombre || emp.categoria[0] || "Developer")
-          : (emp.categoria && emp.categoria.nombre)
-            ? emp.categoria.nombre
-            : (emp.categoria || emp.category || "Developer"),
-        // Skills: puede venir como array de objetos, strings o anidado en categoria
-        skills: Array.isArray(emp.habilidades)
-          ? emp.habilidades.map(h => h.nombre || h.skillName || h)
-          : (Array.isArray(emp.skills) ? emp.skills.map(s => s.nombre || s.skillName || s) :
-            (emp.categoria && Array.isArray(emp.categoria.skills))
-              ? emp.categoria.skills.map(s => s.nombre || s.skillName || s)
-              : []),
-        departamento: emp.departamento,
-        puesto: emp.puesto,
-        salario: emp.salario,
-      }));
-      
+      // Obtener usuarios del backend
+      const response = await api.get('/usuario');
+      const employeesFromApi = Array.isArray(response.data) ? response.data : [response.data];
+
+      // Filtrar solo usuarios con rol "team", "member" o "team member" (case-insensitive)
+      const filtered = employeesFromApi.filter(emp => {
+        const roleName = (emp.rol?.nombre || "").toLowerCase();
+        return ["team", "member", "team member"].includes(roleName);
+      });
+
+      // Mapear categorías y skills igual que en CategoriesandSkills.jsx
+      const formattedEmployees = filtered.map((emp) => {
+        // Categoría: buscar en emp.categoria (objeto), emp.categorias (array), o string
+        let category = "";
+        if (emp.categoria && typeof emp.categoria === "object" && emp.categoria.nombre) {
+          category = emp.categoria.nombre;
+        } else if (typeof emp.categoria === "string") {
+          category = emp.categoria;
+        } else if (Array.isArray(emp.categorias) && emp.categorias.length > 0) {
+          category = emp.categorias[0]?.nombre || emp.categorias[0] || "";
+        } else if (emp.category) {
+          category = emp.category;
+        }
+
+        // Skills: buscar en emp.habilidades (array de objetos), emp.skills (array de objetos o strings)
+        let skills = [];
+        if (Array.isArray(emp.habilidades) && emp.habilidades.length > 0) {
+          skills = emp.habilidades.map(h => h.nombre || h);
+        } else if (Array.isArray(emp.skills) && emp.skills.length > 0) {
+          skills = emp.skills.map(s => s.nombre || s);
+        } else if (emp.categoria && Array.isArray(emp.categoria.skills)) {
+          skills = emp.categoria.skills.map(s => s.nombre || s);
+        }
+
+        return {
+          id: emp.empleadoId || emp.usuarioId,
+          nombre: emp.nombre,
+          apellido: emp.apellido,
+          email: emp.email,
+          numeroTelefono: emp.numeroTelefono,
+          cedula: emp.cedula,
+          genero: emp.genero,
+          fechaNacimiento: emp.fechaNacimiento,
+          estado: emp.estado,
+          fechaCreacion: emp.fechaCreacion,
+          ultimoAcceso: emp.ultimoAcceso,
+          rol: emp.rol || emp.rolUsuario || null,
+          category,
+          skills,
+        };
+      });
+
       setEmployees(formattedEmployees);
     } catch (err) {
       console.error("Error loading employees:", err);
