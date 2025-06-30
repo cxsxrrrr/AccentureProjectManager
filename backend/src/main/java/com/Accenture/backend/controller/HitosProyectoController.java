@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
 
@@ -31,6 +32,9 @@ public class HitosProyectoController {
     // POST Crear hito
     @PostMapping
     public ResponseEntity<HitosProyectoDTO> createMilestone(@RequestBody HitosProyectoDTO hitoDTO) {
+        if (hitoDTO.getProyecto() == null || hitoDTO.getProyecto().getProyectoId() == null) {
+            throw new IllegalArgumentException("El campo 'proyecto' debe contener un 'proyectoId'.");
+        }
         HitosProyectoDTO hitoGuardado = hitoService.crearHito(hitoDTO);
         return ResponseEntity.ok(hitoGuardado);
     }
@@ -42,12 +46,28 @@ public class HitosProyectoController {
         return ResponseEntity.ok(hitos);
     }
 
+    // GET Obtener todos los hitos
+    @GetMapping
+    public ResponseEntity<List<HitosProyectoDTO>> getAllHitos() {
+        List<HitosProyectoDTO> hitos = hitoService.obtenerTodosHitos();
+        return ResponseEntity.ok(hitos);
+    }
+
     // PUT Actualizar hito by ID
     @PutMapping("/{id}")
     public ResponseEntity<HitosProyectoDTO> updateMilestone(
             @PathVariable Long id,
             @RequestBody HitosProyectoDTO hitoDTO) {
         HitosProyectoDTO actualizado = hitoService.actualizarHitoById(id, hitoDTO);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    // PATCH Actualizar parcialmente hito by ID
+    @PatchMapping("/{id}")
+    public ResponseEntity<HitosProyectoDTO> patchMilestone(
+            @PathVariable Long id,
+            @RequestBody HitosProyectoDTO hitoDTO) {
+        HitosProyectoDTO actualizado = hitoService.actualizarParcialHitoById(id, hitoDTO);
         return ResponseEntity.ok(actualizado);
     }
 

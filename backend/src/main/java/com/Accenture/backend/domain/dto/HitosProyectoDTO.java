@@ -17,8 +17,8 @@ public class HitosProyectoDTO {
     private Long hitoId;
     private String nombre;
     private String descripcion;
+    private LocalDate fechaInicio;
     private LocalDate fechaPlaneada;
-    private LocalDate fechaReal;
     private String estado;
     private ProyectoDTO proyecto;
 }
