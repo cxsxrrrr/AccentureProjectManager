@@ -1,18 +1,12 @@
 import React, { useState, useEffect } from "react";
 import taskIcon from "../../../../assets/icons/task.svg"; // Icono de tarea
 
-// Mock de proyectos (debería venir de props o fetch)
-const proyectosMock = [
-  { proyectoId: 1, nombreProyecto: "Website Redesign" },
-  { proyectoId: 2, nombreProyecto: "Inventario 2025" },
-];
-
 function getToday() {
   const d = new Date();
   return d.toISOString().split("T")[0]; // yyyy-mm-dd
 }
 
-function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
+function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
   const [form, setForm] = useState({
     proyectoId: "",
     nombre: "",
@@ -20,12 +14,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
     prioridad: "MEDIA",
     fechaInicioEstimada: "",
     fechaFinEstimada: "",
-    creadoPorId: "", // Ahora no editable por el usuario
+    creadoPorId: "", // Se asigna automáticamente
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
-    if (isOpen && currentUser) {
+    if (isOpen && currentUser && currentUser.usuarioId) {
       setForm({
         proyectoId: "",
         nombre: "",
@@ -33,7 +27,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
         prioridad: "MEDIA",
         fechaInicioEstimada: "",
         fechaFinEstimada: "",
-        creadoPorId: currentUser.usuarioId.toString(), // Se pone automáticamente
+        creadoPorId: currentUser.usuarioId.toString(),
       });
       setErrors({});
     }
@@ -43,7 +37,6 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
     const today = getToday();
     let errs = {};
 
-    // Fecha inicio no puede ser menor a hoy
     if (field === "fechaInicioEstimada" || field === "fechaFinEstimada") {
       if (form.fechaInicioEstimada && form.fechaInicioEstimada < today) {
         errs.fechaInicioEstimada = "Start date cannot be in the past";
@@ -51,7 +44,6 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
       if (form.fechaFinEstimada && form.fechaFinEstimada < today) {
         errs.fechaFinEstimada = "End date cannot be in the past";
       }
-      // Fecha fin no puede ser menor a inicio
       if (
         form.fechaInicioEstimada &&
         form.fechaFinEstimada &&
@@ -60,15 +52,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
         errs.fechaFinEstimada = "End date cannot be before start date";
       }
     }
-
-    // Nombre y descripción
     if (field === "nombre" && value.length > 60) {
       errs.nombre = "Task name cannot be longer than 60 characters";
     }
     if (field === "descripcion" && value.length > 255) {
       errs.descripcion = "Description cannot be longer than 255 characters";
     }
-
     setErrors((prev) => ({ ...prev, ...errs }));
   };
 
@@ -172,7 +161,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
                 className="mt-1 border rounded w-full px-3 py-2"
               >
                 <option value="">Select project</option>
-                {proyectosMock.map((p) => (
+                {proyectos.map((p) => (
                   <option key={p.proyectoId} value={p.proyectoId}>
                     {p.nombreProyecto}
                   </option>
@@ -182,7 +171,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
             <label className="font-semibold text-sm flex flex-col">
               Created By *
               <input
-                value={currentUser?.name || ""}
+                value={currentUser?.nombre || ""}
                 readOnly
                 className="mt-1 border rounded w-full px-3 py-2 bg-gray-100 cursor-not-allowed"
               />
@@ -199,8 +188,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
               placeholder="Enter task name"
               className="mt-1 border rounded w-full px-3 py-2"
             />
-            <span className="text-xs text-gray-400 mt-1">{form.nombre.length}/60</span>
-            {errors.nombre && <span className="text-xs text-red-500">{errors.nombre}</span>}
+            <span className="text-xs text-gray-400 mt-1">
+              {form.nombre.length}/60
+            </span>
+            {errors.nombre && (
+              <span className="text-xs text-red-500">{errors.nombre}</span>
+            )}
           </label>
           <label className="font-semibold text-sm flex flex-col w-full">
             Description
@@ -213,8 +206,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
               className="mt-1 border rounded w-full px-3 py-2"
               rows={2}
             />
-            <span className="text-xs text-gray-400 mt-1">{form.descripcion.length}/255</span>
-            {errors.descripcion && <span className="text-xs text-red-500">{errors.descripcion}</span>}
+            <span className="text-xs text-gray-400 mt-1">
+              {form.descripcion.length}/255
+            </span>
+            {errors.descripcion && (
+              <span className="text-xs text-red-500">{errors.descripcion}</span>
+            )}
           </label>
           {/* Status y prioridad */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -253,7 +250,9 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
                 className="mt-1 border rounded w-full px-3 py-2"
               />
               {errors.fechaInicioEstimada && (
-                <span className="text-xs text-red-500">{errors.fechaInicioEstimada}</span>
+                <span className="text-xs text-red-500">
+                  {errors.fechaInicioEstimada}
+                </span>
               )}
             </label>
             <label className="font-semibold text-sm flex flex-col">
@@ -268,7 +267,9 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
                 className="mt-1 border rounded w-full px-3 py-2"
               />
               {errors.fechaFinEstimada && (
-                <span className="text-xs text-red-500">{errors.fechaFinEstimada}</span>
+                <span className="text-xs text-red-500">
+                  {errors.fechaFinEstimada}
+                </span>
               )}
             </label>
           </div>
@@ -285,7 +286,14 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser }) {
             <button
               type="submit"
               className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
-              disabled={Object.keys(errors).length > 0}
+              disabled={
+                Object.keys(errors).length > 0 ||
+                !form.proyectoId ||
+                !form.nombre ||
+                !form.fechaInicioEstimada ||
+                !form.fechaFinEstimada ||
+                !form.creadoPorId // <-- Añade esto
+              }
             >
               Create
             </button>

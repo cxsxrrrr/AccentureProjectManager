@@ -6,6 +6,7 @@ import UpdateTaskModal from "../../components/manager/modals/Tasks/UpdateTaskMod
 import DisableTaskModal from "../../components/manager/modals/Tasks/DisableTaskModal";
 import { getTasks, createTask, updateTask, disableTask } from "../../services/taskService";
 import "../../stylesheets/page.css";
+import api from "../../services/axios";
 
 // Mock de usuarios igual que el backend (usa usuarioId)
 const users = [
@@ -18,6 +19,19 @@ function TaskManagement() {
   const [tasks, setTasks] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [selectedTasks, setSelectedTasks] = useState([]);
+  const [proyectos, setProyectos] = useState([]);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Cargar usuario autenticado desde localStorage (ajusta si usas contexto)
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    setCurrentUser(user);
+  }, []);
+
+  // Cargar proyectos al montar
+  useEffect(() => {
+    api.get("/proyectos").then(res => setProyectos(res.data)).catch(() => setProyectos([]));
+  }, []);
 
   // Modals
   const [showNew, setShowNew] = useState(false);
@@ -243,6 +257,8 @@ function TaskManagement() {
         isOpen={showNew}
         onClose={() => setShowNew(false)}
         onSave={handleSaveNew}
+        currentUser={currentUser}
+        proyectos={proyectos}
       />
       <UpdateTaskModal
         isOpen={showUpdate}
