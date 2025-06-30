@@ -208,7 +208,6 @@ function UserManagement() {
           onCreate={handleOpenCreateModal}
           onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
           onDisable={() => selectedUser && openDisableModal(selectedUser)}
-          onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
           onRefresh={handleRefresh}
           // Pasar información sobre si se puede desactivar el usuario
           canDisable={canDisableUser()}

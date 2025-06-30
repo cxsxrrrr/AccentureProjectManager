@@ -4,7 +4,7 @@ import api from "../../../../services/axios";
 const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
   const [selectedResourceId, setSelectedResourceId] = useState(null);
   const [resourceSearch, setResourceSearch] = useState("");
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
   const [projectSearch, setProjectSearch] = useState("");
   const [projects, setProjects] = useState([]);
 
@@ -12,7 +12,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
     if (!isOpen) {
       setSelectedResourceId(null);
       setResourceSearch("");
-      setSelectedProjectId(null);
+      setSelectedProject(null);
       setProjectSearch("");
       setProjects([]);
     }
@@ -21,30 +21,65 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
       if (user?.usuarioId) {
         api
           .get(`/miembros-proyectos/usuario/${user.usuarioId}`)
-          .then((res) => setProjects(res.data))
+          .then((res) => {
+            const formattedProjects = res.data.map((item) => ({
+              id: item.proyecto.proyectoId,
+              name: item.proyecto.nombreProyecto,
+              raw: item.proyecto
+            }));
+            setProjects(formattedProjects);
+          })
           .catch(() => setProjects([]));
       }
     }
   }, [isOpen]);
 
-  const handleAssign = async () => {
+  const handleAssign = async (e) => {
+    if (e) e.preventDefault();
+
+    if (!selectedResourceId || !selectedProject) {
+      alert("Please select both a resource and a project.");
+      return;
+    }
+
     const user = JSON.parse(localStorage.getItem("user"));
-    if (!selectedResourceId || !selectedProjectId || !user?.usuarioId) return;
+    if (!user?.usuarioId) {
+      alert("User ID is missing. Please log in again.");
+      return;
+    }
+
     try {
       const body = {
         recursoId: selectedResourceId,
-        proyectoId: selectedProjectId,
+        proyectoId: selectedProject.id || selectedProject.proyecto?.proyectoId, // Asegurar que se use el ID correcto
         asignadoPor: user.usuarioId
       };
-      const res = await api.post("/recursos-proyecto", body);
-      if (onAssign) onAssign(res.data);
+
+      console.log("Assigning resource with payload:", body);
+
+      // Realizar la petición al backend
+      const response = await api.post('http://localhost:8080/api/recursos-proyecto', body);
+
+      if (response.status === 200 || response.status === 201) {
+        console.log("Resource assigned successfully.", response.data);
+        alert("Resource assigned successfully.");
+      } else {
+        console.error("Unexpected response status:", response.status, response.data);
+        throw new Error("Failed to assign resource. Please check the server logs.");
+      }
+
       onClose();
     } catch (err) {
       alert("Error assigning resource: " + (err.response?.data?.message || err.message));
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    console.log("Modal is closed");
+    return null;
+  }
+
+  console.log("Modal is open", { projects, resources });
 
   // Normaliza recursos a la estructura estándar para el modal
   const normalizedResources = resources.map((r) => ({
@@ -64,10 +99,12 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
   );
 
   // Filter projects by name
-  const filteredProjects = projects.filter((p) =>
-    p.proyecto.nombreProyecto.toLowerCase().includes(projectSearch.trim().toLowerCase())
-  );
+  const filteredProjects = projects.filter((p) => {
+    const projectName = p.proyecto?.nombreProyecto || "";
+    return projectName.toLowerCase().includes(projectSearch.trim().toLowerCase());
+  });
 
+  // Corrección de errores de sintaxis en el JSX
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-2xl p-6 sm:p-8 w-full max-w-lg mx-2 shadow-2xl animate-fade-in">
@@ -120,14 +157,14 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
               <div
                 key={p.id}
                 className={`px-4 py-3 rounded border cursor-pointer font-semibold flex items-center justify-between transition
-                  ${selectedProjectId === p.id
+                  ${selectedProject && selectedProject.id === p.id
                     ? "bg-purple-100 border-purple-400"
                     : "hover:bg-gray-50 border-gray-300"
                   }`}
-                onClick={() => setSelectedProjectId(p.id)}
+                onClick={() => setSelectedProject(p)}
               >
-                <span>{p.proyecto.nombreProyecto}</span>
-                {selectedProjectId === p.id && <span>✓</span>}
+                <span>{p.name || p.proyecto?.nombreProyecto || "Unknown Project"}</span>
+                {selectedProject && selectedProject.id === p.id && <span>✓</span>}
               </div>
             ))
           )}
@@ -143,7 +180,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
           </button>
           <button
             className="px-4 py-2 rounded bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
-            disabled={!selectedResourceId || !selectedProjectId}
+            disabled={!selectedResourceId || !selectedProject}
             onClick={handleAssign}
             type="button"
           >
