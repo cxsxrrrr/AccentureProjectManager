@@ -77,6 +77,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign }) => {
               {proj.proyecto.nombreProyecto}
             </div>
           ))}
+          
         </div>
         <div className="flex justify-end gap-2">
           <button
