@@ -50,6 +50,28 @@ function Employees() {
     loadEmployees();
   }, []);
 
+  // Función para obtener categoría de un usuario
+  const getUserCategory = async (userId) => {
+    try {
+      const response = await api.get(`/category/user/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching category for user ${userId}:`, error);
+      return null;
+    }
+  };
+
+  // Función para obtener skills de un usuario
+  const getUserSkills = async (userId) => {
+    try {
+      const response = await api.get(`/skills/usuario/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching skills for user ${userId}:`, error);
+      return [];
+    }
+  };
+
   const loadEmployees = async () => {
     try {
       setIsLoading(true);
@@ -60,12 +82,12 @@ function Employees() {
         throw new Error('No authenticated');
       }
 
-      // Usar la instancia de axios configurada que incluye automáticamente el token
-      // Asumiendo que el endpoint para empleados es '/empleados' o '/employees'
-      const response = await api.get('/usuario'); // Ajusta la ruta según tu API
-      
+      // Obtener lista de usuarios
+      const response = await api.get('/usuario');
       const employeesFromApi = response.data;
-      const formattedEmployees = employeesFromApi.map((emp) => ({
+
+      // Formatear empleados básicos
+      const basicEmployees = employeesFromApi.map((emp) => ({
         id: emp.empleadoId || emp.usuarioId,
         nombre: emp.nombre,
         apellido: emp.apellido,
@@ -78,31 +100,64 @@ function Employees() {
         fechaCreacion: emp.fechaCreacion,
         ultimoAcceso: emp.ultimoAcceso,
         rol: emp.rol || emp.rolUsuario || null,
-        // Categoría: puede venir como objeto, string o array (tomar el primer nombre si es array de objetos)
-        category: Array.isArray(emp.categoria)
-          ? (emp.categoria[0]?.nombre || emp.categoria[0] || "Developer")
-          : (emp.categoria && emp.categoria.nombre)
-            ? emp.categoria.nombre
-            : (emp.categoria || emp.category || "Developer"),
-        // Skills: puede venir como array de objetos, strings o anidado en categoria
-        skills: Array.isArray(emp.habilidades)
-          ? emp.habilidades.map(h => h.nombre || h.skillName || h)
-          : (Array.isArray(emp.skills) ? emp.skills.map(s => s.nombre || s.skillName || s) :
-            (emp.categoria && Array.isArray(emp.categoria.skills))
-              ? emp.categoria.skills.map(s => s.nombre || s.skillName || s)
-              : []),
         departamento: emp.departamento,
         puesto: emp.puesto,
         salario: emp.salario,
+        // Inicializar con valores por defecto
+        category: "Loading...",
+        skills: []
       }));
+
+      // Establecer empleados básicos primero
+      setEmployees(basicEmployees);
+
+      // Obtener categorías y skills para cada empleado
+      const employeesWithDetails = await Promise.all(
+        basicEmployees.map(async (emp) => {
+          try {
+            // Obtener categoría y skills en paralelo
+            const [categoryData, skillsData] = await Promise.all([
+              getUserCategory(emp.id),
+              getUserSkills(emp.id)
+            ]);
+
+            return {
+              ...emp,
+              // Procesar categoría
+              category: categoryData 
+                ? (categoryData.nombre || categoryData.name || categoryData.categoryName || "Unknown")
+                : "No category",
+              // Procesar skills - tomar solo las primeras 3
+              skills: Array.isArray(skillsData) 
+                ? skillsData
+                    .slice(0, 3) // Tomar solo las primeras 3
+                    .map(skill => 
+                      skill.nombre || 
+                      skill.name || 
+                      skill.skillName || 
+                      skill.habilidad ||
+                      skill
+                    )
+                : []
+            };
+          } catch (error) {
+            console.error(`Error processing employee ${emp.id}:`, error);
+            return {
+              ...emp,
+              category: "Error loading",
+              skills: []
+            };
+          }
+        })
+      );
+
+      setEmployees(employeesWithDetails);
       
-      setEmployees(formattedEmployees);
     } catch (err) {
       console.error("Error loading employees:", err);
       
       // Manejo específico de errores
       if (err.response?.status === 401) {
-        // Token expirado o inválido - el interceptor ya maneja esto
         setError("Session expired. Please login again.");
         authService.logout();
       } else if (err.response?.status === 403) {
@@ -171,7 +226,7 @@ function Employees() {
           category={category}
           setCategory={setCategory}
           categories={categories}
-          onRefresh={handleRefresh} // Agregar botón de refresh si existe
+          onRefresh={handleRefresh}
         />
       </Topbar>
 
@@ -254,10 +309,26 @@ function Employees() {
                     <td className="py-5 px-6 whitespace-nowrap text-gray-800 text-sm">{formatDate(emp.fechaNacimiento)}</td>
                     {/* CATEGORY & SKILLS */}
                     <td className="py-5 px-6 whitespace-nowrap">
-                      <div className="font-semibold text-sm mb-1">{emp.category}</div>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="font-semibold text-sm mb-1">
+                        {emp.category && emp.category !== "Loading..." ? (
+                          <span className={`rounded px-2 py-1 text-xs font-semibold mr-1 ${
+                            emp.category === "Error loading" 
+                              ? "bg-red-100 text-red-700"
+                              : emp.category === "No category"
+                              ? "bg-gray-100 text-gray-500"
+                              : "bg-blue-100 text-blue-700"
+                          }`}>
+                            {emp.category}
+                          </span>
+                        ) : (
+                          <span className="bg-gray-100 text-gray-500 rounded px-2 py-1 text-xs font-semibold mr-1">
+                            {emp.category || "Loading..."}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1 mt-1">
                         {emp.skills && emp.skills.length > 0 ? (
-                          emp.skills.slice(0, 3).map((skill, index) => (
+                          emp.skills.map((skill, index) => (
                             <span
                               key={index}
                               className="bg-gray-200 rounded px-2 py-1 text-xs font-semibold"
@@ -266,10 +337,9 @@ function Employees() {
                             </span>
                           ))
                         ) : (
-                          <span className="text-gray-400 text-xs">No skills listed</span>
-                        )}
-                        {emp.skills && emp.skills.length > 3 && (
-                          <span className="text-gray-500 text-xs">+{emp.skills.length - 3} more</span>
+                          <span className="text-gray-400 text-xs">
+                            {emp.category === "Loading..." ? "Loading skills..." : "No skills"}
+                          </span>
                         )}
                       </div>
                     </td>
