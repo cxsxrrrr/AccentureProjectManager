@@ -17,8 +17,11 @@ function Sidebar({ menuItems, vista, logo, title }) {
   }
 
   const getUserName = () => {
+    // Check for explicit stored username
+    const name = localStorage.getItem('username');
+    if (name) return name;
+    // Fallback to storedUser fields
     if (!storedUser) return "Usuario";
-    // Usa nombre y apellido si hay, o email si no hay nombre
     if (storedUser.nombre && storedUser.apellido) return `${storedUser.nombre} ${storedUser.apellido}`;
     if (storedUser.nombre) return storedUser.nombre;
     if (storedUser.email) return storedUser.email;
@@ -26,6 +29,10 @@ function Sidebar({ menuItems, vista, logo, title }) {
   };
 
   const getUserRole = () => {
+    // Check for explicit stored roleName
+    const roleName = localStorage.getItem('roleName');
+    if (roleName) return roleName;
+    // Fallback to storedUser fields
     if (storedUser && storedUser.rol && storedUser.rol.nombre) return storedUser.rol.nombre;
     if (storedUser && storedUser.role) return storedUser.role;
     return "User";
