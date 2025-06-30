@@ -21,6 +21,9 @@ export default function CreateCategoryModal({ isOpen, toggle, onCreate }) {
     if (!valid) return;
     onCreate && onCreate({ name: name.trim(), description: desc.trim() });
     toggle();
+    console.log("Enviando categoría:", { name: name.trim(), description: desc.trim() }); // <-- Añade esto
+    onCreate && onCreate({ name: name.trim(), description: desc.trim() });
+    toggle();
   };
 
   if (!isOpen) return null;

@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import projectIcon from "../../../../assets/icons/project.svg";
 import api from "../../../../services/axios"; // Ajusta el path si no corresponde
 
-function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] }) {
+function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
   const [form, setForm] = useState({
     title: "",
     description: "",
     startDate: "",
     endDate: "",
     client: "",
-    manager: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -29,15 +28,17 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
     setError("");
 
     try {
+      // Obtener el usuario logueado (ajusta según tu auth)
+      const user = JSON.parse(localStorage.getItem("user")) || {};
       const payload = {
         nombreProyecto: form.title,
         descripcionProyecto: form.description,
         fechaInicio: form.startDate,
         fechaFin: form.endDate,
         estado: "Active",
-        cliente: { usuarioId: clients.find(c => c.name === form.client)?.id || 1 },
-        gerenteProyecto: { usuarioId: managers.find(m => m.name === form.manager)?.id || 1 },
-        creadoPor: { usuarioId: 1 }, // Puedes cambiarlo por el usuario logueado real si lo tienes
+        cliente: { usuarioId: Number(form.client) },
+        gerenteProyecto: { usuarioId: user.usuarioId || user.id || 1 },
+        creadoPor: { usuarioId: user.usuarioId || user.id || 1 },
       };
 
       // Consulta a la API real
@@ -52,7 +53,6 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
         startDate: "",
         endDate: "",
         client: "",
-        manager: "",
       });
     } catch (err) {
       setError("Ocurrió un error creando el proyecto.");
@@ -156,36 +156,11 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                 >
                   <option value="">Client</option>
                   {clients.map((c) => (
-                    <option key={c.id} value={c.name}>{c.name}</option>
+                    <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
                   ))}
                 </select>
               </label>
-              <label className="font-semibold text-sm">
-                Manager *
-                <input
-                  name="manager"
-                  value={form.manager}
-                  onChange={handleChange}
-                  required
-                  disabled={submitting}
-                  placeholder="Enter project manager"
-                  className="mt-1 border rounded w-full px-3 py-2"
-                />
-                {/* Si prefieres un dropdown, úsalo en vez de input */}
-                {/* <select
-                  name="manager"
-                  value={form.manager}
-                  onChange={handleChange}
-                  required
-                  disabled={submitting}
-                  className="mt-1 border rounded w-full px-3 py-2"
-                >
-                  <option value="">Manager</option>
-                  {managers.map((m) => (
-                    <option key={m.id} value={m.name}>{m.name}</option>
-                  ))}
-                </select> */}
-              </label>
+              {/* El campo Manager ha sido eliminado porque el manager es el usuario logueado */}
             </div>
           </div>
           {/* Footer */}

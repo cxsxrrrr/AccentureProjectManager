@@ -18,5 +18,5 @@ public interface RecursosProyectoRepository extends JpaRepository<RecursosProyec
     List<RecursosProyecto> findByRecursoId_RecursoId(Long recursoId);
 
     // Buscar recursos asignados en un rango de fechas
-    List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta);
+    // List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta);
 }

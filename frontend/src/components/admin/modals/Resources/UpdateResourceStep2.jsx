@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 
 const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
-  const [local, setLocal] = useState({
-    unit: values.unit || "",
-    description: values.description || "",
+  // Normaliza los valores a la estructura estándar
+  const normalize = (v) => ({
+    unit_measure: v.unit_measure || v.unit || v.cantidad || "",
+    description: v.description || v.descripcionRecurso || "",
   });
 
+  const [local, setLocal] = useState(normalize(values));
+
   useEffect(() => {
-    setLocal({
-      unit: values.unit || "",
-      description: values.description || "",
-    });
+    setLocal(normalize(values));
   }, [values]);
 
   const handleChange = (e) => {
@@ -31,9 +31,9 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
         Resource Unit <span className="text-purple-600">*</span>
       </label>
       <input
-        name="unit"
+        name="unit_measure"
         placeholder="Enter Resource stock"
-        value={local.unit}
+        value={local.unit_measure}
         onChange={handleChange}
         className="w-full mb-4 px-4 py-2 border rounded-lg text-base outline-none focus:ring-2 focus:ring-purple-400"
         type="number"

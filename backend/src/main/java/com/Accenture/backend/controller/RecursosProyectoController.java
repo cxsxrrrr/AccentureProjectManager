@@ -71,9 +71,4 @@ public class RecursosProyectoController {
     public List<RecursosProyectoDTO> getByRecurso(@PathVariable Long recursoId) {
         return service.findByRecursoId(recursoId);
     }
-
-    @GetMapping("/asignacion")
-    public List<RecursosProyectoDTO> getByFechaAsignacion(@RequestParam LocalDateTime desde, @RequestParam LocalDateTime hasta) {
-        return service.findByFechaAsignacionBetween(desde, hasta);
-    }
 }

@@ -12,15 +12,12 @@ function ProjectManagement() {
   const [modalUpdate, setModalUpdate] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Clientes y managers HARDCODEADOS (puedes traer de la API si tienes endpoint)
-  const clients = [
-    { id: 1, name: "Globant" },
-    { id: 2, name: "Accenture" },
-  ];
-  const managers = [
-    { id: 1, name: "Luis Pérez" },
-    { id: 2, name: "Carla Smith" },
-  ];
+  // Clientes obtenidos del backend
+  const [clients, setClients] = useState([]);
+  // const managers = [
+  //   { id: 1, name: "Luis Pérez" },
+  //   { id: 2, name: "Carla Smith" },
+  // ];
 
   // Cargar proyectos reales desde backend
   const fetchProjects = async () => {
@@ -32,14 +29,12 @@ function ProjectManagement() {
         id: p.id || p.proyectoId, // p.id si tu backend devuelve así, sino ajusta el campo
         title: p.nombreProyecto,
         description: p.descripcionProyecto,
+        category: p.categoriaProyecto?.nombre || p.categoria || "",
         client:
           clients.find((c) => c.id === p.cliente?.usuarioId)?.name ||
           p.cliente?.nombre ||
           "",
-        manager:
-          managers.find((m) => m.id === p.gerenteProyecto?.usuarioId)?.name ||
-          p.gerenteProyecto?.nombre ||
-          "",
+        // manager: omitido, ya que el manager es el usuario logueado
         startDate: p.fechaInicio,
         endDate: p.fechaFin,
         status: p.estado || "Active",
@@ -54,6 +49,23 @@ function ProjectManagement() {
 
   useEffect(() => {
     fetchProjects();
+    // Obtener clientes del backend
+    const fetchClients = async () => {
+      try {
+        const res = await api.get("/usuario");
+        const users = Array.isArray(res.data) ? res.data : [res.data];
+        // Filtrar solo usuarios cuyo rol sea "client" (case-insensitive)
+        const clientUsers = users.filter(u => u.rol?.nombre?.toLowerCase() === "client");
+        setClients(clientUsers.map(u => ({
+          id: u.usuarioId || u.id,
+          name: u.nombre + (u.apellido ? (" " + u.apellido) : ""),
+          email: u.email
+        })));
+      } catch {
+        setClients([]);
+      }
+    };
+    fetchClients();
     // eslint-disable-next-line
   }, []);
 
@@ -91,8 +103,8 @@ function ProjectManagement() {
               <tr>
                 <th className="px-6 py-3">NAME</th>
                 <th className="px-6 py-3">DESCRIPTION</th>
+                {/* <th className="px-6 py-3">CATEGORY</th> */}
                 <th className="px-6 py-3">CLIENT</th>
-                <th className="px-6 py-3">MANAGER</th>
                 <th className="px-6 py-3">START DATE</th>
                 <th className="px-6 py-3">END DATE</th>
                 <th className="px-6 py-3">STATUS</th>
@@ -133,8 +145,8 @@ function ProjectManagement() {
                       {proj.title}
                     </td>
                     <td className="py-4 px-6 text-gray-700">{proj.description}</td>
+                    {/* <td className="py-4 px-6 text-gray-700">{proj.category}</td> */}
                     <td className="py-4 px-6 text-gray-700">{proj.client}</td>
-                    <td className="py-4 px-6 text-gray-700">{proj.manager}</td>
                     <td className="py-4 px-6 text-gray-700">{proj.startDate}</td>
                     <td className="py-4 px-6 text-gray-700">{proj.endDate}</td>
                     <td className="py-4 px-6">
@@ -169,7 +181,6 @@ function ProjectManagement() {
           onClose={() => setModalNew(false)}
           onSave={handleSaveNew}
           clients={clients}
-          managers={managers}
         />
         <UpdateProjectModal
           isOpen={modalUpdate}
@@ -177,7 +188,6 @@ function ProjectManagement() {
           onSave={handleSaveUpdate}
           initialData={selected}
           clients={clients}
-          managers={managers}
         />
       </div>
     </div>

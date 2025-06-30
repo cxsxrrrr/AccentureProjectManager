@@ -16,5 +16,5 @@ public interface RecursosProyectoDAO {
     List<RecursosProyecto> findByProyectoId(Long proyectoId);
     List<RecursosProyecto> findByAsignadoPor(Long usuarioId);
     List<RecursosProyecto> findByRecursoId(Long recursoId);
-    List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta);
+    // List<RecursosProyecto> findByFechaAsignacionBetween(LocalDateTime desde, LocalDateTime hasta);
 }

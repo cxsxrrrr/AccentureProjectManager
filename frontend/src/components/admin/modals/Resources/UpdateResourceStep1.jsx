@@ -4,21 +4,19 @@ const typeOptions = ["Human", "Material", "Financial"];
 const availabilityOptions = ["Available", "Disabled"];
 
 const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
-  const [local, setLocal] = useState({
-    name: values.name || "",
-    type: values.type || "",
-    cost: values.cost || "",
-    availability: values.availability || "",
+  // Normaliza los valores a la estructura estándar
+  const normalize = (v) => ({
+    name: v.name || v.nombreRecurso || "",
+    type: v.type || v.tipo || "",
+    cost: v.cost || v.costo || v.coste || "",
+    availability: v.availability || v.disponibilidad || v.estado || "",
   });
+
+  const [local, setLocal] = useState(normalize(values));
 
   // Sync local state when values change (on resource change or modal open)
   useEffect(() => {
-    setLocal({
-      name: values.name || "",
-      type: values.type || "",
-      cost: values.cost || "",
-      availability: values.availability || "",
-    });
+    setLocal(normalize(values));
   }, [values]);
 
   const handleChange = (e) => {
