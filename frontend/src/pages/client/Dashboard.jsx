@@ -140,7 +140,7 @@ function TrackingProject({ project, onBack }) {
       <div className="mb-8">
         <button
           onClick={onBack}
-          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 mb-4"
+          className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 mb-4 transition-colors"
         >
           ← Volver al Dashboard
         </button>
@@ -208,7 +208,7 @@ function TrackingProject({ project, onBack }) {
                 {/* Conector */}
                 {idx > 0 && (
                   <div
-                    className={`absolute h-1 bg-gray-300 ${
+                    className={`absolute h-1 ${
                       milestones[idx - 1].estado === "Completado" && m.estado === "Completado" 
                         ? "bg-green-400" 
                         : milestones[idx - 1].estado === "Completado" 
@@ -364,23 +364,23 @@ function Dashboard() {
     <div>
       {/* Resumen de estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 transform hover:scale-105 transition-transform">
           <div className="text-2xl font-bold text-blue-600">{projects.length}</div>
           <div className="text-gray-600 text-sm">Total Proyectos</div>
         </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 transform hover:scale-105 transition-transform">
           <div className="text-2xl font-bold text-green-600">
             {projects.filter(p => p.estado === "Completado").length}
           </div>
           <div className="text-gray-600 text-sm">Completados</div>
         </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 transform hover:scale-105 transition-transform">
           <div className="text-2xl font-bold text-orange-600">
             {projects.filter(p => p.estado === "En Progreso").length}
           </div>
           <div className="text-gray-600 text-sm">En Progreso</div>
         </div>
-        <div className="bg-white rounded-2xl shadow-lg p-6">
+        <div className="bg-white rounded-2xl shadow-lg p-6 transform hover:scale-105 transition-transform">
           <div className="text-2xl font-bold text-gray-600">
             {projects.filter(p => p.estado === "Pendiente").length}
           </div>
@@ -390,8 +390,8 @@ function Dashboard() {
 
       {/* Tabla de proyectos */}
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-gray-800">Project Status</h2>
+        <div className="px-6 py-4 bg-gradient-to-r from-purple-500 to-purple-600">
+          <h2 className="text-xl font-bold text-white">Project Status</h2>
         </div>
         
         <div className="overflow-x-auto">
@@ -464,7 +464,7 @@ function Dashboard() {
                       <div className="flex items-center space-x-2">
                         <div className="w-16 bg-gray-200 rounded-full h-2">
                           <div 
-                            className={`h-2 rounded-full ${
+                            className={`h-2 rounded-full transition-all duration-500 ${
                               progressPercentage === 100 ? 'bg-green-500' : 
                               progressPercentage > 0 ? 'bg-blue-500' : 'bg-gray-300'
                             }`}
@@ -482,7 +482,7 @@ function Dashboard() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleSelectProject(proyecto)}
-                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+                        className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 transform hover:scale-105"
                       >
                         Ver Tracking
                       </button>
