@@ -1,20 +1,30 @@
 import React from "react";
-import helpIcon from "../../../../assets/icons/help.svg"; // Usa cualquier ícono de advertencia
+import helpIcon from "../../../../assets/icons/help.svg";
 
-// Asume que usuariosMock está definido global o lo pasas por props/context
-const usuariosMock = [
-  { usuarioId: 1, name: "Jane Smith" },
-  { usuarioId: 2, name: "John Doe" },
-  { usuarioId: 3, name: "Carlos Reyes" },
-];
-
-// Función para buscar nombre del usuario por ID
-function getUserNameById(id) {
-  const u = usuariosMock.find((u) => u.usuarioId === Number(id));
+// Busca el nombre del usuario por id en el array que recibes
+function getUserNameById(users, id) {
+  const u = users.find((u) => u.usuarioId === Number(id));
   return u ? u.name : "Unknown";
 }
 
-function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
+function getStatusLabel(status) {
+  switch (status) {
+    case "NO_INICIADA":
+      return "Not Started";
+    case "EN_PROGRESO":
+      return "In Progress";
+    case "COMPLETADA":
+      return "Completed";
+    case "BLOQUEADA":
+      return "Blocked";
+    case "DISABLED":
+      return "Disabled";
+    default:
+      return status;
+  }
+}
+
+function DisableTaskModal({ isOpen, onClose, onDisable, task, users = [] }) {
   if (!isOpen || !task) return null;
 
   return (
@@ -47,16 +57,12 @@ function DisableTaskModal({ isOpen, onClose, onDisable, task }) {
           <div className="text-gray-500">
             Created by:{" "}
             <span className="font-semibold">
-              {getUserNameById(task.creadoPor?.usuarioId)}
+              {getUserNameById(users, task.creadoPor?.usuarioId)}
             </span>
           </div>
           <div className="text-gray-500 mt-1">
             <span className="font-semibold">Status:</span>{" "}
-            {task.estado === "NO_INICIADA" && "Not Started"}
-            {task.estado === "EN_PROGRESO" && "In Progress"}
-            {task.estado === "COMPLETADA" && "Completed"}
-            {task.estado === "BLOQUEADA" && "Blocked"}
-            {task.estado === "DISABLED" && "Disabled"}
+            {getStatusLabel(task.estado)}
           </div>
         </div>
         {/* Footer */}

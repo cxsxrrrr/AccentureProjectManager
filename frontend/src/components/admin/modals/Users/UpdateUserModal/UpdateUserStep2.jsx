@@ -95,8 +95,7 @@ export default function UpdateUserStep2({
     <form onSubmit={handleSubmit} className="p-8 space-y-4">
       {/* Header */}
       <div className="flex items-center mb-3 gap-3">
-        <span className="bg-purple-100 rounded-xl p-2 text-4xl text-purple-500">
-        </span>
+
         <div>
           <h2 className="text-2xl font-bold">Update User</h2>
           <p className="text-sm text-gray-500">
@@ -116,8 +115,7 @@ export default function UpdateUserStep2({
       {/* Contact Info */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
-          <span className="text-xl bg-purple-100 p-1 rounded">
-          </span>
+
           Contact Information
         </h3>
         <div className="grid grid-cols-1 gap-3">
@@ -145,8 +143,6 @@ export default function UpdateUserStep2({
       {/* Rol del usuario */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
-          <span className="text-xl bg-purple-100 p-1 rounded">
-          </span>
           Role
         </h3>
         <div className="grid grid-cols-1 gap-3">
@@ -170,8 +166,6 @@ export default function UpdateUserStep2({
       {/* Categoría y Skills */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
-          <span className="text-xl bg-purple-100 p-1 rounded">
-          </span>
           Category & Skills
         </h3>
         <div className="grid grid-cols-1 gap-3">
@@ -260,9 +254,7 @@ export default function UpdateUserStep2({
       {/* Estado */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
-          <span className="text-xl bg-purple-100 p-1 rounded">
-            <i className="material-icons">toggle_on</i>
-          </span>
+
           Account Status
         </h3>
         <label className="font-semibold text-sm">Status *</label>

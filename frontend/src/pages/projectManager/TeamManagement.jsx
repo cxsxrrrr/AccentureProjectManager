@@ -21,11 +21,15 @@ function TeamManagement() {
   const [projectFilter, setProjectFilter] = useState("");
   const [search, setSearch] = useState("");
 
+  // Utilidad para obtener una clave única de usuario
+  const getMemberKey = (member) => String(member.id ?? member.usuarioId);
+
   // Cargar datos desde la API al montar
   useEffect(() => {
     // Cargar miembros del equipo
-    api.get("/usuario")
-      .then(res => {
+    api
+      .get("/usuario")
+      .then((res) => {
         if (Array.isArray(res.data)) {
           setTeam(res.data);
         } else {
@@ -34,16 +38,19 @@ function TeamManagement() {
       })
       .catch(() => setTeam([]));
     // Cargar categorías (o skills si tienes endpoint)
-    api.get("/category")
-      .then(res => setCategorias(res.data))
+    api
+      .get("/category")
+      .then((res) => setCategorias(res.data))
       .catch(() => setCategorias([]));
     // Cargar proyectos
-    api.get("/proyectos")
-      .then(res => setProyectos(res.data))
+    api
+      .get("/proyectos")
+      .then((res) => setProyectos(res.data))
       .catch(() => setProyectos([]));
     // Si tienes endpoint de habilidades, usa GET /habilidades. Si no, extrae desde miembros:
-    api.get("/skills")
-      .then(res => setAllSkills(res.data.map(h => h.nombre)))
+    api
+      .get("/skills")
+      .then((res) => setAllSkills(res.data.map((h) => h.nombre)))
       .catch(() => {
         setAllSkills([]);
       });
@@ -52,8 +59,7 @@ function TeamManagement() {
   // Filtros
   const filteredTeam = team.filter((member) => {
     const matchSearch =
-      !search ||
-      (member.cedula && String(member.cedula).includes(search));
+      !search || (member.cedula && String(member.cedula).includes(search));
     const matchCategoria =
       !categoriaFilter ||
       (member.categoria && member.categoria.nombre === categoriaFilter);
@@ -67,7 +73,8 @@ function TeamManagement() {
     return matchSearch && matchCategoria && matchSkill && matchProject;
   });
 
-  const selectedUser = team.find((u) => u.id === selectedId);
+  // Selección robusta de usuario
+  const selectedUser = team.find((u) => getMemberKey(u) === selectedId);
 
   // Asignación y desasignación
   const handleAssign = () => {
@@ -95,7 +102,9 @@ function TeamManagement() {
     try {
       const res = await api.get("/usuario");
       setTeam(res.data);
-    } catch { setTeam([]); }
+    } catch {
+      setTeam([]);
+    }
   };
 
   return (
@@ -108,7 +117,11 @@ function TeamManagement() {
             <TopControls
               module="team"
               onAssign={selectedUser ? handleAssign : undefined}
-              onUnassign={selectedUser && selectedUser.proyecto ? handleUnassign : undefined}
+              onUnassign={
+                selectedUser && selectedUser.proyecto
+                  ? handleUnassign
+                  : undefined
+              }
             />
           </div>
           {/* Filters and Search */}
@@ -166,23 +179,39 @@ function TeamManagement() {
           <table className="min-w-full w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2 mt-4">
             <thead>
               <tr>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">NAME</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ID DOCUMENT</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">EMAIL</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">ROLE</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">CATEGORY</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">SKILLS</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">PROJECT</th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">STATUS</th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  NAME
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  ID DOCUMENT
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  EMAIL
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  ROLE
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  CATEGORY
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  SKILLS
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  PROJECT
+                </th>
+                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider">
+                  STATUS
+                </th>
               </tr>
             </thead>
             <tbody>
               {filteredTeam.map((member) => (
                 <tr
-                  key={member.id || member.usuarioId}
-                  onClick={() => setSelectedId(member.id)}
+                  key={getMemberKey(member)}
+                  onClick={() => setSelectedId(getMemberKey(member))}
                   className={`cursor-pointer transition ${
-                    selectedId === member.id
+                    selectedId === getMemberKey(member)
                       ? "bg-purple-100 ring-2 ring-purple-200"
                       : ""
                   } hover:bg-purple-50`}
@@ -190,28 +219,44 @@ function TeamManagement() {
                   <td className="py-5 px-6 font-semibold text-gray-800 whitespace-nowrap">
                     {member.nombre} {member.apellido}
                   </td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.cedula}</td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.email}</td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.rol?.nombre}</td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.categoria?.nombre || "-"}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {member.cedula}
+                  </td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {member.email}
+                  </td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {member.rol?.nombre}
+                  </td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {member.categoria?.nombre || "-"}
+                  </td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
                     <div className="flex flex-wrap gap-1">
                       {member.habilidades?.map((skill) => (
-                        <span key={`${member.id || member.usuarioId}-${skill}`} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold">
+                        <span
+                          key={`${getMemberKey(member)}-${skill}`}
+                          className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold"
+                        >
                           {skill}
                         </span>
                       ))}
                     </div>
                   </td>
-                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">{member.proyecto?.nombreProyecto || "Unassigned"}</td>
+                  <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
+                    {member.proyecto?.nombreProyecto || "Unassigned"}
+                  </td>
                   <td className="py-5 px-6">
-                    <span className={`
+                    <span
+                      className={`
                       px-3 py-1 rounded-full font-bold text-xs
-                      ${member.status === "Activo"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-600"
+                      ${
+                        member.status === "Activo"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-600"
                       }
-                    `}>
+                    `}
+                    >
                       {member.status === "Activo" ? "Active" : "Inactive"}
                     </span>
                   </td>
