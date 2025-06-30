@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Topbar from "../../components/common/Topbar";
-import UploadDocument from "../../components/teamMember/modals/UploadDocument";
+import UploadDocument from "../../components/teamMember/modals/Document/UploadDocument";
 import cloudUploadIcon from "../../assets/icons/cloud-upload.svg";
 import documentIcon from "../../assets/icons/documents.svg";
 import "../../stylesheets/page.css";

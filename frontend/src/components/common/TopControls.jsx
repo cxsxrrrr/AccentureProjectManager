@@ -116,6 +116,21 @@ function TopControls({
       ];
     }
 
+    if (module === "resourceManager") {
+      // Solo update y delete para resources (como lo quieres)
+      return [
+        <button
+          key="assign-resource"
+          className="control-button"
+          onClick={onAssignResource}
+        >
+          <img src={assignResource} alt="" className="button-icon" />
+          Assign Resource
+        </button>,
+        ...common
+      ];
+    }    
+
     if (module === "project") {
       // Solo update y delete para resources (como lo quieres)
       return [...common.slice(0, 2)];
@@ -123,6 +138,21 @@ function TopControls({
 
     return common;
   };
+  
+  if (module === "custom_assignedtasks") {
+    // Solo botón de Update Status
+    return [
+      <button
+        key="update-status"
+        className="control-button"
+        onClick={onUpdate}
+        disabled={!onUpdate}
+      >
+        <img src={updateIcon} alt="" className="button-icon" />
+        Update Status
+      </button>,
+    ];
+  }
 
   const renderFilters = () => {
     const inputClass = "topbar-search";

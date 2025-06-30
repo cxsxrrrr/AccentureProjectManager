@@ -7,12 +7,21 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
   const [catSearch, setCatSearch] = useState("");
   const [touched, setTouched] = useState(false);
 
+  // Normaliza categorías para que funcionen con el nuevo modelo del frontend
+  const normalizedCategories = categories.map(c => ({
+    id: c.id || c.categoriaId,
+    name: c.name || c.nombre,
+    description: c.description || c.descripcion
+  }));
+
   useEffect(() => {
     if (isOpen && skill) {
       setName(skill.name || "");
-      // Buscamos el id de la categoría actual (asumiendo que skill guarda el nombre de la categoría)
-      const currentCategory = categories.find(
-        c => c.name.toLowerCase() === (skill.category || "").toLowerCase()
+      // Encuentra el id de la categoría (puede ser por nombre o por id según tu modelo)
+      const currentCategory = normalizedCategories.find(
+        c =>
+          (c.id && c.id === skill.category_id) ||
+          (c.name && c.name.toLowerCase() === (skill.category || "").toLowerCase())
       );
       setCatId(currentCategory ? currentCategory.id : null);
       setCatSearch("");
@@ -21,17 +30,19 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
   }, [isOpen, skill, categories]);
 
   const valid = name.trim() && catId;
-  const filteredCategories = categories.filter(c =>
-    c.name.toLowerCase().includes(catSearch.toLowerCase())
+  const filteredCategories = normalizedCategories.filter(
+    c =>
+      (c.name && c.name.toLowerCase().includes(catSearch.toLowerCase())) ||
+      (c.description && c.description.toLowerCase().includes(catSearch.toLowerCase()))
   );
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
-    const category = categories.find(c => c.id === catId);
+    const category = normalizedCategories.find(c => c.id === catId);
     onUpdate &&
-      onUpdate({ ...skill, name: name.trim(), category: category.name });
+      onUpdate({ ...skill, name: name.trim(), category: category ? category.name : '', category_id: catId });
     toggle();
   };
 
@@ -44,7 +55,7 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
         className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-10 relative"
       >
         {/* Header */}
-        <div className="flex items-start mb-8">
+        <div className="flex items-start mb-10">
           <h2 className="text-3xl font-bold text-gray-700 flex-1">Update Skill</h2>
           <button
             onClick={toggle}
@@ -54,25 +65,26 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
           >×</button>
         </div>
         {/* Form */}
-        <div className="mb-8">
-          <label className="block text-2xl font-bold mb-3" htmlFor="skillname">
-            Skill name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="skillname"
-            className="w-full rounded-lg border border-gray-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400 mb-7"
-            placeholder="Enter skill name"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            autoFocus
-          />
-          {touched && !name.trim() && (
-            <div className="text-red-500 text-sm mb-2">Skill name is required.</div>
-          )}
-
-          <div className="mb-4">
-            <div className="text-2xl font-bold mb-3">Select Category</div>
-            <div className="flex items-center border rounded-lg px-3 py-2 mb-4 bg-gray-50 shadow-inner">
+        <div className="flex flex-col gap-8 mb-10">
+          <div>
+            <label className="block text-2xl font-bold mb-4" htmlFor="skillname">
+              Skill Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="skillname"
+              className="w-full rounded-lg border border-gray-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400 mb-4"
+              placeholder="Enter skill name"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              autoFocus
+            />
+            {touched && !name.trim() && (
+              <div className="text-red-500 text-sm mb-2">Skill name is required.</div>
+            )}
+          </div>
+          <div>
+            <div className="text-2xl font-bold mb-4">Select Category</div>
+            <div className="flex items-center border rounded-lg px-3 py-2 mb-5 bg-gray-50 shadow-inner">
               <FiSearch className="text-xl text-gray-400 mr-2" />
               <input
                 type="text"
@@ -82,40 +94,41 @@ export default function UpdateSkillModal({ isOpen, toggle, skill, categories = [
                 className="w-full outline-none bg-transparent text-lg"
               />
             </div>
-            <div className="max-h-40 overflow-y-auto flex flex-col gap-2">
-              {filteredCategories.length === 0 && (
+            <div className="max-h-48 overflow-y-auto flex flex-col gap-3">
+              {filteredCategories.length === 0 ? (
                 <div className="text-gray-400 py-4 text-center">No categories found.</div>
+              ) : (
+                filteredCategories.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCatId(c.id)}
+                    className={`
+                      flex flex-col items-start p-4 rounded-xl border w-full transition
+                      text-left shadow-sm
+                      ${catId === c.id
+                        ? "bg-purple-100 text-purple-700 border-2 border-purple-400"
+                        : "bg-white border-gray-200 hover:bg-purple-100"}
+                    `}
+                  >
+                    <div className="flex items-center w-full">
+                      <span className="font-bold text-lg flex-1">{c.name}</span>
+                      {catId === c.id && <FiCheck className="text-2xl ml-2 font-bold" />}
+                    </div>
+                    <span className={`text-xs mt-2 ${catId === c.id ? "text-purple-600" : "text-gray-500"}`}>
+                      {c.description || "No description"}
+                    </span>
+                  </button>
+                ))
               )}
-              {filteredCategories.map(c => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => setCatId(c.id)}
-                  className={`
-                    flex flex-col items-start p-4 rounded-xl border w-full transition
-                    text-left shadow-sm
-                    ${catId === c.id
-                      ? "bg-purple-100 text-purple-700 border-2 border-purple-400"
-                      : "bg-white border-gray-200 hover:bg-purple-100"}
-                  `}
-                >
-                  <div className="flex items-center w-full">
-                    <span className="font-bold text-lg flex-1">{c.name}</span>
-                    {catId === c.id && <FiCheck className="text-2xl ml-2 font-bold" />}
-                  </div>
-                  <span className={`text-xs mt-1 ${catId === c.id ? "text-purple-600" : "text-gray-500"}`}>
-                    {c.description || "No description"}
-                  </span>
-                </button>
-              ))}
             </div>
             {touched && !catId && (
-              <div className="text-red-500 text-sm mt-2">Select a category.</div>
+              <div className="text-red-500 text-sm mt-3">Select a category.</div>
             )}
           </div>
         </div>
         {/* Footer */}
-        <div className="flex justify-end gap-3 pt-8">
+        <div className="flex justify-end gap-8 pt-10">
           <button
             type="button"
             onClick={toggle}

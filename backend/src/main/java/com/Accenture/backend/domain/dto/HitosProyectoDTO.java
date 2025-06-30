@@ -1,6 +1,6 @@
 package com.Accenture.backend.domain.dto;
 
-import com.Accenture.backend.model.Proyecto;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

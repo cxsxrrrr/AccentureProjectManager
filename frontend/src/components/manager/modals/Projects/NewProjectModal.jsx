@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import projectIcon from "../../../../assets/icons/project.svg"; // Ajusta el path si es necesario
+import projectIcon from "../../../../assets/icons/project.svg";
+import api from "../../../../services/axios"; // Ajusta el path si no corresponde
 
 function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] }) {
   const [form, setForm] = useState({
@@ -9,18 +10,55 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
     endDate: "",
     client: "",
     manager: "",
-    // NO status aquí
   });
+
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // Asume que tu backend necesita:
+  // {
+  //    nombreProyecto, descripcionProyecto, fechaInicio, fechaFin, estado, cliente, gerenteProyecto, creadoPor
+  // }
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Añade status: "Active" al objeto que se envía
-    onSave({ ...form, status: "Active" });
-    onClose(); // Puedes cerrar aquí o en el parent
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const payload = {
+        nombreProyecto: form.title,
+        descripcionProyecto: form.description,
+        fechaInicio: form.startDate,
+        fechaFin: form.endDate,
+        estado: "Active",
+        cliente: { usuarioId: clients.find(c => c.name === form.client)?.id || 1 },
+        gerenteProyecto: { usuarioId: managers.find(m => m.name === form.manager)?.id || 1 },
+        creadoPor: { usuarioId: 1 }, // Puedes cambiarlo por el usuario logueado real si lo tienes
+      };
+
+      // Consulta a la API real
+      const response = await api.post("/proyectos", payload);
+
+      // Si tienes un onSave para refrescar tabla desde fuera, úsalo:
+      if (onSave) onSave(response.data);
+      onClose();
+      setForm({
+        title: "",
+        description: "",
+        startDate: "",
+        endDate: "",
+        client: "",
+        manager: "",
+      });
+    } catch (err) {
+      setError("Ocurrió un error creando el proyecto.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -47,6 +85,8 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
           </button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Mensaje de error simple */}
+          {error && <div className="bg-red-100 text-red-700 px-4 py-2 rounded">{error}</div>}
           {/* Project Info */}
           <div>
             <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
@@ -63,6 +103,7 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.title}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   placeholder="Enter project title"
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
@@ -74,6 +115,7 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.description}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   placeholder="Enter project description"
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
@@ -86,6 +128,7 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.startDate}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
               </label>
@@ -97,6 +140,7 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.endDate}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
               </label>
@@ -107,6 +151,7 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.client}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   className="mt-1 border rounded w-full px-3 py-2"
                 >
                   <option value="">Client</option>
@@ -122,23 +167,24 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
                   value={form.manager}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   placeholder="Enter project manager"
                   className="mt-1 border rounded w-full px-3 py-2"
                 />
-                {/* Si prefieres un dropdown:
-                <select
+                {/* Si prefieres un dropdown, úsalo en vez de input */}
+                {/* <select
                   name="manager"
                   value={form.manager}
                   onChange={handleChange}
                   required
+                  disabled={submitting}
                   className="mt-1 border rounded w-full px-3 py-2"
                 >
                   <option value="">Manager</option>
                   {managers.map((m) => (
                     <option key={m.id} value={m.name}>{m.name}</option>
                   ))}
-                </select>
-                */}
+                </select> */}
               </label>
             </div>
           </div>
@@ -147,15 +193,17 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [], managers = [] 
             <button
               type="button"
               onClick={onClose}
+              disabled={submitting}
               className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
+              disabled={submitting}
               className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
             >
-              Save
+              {submitting ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
