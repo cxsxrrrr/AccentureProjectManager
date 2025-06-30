@@ -108,6 +108,7 @@ function CategoriesandSkills() {
       console.error("Error creating category:", err);
       setError("Error creating category. Please try again.");
     }
+
   };
 
   const handleCreateSkill = async (newSkill) => {
@@ -369,8 +370,8 @@ function CategoriesandSkills() {
             <tbody>
             {categories.map((category, i) => (
               <tr
-                key={category.categoriaId}  // usa la propiedad que el backend te está enviando
-                onClick={() => setSelectedCategoryId(category.categoriaId)}
+                key={category.id} // usa la propiedad que el backend te está enviando
+                onClick={() => setSelectedCategoryId(category.id)}
                 className={`cursor-pointer transition ${
                   selectedCategoryId === category.categoriaId
                     ? "bg-purple-50 ring-2 ring-purple-200"
