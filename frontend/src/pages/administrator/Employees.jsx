@@ -124,9 +124,11 @@ function Employees() {
             return {
               ...emp,
               // Procesar categoría
-              category: categoryData 
-                ? (categoryData.nombre || categoryData.name || categoryData.categoryName || "Unknown")
-                : "No category",
+              category: Array.isArray(categoryData) && categoryData.length > 0
+                ? (categoryData[0].nombre || categoryData[0].name || categoryData[0].categoryName || "Unknown")
+                : (categoryData && (categoryData.nombre || categoryData.name || categoryData.categoryName))
+                  ? (categoryData.nombre || categoryData.name || categoryData.categoryName)
+                  : "No category",
               // Procesar skills - tomar solo las primeras 3
               skills: Array.isArray(skillsData) 
                 ? skillsData
