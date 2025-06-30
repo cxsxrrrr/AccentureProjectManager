@@ -1,48 +1,101 @@
-import React, { useState, useMemo } from "react";
-
-const ROLES = [
-  { name: "Admin", desc: "Full access to the system", color: "text-purple-600", border: "border-purple-400", shadow: "shadow-purple-200", rolId: 1, nombre: "Administrador" },
-  { name: "Manager", desc: "Team and project management", color: "text-purple-500", border: "border-purple-400", bg: "bg-purple-50", rolId: 2, nombre: "Gerente" },
-  { name: "Team Member", desc: "Development and maintenance", color: "text-green-600", border: "border-green-400", bg: "bg-green-50", rolId: 3, nombre: "Miembro de Equipo" },
-  { name: "Customer", desc: "Limited client access", color: "text-red-500", border: "border-red-400", bg: "bg-red-50", rolId: 4, nombre: "Cliente" },
-];
+import React, { useState, useMemo, useEffect } from "react";
+import api from "../../../../services/axios";
 
 export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState(null);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoading(true);
+      setError(null);
+      setSelectedRole(null); // Reset selected role
+      
+      api.get("/roles")
+        .then(res => {
+          console.log('Roles loaded:', res.data); // Debug
+          setRoles(res.data);
+        })
+        .catch(err => {
+          console.error('Error loading roles:', err); // Debug
+          setError("Error loading roles: " + (err.response?.data?.message || err.message));
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [isOpen]);
 
   // Filtrar roles por búsqueda
   const filteredRoles = useMemo(() =>
-    ROLES.filter(role =>
-      role.name.toLowerCase().includes(search.toLowerCase())
-    ), [search]
+    roles.filter(role =>
+      (role.nombre || role.name || "").toLowerCase().includes(search.toLowerCase())
+    ), [search, roles]
   );
 
-  // Asignar el rol en formato español
-  const handleAssign = (e) => {
+  // Asignar el rol
+  const handleAssign = async (e) => {
     e.preventDefault();
-    if (selectedRole) {
-      // Aquí el adaptador al body esperado por la API:
-      onAssign({
-        rol: {
-          rolId: selectedRole.rolId,
-          nombre: selectedRole.nombre, // nombre en español
-        }
-      });
-      setSelectedRole(null);
-      toggle();
+    if (!selectedRole) {
+      setError("Please select a role");
+      return;
     }
+
+    try {
+      console.log('Assigning role to user:', user); // Debug
+      console.log('Selected role:', selectedRole); // Debug
+      
+      // Verificar que el rol seleccionado es diferente al actual
+      const currentRoleId = user.rol?.rolId || user.rol?.id;
+      const selectedRoleId = selectedRole.rolId || selectedRole.id;
+      
+      if (currentRoleId === selectedRoleId) {
+        setError("User already has this role assigned");
+        return;
+      }
+
+      // Construir el payload según lo que espera tu API
+      const rolePayload = {
+        rol: {
+          rolId: selectedRole.rolId || selectedRole.id,
+          nombre: selectedRole.nombre || selectedRole.name,
+        }
+      };
+
+      console.log('Role payload:', rolePayload); // Debug
+      
+      // Llamar a la función onAssign del componente padre
+      await onAssign(rolePayload);
+      
+      // Limpiar estado y cerrar modal
+      setSelectedRole(null);
+      setSearch("");
+      setError(null);
+      
+    } catch (error) {
+      console.error('Error in handleAssign:', error);
+      setError("Error assigning role: " + (error.message || "Unknown error"));
+    }
+  };
+
+  // Reset cuando se cierra el modal
+  const handleClose = () => {
+    setSelectedRole(null);
+    setSearch("");
+    setError(null);
+    toggle();
   };
 
   if (!isOpen) return null;
 
-  // Muestra el rol actual correctamente (si es objeto o string)
+  // Muestra el rol actual correctamente
   const getCurrentRole = (user) => {
     if (!user) return "";
-    if (user.rol && typeof user.rol === "object") return user.rol.nombre;
+    if (user.rol && typeof user.rol === "object") return user.rol.nombre || user.rol.name;
     if (user.rol) return user.rol;
     if (user.role) return user.role;
-    return "";
+    return "No role assigned";
   };
 
   return (
@@ -56,7 +109,7 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
             <p className="text-sm text-gray-400">Select a user and assign a new role</p>
           </div>
           <button
-            onClick={toggle}
+            onClick={handleClose}
             className="ml-auto text-gray-400 hover:text-purple-600 text-2xl"
             aria-label="Close modal"
             type="button"
@@ -64,6 +117,13 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
             ×
           </button>
         </div>
+
+        {/* Error display */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
 
         {/* Search */}
         <input
@@ -76,21 +136,45 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
 
         {/* Roles List */}
         <div className="mb-6 space-y-3 max-h-60 overflow-y-auto">
-          {filteredRoles.map(role => (
-            <button
-              type="button"
-              key={role.name}
-              onClick={() => setSelectedRole(role)}
-              className={`w-full text-left px-4 py-3 rounded-xl border transition
-                ${selectedRole?.name === role.name
-                  ? `bg-purple-50 border-purple-500 ring-2 ring-purple-300`
-                  : "bg-white hover:bg-gray-50 border-gray-200"}
-              `}
-            >
-              <span className={`block font-semibold text-base ${role.color}`}>{role.name}</span>
-              <span className="block text-sm text-gray-500">{role.desc}</span>
-            </button>
-          ))}
+          {loading ? (
+            <div className="text-center text-gray-400">Loading roles...</div>
+          ) : error && !roles.length ? (
+            <div className="text-center text-red-500">{error}</div>
+          ) : filteredRoles.length === 0 ? (
+            <div className="text-center text-gray-400">
+              {roles.length === 0 ? "No roles available" : "No roles found"}
+            </div>
+          ) : (
+            filteredRoles.map(role => {
+              const roleId = role.rolId || role.id;
+              const roleName = role.nombre || role.name;
+              const currentUserRoleId = user?.rol?.rolId || user?.rol?.id;
+              const isCurrentRole = currentUserRoleId === roleId;
+              
+              return (
+                <button
+                  type="button"
+                  key={roleId}
+                  onClick={() => setSelectedRole(role)}
+                  disabled={isCurrentRole}
+                  className={`w-full text-left px-4 py-3 rounded-xl border transition
+                    ${isCurrentRole 
+                      ? "bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed"
+                      : selectedRole?.rolId === roleId || selectedRole?.id === roleId
+                        ? "bg-purple-50 border-purple-500 ring-2 ring-purple-300"
+                        : "bg-white hover:bg-gray-50 border-gray-200"}
+                  `}
+                >
+                  <span className={`block font-semibold text-base ${isCurrentRole ? 'text-gray-500' : 'text-purple-700'}`}>
+                    {roleName} {isCurrentRole && "(Current)"}
+                  </span>
+                  {role.descripcion && (
+                    <span className="block text-sm text-gray-500">{role.descripcion}</span>
+                  )}
+                </button>
+              );
+            })
+          )}
         </div>
 
         {/* Summary */}
@@ -103,7 +187,7 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
             <div>
               Current role: <span className="font-bold">{getCurrentRole(user)}</span>
               <span className="mx-2">⟶</span>
-              New role: <span className="font-bold text-purple-600">{selectedRole.name}</span>
+              New role: <span className="font-bold text-purple-600">{selectedRole.nombre || selectedRole.name}</span>
             </div>
           </div>
         )}
@@ -112,18 +196,18 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
         <div className="flex justify-end gap-3">
           <button
             type="button"
-            onClick={toggle}
+            onClick={handleClose}
             className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
           >
             Cancel
           </button>
           <button
             type="button"
-            className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold hover:from-purple-600 hover:to-purple-800 transition"
-            disabled={!selectedRole}
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold hover:from-purple-600 hover:to-purple-800 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={!selectedRole || loading}
             onClick={handleAssign}
           >
-            Assign Role
+            {loading ? "Assigning..." : "Assign Role"}
           </button>
         </div>
       </div>

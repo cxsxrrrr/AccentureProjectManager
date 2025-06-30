@@ -13,8 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 import java.util.List;
+import java.util.Map;
 
 // Ruta principal
 @RestController
@@ -78,6 +80,15 @@ public class UsuarioController {
     public ResponseEntity<UsuarioDTO> getUserByCedula(@PathVariable("cedula") Long cedula) {
         UsuarioDTO usuario = usuarioService.obtenerUsuarioPorCedula(cedula);
         return ResponseEntity.ok(usuario);
+    }
+
+    // PATCH: Actualizar solo campos parciales del usuario
+    @PatchMapping("/{id}")
+    public ResponseEntity<UsuarioDTO> patchUserById(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> updates) {
+        UsuarioDTO actualizado = usuarioService.patchUsuarioById(id, updates);
+        return ResponseEntity.ok(actualizado);
     }
 
 }
