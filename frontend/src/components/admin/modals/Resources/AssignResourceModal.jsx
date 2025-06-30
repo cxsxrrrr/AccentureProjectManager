@@ -154,3 +154,5 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources }) => {
     </div>
   );
 };
+
+export default AssignResourceModal;
