@@ -1,6 +1,7 @@
 package com.Accenture.backend.controller;
 
 import com.Accenture.backend.domain.dto.SkillsDTO;
+import com.Accenture.backend.domain.dto.UsuarioDTO;
 import com.Accenture.backend.domain.service.SkillsService;
 import org.springframework.http.ResponseEntity;
 
@@ -23,6 +24,13 @@ public class SkillsController {
 
     public SkillsController(SkillsService skillsService) {
         this.skillsService = skillsService;
+    }
+
+    // Obtener usuarios asociados a una skill
+    @GetMapping("/{id}/users")
+    public ResponseEntity<List<UsuarioDTO>> getUsersBySkill(@PathVariable("id") Long id) {
+        List<UsuarioDTO> users = skillsService.obtenerUsuariosPorSkill(id);
+        return ResponseEntity.ok(users);
     }
 
     // Crear Skill
@@ -53,5 +61,19 @@ public class SkillsController {
     public ResponseEntity<String> deleteSkill(@PathVariable Long id) {
         skillsService.eliminarSkillById(id);
         return ResponseEntity.ok("Skill eliminado exitosamente");
+    }
+
+    // Obtener Skill por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<SkillsDTO> getSkillById(@PathVariable Long id) {
+        SkillsDTO dto = skillsService.obtenerSkillPorId(id);
+        return ResponseEntity.ok(dto);
+    }
+
+    // Obtener Skills asociadas a un usuario
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<SkillsDTO>> getSkillsByUsuario(@PathVariable("usuarioId") Long usuarioId) {
+        List<SkillsDTO> skills = skillsService.obtenerSkillsPorUsuario(usuarioId);
+        return ResponseEntity.ok(skills);
     }
 }

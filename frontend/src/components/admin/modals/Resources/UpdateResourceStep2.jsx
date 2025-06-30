@@ -14,7 +14,13 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
   }, [values]);
 
   const handleChange = (e) => {
-    setLocal({ ...local, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    // Limita a 7 dígitos (solo números)
+    if (name === "unit") {
+      value = value.replace(/\D/, "");
+      if (value.length > 7) value = value.slice(0, 7);
+    }
+    setLocal({ ...local, [name]: value });
   };
 
   return (
@@ -32,6 +38,12 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
         className="w-full mb-4 px-4 py-2 border rounded-lg text-base outline-none focus:ring-2 focus:ring-purple-400"
         type="number"
         min={0}
+        max={9999999}
+        onInput={e => {
+          if (e.target.value.length > 7) {
+            e.target.value = e.target.value.slice(0, 7);
+          }
+        }}
       />
 
       {/* Resource Description */}

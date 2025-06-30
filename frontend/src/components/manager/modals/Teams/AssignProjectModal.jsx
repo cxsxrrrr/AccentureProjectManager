@@ -1,16 +1,51 @@
 import React, { useState } from "react";
 import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el path si es necesario
+import api from "../../../../services/axios"; // Ajusta el path si es necesario
 
 function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) {
   const [selectedProject, setSelectedProject] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen || !user) return null;
 
-  // Actualiza el proyecto seleccionado
   const handleSelect = (projectName) => setSelectedProject(projectName);
 
-  const handleAssign = () => {
-    if (selectedProject) onAssign(selectedProject);
+  const handleAssign = async () => {
+    if (!selectedProject || submitting) return;
+    setSubmitting(true);
+    setError("");
+
+    try {
+      // Buscar el objeto del proyecto por 'name'
+      const projectObj = projects.find(
+        (p) => (typeof p === "object" ? p.name === selectedProject : p === selectedProject)
+      );
+
+      // Tomar el id (debería ser .id), con fallback si solo tienes el nombre
+      const projectId = typeof projectObj === "object" ? projectObj.id || projectObj.proyectoId : undefined;
+
+      // Si no hay id, asigna solo el nombre (sólo como ejemplo/manual, real sería siempre por id)
+      // >>>> Aquí debes poner la llamada a TU ENDPOINT índice, EJEMPLO:
+      //      api.post("/asignaciones", { usuarioId, proyectoId })
+      //      O lo que uses realmente, según tu backend
+
+      // --- EJEMPLO: POST /api/asignaciones
+      await api.post("/asignaciones", {
+        usuarioId: user.id || user.usuarioId,
+        proyectoId: projectId, // si tienes id, pasa id. Si no, pasar name ESTÁ MAL pero lo dejo por si tus datos son así.
+        // proyectoNombre: projectObj?.name || selectedProject
+      });
+
+      // ÉXITO: notificar fuera
+      if (onAssign) onAssign(selectedProject); // Puedes pasar el id o el obj, depende como lo uses afuera
+      onClose();
+      setError("");
+    } catch (err) {
+      setError("Error assigning user to project.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -54,6 +89,9 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </div>
         </div>
 
+        {/* Error message */}
+        {error && <div className="mb-4 text-red-600 bg-red-100 px-3 py-2 rounded">{error}</div>}
+
         {/* Project Selection */}
         <div>
           <div className="mb-3 font-semibold text-gray-800">
@@ -67,14 +105,14 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
                 className={`
                   w-full text-left px-4 py-3 rounded-xl border 
                   transition font-medium text-base flex items-center justify-between
-                  ${selectedProject === project
+                  ${selectedProject === (typeof project === "object" ? project.name : project)
                     ? "bg-purple-100 border-purple-300 ring-2 ring-purple-200"
                     : "bg-white border-gray-300 hover:bg-gray-100"
                   }
                 `}
-                onClick={() => handleSelect(project)}
+                onClick={() => handleSelect(typeof project === "object" ? project.name : project)}
               >
-                {project}
+                {typeof project === "object" ? project.name : project}
               </button>
             ))}
           </div>
@@ -85,21 +123,22 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           <button
             type="button"
             onClick={onClose}
+            disabled={submitting}
             className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
           >
             Cancel
           </button>
           <button
             type="button"
-            disabled={!selectedProject}
+            disabled={!selectedProject || submitting}
             onClick={handleAssign}
             className={`px-8 py-2 rounded-xl font-semibold transition
-              ${selectedProject
+              ${selectedProject && !submitting
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-200 text-white cursor-not-allowed"
               }`}
           >
-            ✓ Assign
+            {submitting ? "Assigning..." : "✓ Assign"}
           </button>
         </div>
       </div>

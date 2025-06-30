@@ -82,7 +82,7 @@ public class MailSender {
                         "<p><strong>Cédula:</strong> %s<br>" +
                         "<strong>Contraseña:</strong> %s</p>" +
                         "<p>Te recomendamos cambiar tu contraseña al ingresar por primera vez.</p>" +
-                        "<a href='https://youtube.com'\n" +
+                        "<a href='http://localhost:5173/'\n" +
                         "   class='btn'\n" +
                         "   style='background-color:#A100FF; color:#ffffff !important; text-decoration:none; display:inline-block; padding:12px 25px; border-radius:5px; font-weight:bold; font-family:Segoe UI, sans-serif;'\n" +
                         "   target='_blank'>\n" +

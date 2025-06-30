@@ -16,7 +16,13 @@ export const authService = {
       // Guardar token en localStorage
       localStorage.setItem('token', token);
       
-      return { success: true, token };
+      // Obtener información del usuario para redireccionar según rol
+      const usuarioRes = await api.get(`/usuario/cedula/${cedula}`);
+      const usuario = usuarioRes.data;
+      // Guardar información del usuario en localStorage
+      localStorage.setItem('user', JSON.stringify(usuario));
+      // Return token and user for component to handle navigation
+      return { success: true, token, usuario };
     } catch (error) {
       console.log("Error completo:", error); // Para debug
       
@@ -42,8 +48,8 @@ export const authService = {
   register: async (usuarioData) => {
     try {
       const response = await api.post('/auth/register', usuarioData);
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: response.data 
       };
     } catch (error) {

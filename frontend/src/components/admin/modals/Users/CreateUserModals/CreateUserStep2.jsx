@@ -4,6 +4,7 @@ export default function CreateUserStep2({
   values,
   categories,
   skills,
+  isLoadingData,
   onBack,
   onSave,
   onCancel,
@@ -15,14 +16,33 @@ export default function CreateUserStep2({
     habilidades: values.habilidades || [],
   });
 
-  // Filtrar las skills según la categoría seleccionada
-  const filteredSkills = useMemo(() => {
-    const selectedCat = categories?.find((c) => c.name === local.categoria);
-    if (!selectedCat) return [];
-    return skills?.filter((sk) => sk.categoryId === selectedCat.id) || [];
-  }, [local.categoria, categories, skills]);
+  // Filtrar categorías activas
+  const activeCategories = useMemo(() => {
+    return categories?.filter((cat) =>
+      typeof cat.estado === "string"
+        ? cat.estado.toLowerCase() === "activo"
+        : false
+    ) || [];
+  }, [categories]);
 
-  // Manejar cambios de campos
+  // Filtrar skills activas según categoría seleccionada
+  const filteredSkills = useMemo(() => {
+    if (!local.categoria || !activeCategories || !skills) return [];
+
+    const selectedCat = activeCategories.find(
+      (c) => c.nombre === local.categoria || c.name === local.categoria
+    );
+    if (!selectedCat) return [];
+
+    const selectedCatId = selectedCat.id || selectedCat.categoriaId;
+
+    return skills.filter(
+      (sk) =>
+        (sk.categoriaId === selectedCatId || sk.categoryId === selectedCatId) &&
+        sk.estado?.toLowerCase() === "activo"
+    );
+  }, [local.categoria, activeCategories, skills]);
+
   const handleChange = (e) => {
     setLocal((prev) => ({
       ...prev,
@@ -31,7 +51,6 @@ export default function CreateUserStep2({
     }));
   };
 
-  // Manejar selección de habilidades (skills)
   const handleSkillToggle = (skillId) => {
     setLocal((prev) => ({
       ...prev,
@@ -41,10 +60,15 @@ export default function CreateUserStep2({
     }));
   };
 
-  // Guardar usuario
+  const isFormValid =
+    local.email &&
+    local.numeroTelefono &&
+    local.categoria &&
+    local.habilidades.length > 0;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(local); // Body en español
+    onSave(local);
   };
 
   return (
@@ -63,7 +87,7 @@ export default function CreateUserStep2({
             onChange={handleChange}
             required
             placeholder="example@correo.com"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
           <label className="font-semibold text-sm">Phone number *</label>
           <input
@@ -72,10 +96,11 @@ export default function CreateUserStep2({
             onChange={handleChange}
             required
             placeholder="+1 (555) 123-4456"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>
       </div>
+
       {/* Category & Skills */}
       <div>
         <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3">
@@ -91,53 +116,101 @@ export default function CreateUserStep2({
             value={local.categoria}
             onChange={handleChange}
             required
-            className="mb-2 border rounded w-full px-3 py-2"
+            disabled={isLoadingData || activeCategories.length === 0}
+            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
-            <option value="">Select Category</option>
-            {(categories || []).map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
+            <option value="">
+              {isLoadingData
+                ? "Loading categories..."
+                : activeCategories.length === 0
+                ? "No categories available"
+                : "Select Category"}
+            </option>
+            {activeCategories.map((cat) => (
+              <option key={cat.id || cat.nombre} value={cat.nombre || cat.name}>
+                {cat.nombre || cat.name}
               </option>
             ))}
           </select>
+
           <label className="font-semibold text-sm">Skills *</label>
-          <div className="flex flex-wrap gap-2">
-            {filteredSkills.length === 0 && (
-              <span className="text-gray-400 italic">
+          <div className="min-h-[50px] border rounded p-3 bg-gray-50">
+            {isLoadingData ? (
+              <div className="flex items-center gap-2 text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
+                <span className="text-sm">Loading skills...</span>
+              </div>
+            ) : !local.categoria ? (
+              <span className="text-gray-400 italic text-sm">
                 Select a category first
               </span>
+            ) : filteredSkills.length === 0 ? (
+              <span className="text-gray-400 italic text-sm">
+                No skills available for this category
+              </span>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {filteredSkills.map((skill) => (
+                  <button
+                    type="button"
+                    key={`${skill.skillId}-${skill.nombre}`}
+                    onClick={() => handleSkillToggle(skill.skillId)}
+                    className={`px-3 py-1 rounded-lg border font-semibold text-sm transition hover:scale-105 ${
+                      local.habilidades.includes(skill.skillId)
+                        ? "bg-purple-600 text-white border-purple-500 shadow-md"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-purple-300"
+                    }`}
+                  >
+                    {skill.nombre}
+                  </button>
+                ))}
+              </div>
             )}
-            {filteredSkills.map((skill) => (
-              <button
-                type="button"
-                key={skill.id}
-                onClick={() => handleSkillToggle(skill.id)}
-                className={`px-3 py-1 rounded-lg border font-semibold text-sm transition ${
-                  local.habilidades.includes(skill.id)
-                    ? "bg-purple-600 text-white border-purple-500"
-                    : "bg-gray-100 text-gray-700 border-gray-300"
-                }`}
-              >
-                {skill.name}
-              </button>
-            ))}
           </div>
+
+          {/* Selected skills */}
+          {local.habilidades.length > 0 && (
+            <div className="mt-2">
+              <span className="text-sm font-medium text-gray-600">
+                Selected skills ({local.habilidades.length}):
+              </span>
+              <div className="mt-1 flex flex-wrap gap-1">
+                {local.habilidades.map((skillId) => {
+                  const skill = skills?.find((s) => s.skillId === skillId);
+                  return skill ? (
+                    <span
+                      key={`selected-${skillId}`}
+                      className="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium"
+                    >
+                      {skill.nombre}
+                    </span>
+                  ) : null;
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
       {/* Footer */}
-      <div className="flex justify-end gap-3 mt-6">
+      <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
         <button
           type="button"
           onClick={() => onBack(local)}
-          className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200"
+          className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
         >
           Back
         </button>
         <button
           type="submit"
-          className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700"
+          disabled={!isFormValid || isLoadingData}
+          className={`px-6 py-2 rounded-xl font-semibold transition-colors ${
+            isFormValid && !isLoadingData
+              ? "bg-purple-600 text-white hover:bg-purple-700"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          }`}
         >
-          Save
+          {isLoadingData ? "Loading..." : "Save User"}
         </button>
       </div>
     </form>

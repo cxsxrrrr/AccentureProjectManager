@@ -7,6 +7,8 @@ import com.Accenture.backend.model.Categoria;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 
 @Repository
 public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
@@ -20,6 +22,10 @@ public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
     @Transactional
     @Override
     public void asociarCategoriaAUsuario(Long usuarioId, Long categoriaId) {
+        // Verificar si ya existe la asociación
+        if (categoriaUsuarioRepository.findByUsuario_UsuarioIdAndCategoria_CategoriaId(usuarioId, categoriaId).isPresent()) {
+            throw new IllegalArgumentException("El usuario ya tiene esta categoría asociada.");
+        }
         CategoriaUsuario cu = new CategoriaUsuario();
         // Construyo solo proxies con el ID para no recargar entidad completa
         Usuario u = new Usuario(); u.setUsuarioId(usuarioId);
@@ -37,5 +43,11 @@ public class CategoriaUsuarioDAOImpl implements CategoriaUsuarioDAO {
             .findByUsuario_UsuarioIdAndCategoria_CategoriaId(usuarioId, categoriaId)
             .orElseThrow(() -> new IllegalArgumentException("No existe esa asociación"));
         categoriaUsuarioRepository.delete(cu);
+    }
+
+    @Transactional
+    @Override
+    public List<CategoriaUsuario> listarPorUsuarioId(Long usuarioId) {
+        return categoriaUsuarioRepository.findAllByUsuario_UsuarioId(usuarioId);
     }
 }

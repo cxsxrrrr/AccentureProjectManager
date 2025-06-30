@@ -1,11 +1,6 @@
 package com.Accenture.backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Id;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Column;
+import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor; 
 
 @Entity
-@Table(name = "Skills")
+@Table(name = "skills")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,4 +20,10 @@ public class Skills {
 
     @Column(length = 255)
     private String nombre;
+    
+    private String estado;
+
+    @ManyToOne
+    @JoinColumn(name = "categoria_id", nullable = false)
+    private Categoria categoria;
 }
