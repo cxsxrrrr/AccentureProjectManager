@@ -114,7 +114,11 @@ function TeamManagement() {
       habilidades: Array.isArray(member.habilidades)
         ? member.habilidades
         : [],
-      proyectosAsignados: member.proyectosAsignados || member.proyecto ? [member.proyecto].filter(Boolean) : []
+      proyectosAsignados: Array.isArray(member.proyectosAsignados)
+        ? member.proyectosAsignados
+        : member.proyecto
+        ? [member.proyecto].filter(Boolean)
+        : []
     }))
     .filter((member) => {
       // Filtros conectados
@@ -194,21 +198,21 @@ function TeamManagement() {
                 skills = skillsRes.data.map(s => s.nombre);
               }
             } catch {}
-            // Obtener proyecto asignado
-            let proyecto = null;
+            // Obtener todos los proyectos asignados
+            let proyectosAsignados = [];
             try {
               const projRes = await api.get(`/miembros-proyectos/usuario/${u.usuarioId || u.id}`);
               if (Array.isArray(projRes.data) && projRes.data.length > 0) {
-                proyecto = projRes.data[0].proyecto || null;
+                proyectosAsignados = projRes.data.map(mp => mp.proyecto).filter(Boolean);
               } else if (projRes.data && projRes.data.proyecto) {
-                proyecto = projRes.data.proyecto;
+                proyectosAsignados = [projRes.data.proyecto];
               }
             } catch {}
             return {
               ...u,
               categoria: { nombre: category },
               habilidades: skills,
-              proyecto
+              proyectosAsignados
             };
           })
       );
@@ -329,7 +333,7 @@ function TeamManagement() {
                   </td>
                   <td className="py-5 px-6 text-gray-700 whitespace-nowrap">
                     {Array.isArray(member.proyectosAsignados) && member.proyectosAsignados.length > 0
-                      ? member.proyectosAsignados.map((p, idx) => (
+                      ? member.proyectosAsignados.slice(0, 3).map((p, idx) => (
                           <span key={p.proyectoId || idx} className="inline-block bg-purple-50 text-purple-700 rounded-full px-2 py-1 text-xs font-semibold mr-1 mb-1">
                             {p.nombreProyecto}
                           </span>
@@ -339,12 +343,12 @@ function TeamManagement() {
                   <td className="py-5 px-6">
                     <span className={`
                       px-3 py-1 rounded-full font-bold text-xs
-                      ${member.status === "Activo"
+                      ${Array.isArray(member.proyectosAsignados) && member.proyectosAsignados.length > 0
                         ? "bg-green-100 text-green-700"
                         : "bg-red-100 text-red-600"
                       }
                     `}>
-                      {member.status === "Activo" ? "Active" : "Inactive"}
+                      {Array.isArray(member.proyectosAsignados) && member.proyectosAsignados.length > 0 ? "Active" : "Inactive"}
                     </span>
                   </td>
                 </tr>
