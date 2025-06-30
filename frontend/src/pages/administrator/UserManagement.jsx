@@ -82,6 +82,11 @@ function UserManagement() {
   };
 
   const openDisableModal = (user) => {
+    // Solo permitir desactivar usuarios que estén activos
+    if (user.estado !== "Activo") {
+      setError("Only active users can be disabled.");
+      return;
+    }
     setSelectedUser(user);
     setIsDisableOpen(true);
     setSelectedUserId(user.id);
@@ -127,7 +132,6 @@ function UserManagement() {
         rol: u.rol || u.rolUsuario || null,
       }));
 
-      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
     } catch (err) {
       console.error("Error loading users:", err);
@@ -158,14 +162,27 @@ function UserManagement() {
     }
   };
 
+  // PATCH para deshabilitar usuario (cambiar estado a 'Inactivo')
   const handleDisableUser = async () => {
+    if (!selectedUser) {
+      setError("No user selected");
+      return;
+    }
     try {
+      setIsLoading(true);
+      setError(null);
+      // PATCH solo el campo estado
+      const response = await api.patch(`/usuario/${selectedUser.id}`, { estado: "Inactivo" });
+      // Actualizar localmente
+      setUsers(prevUsers => prevUsers.map(u => u.id === selectedUser.id ? { ...u, estado: "Inactivo" } : u));
       await loadUsers();
       closeDisableModal();
-      setSuccessMessage("User status updated successfully!");
+      setSuccessMessage(`User ${selectedUser?.nombre} ${selectedUser?.apellido} has been disabled successfully!`);
     } catch (error) {
       console.error("Error disabling user:", error);
-      setError("Error updating user status. Please try again.");
+      setError("Error disabling user. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -180,44 +197,22 @@ function UserManagement() {
       setIsLoading(true);
       setError(null);
       
-      console.log('Assigning role to user:', selectedUser);
-      console.log('Role payload received:', rolePayload);
       
       // Verificar que tenemos los datos necesarios
       if (!rolePayload || !rolePayload.rol) {
         throw new Error("Invalid role data");
       }
 
-      // Diferentes opciones de payload según tu API:
-      
-      // Opción 1: Usuario completo (más probable que funcione con PUT)
+      // Usuario completo con rol actualizado
       const updatePayload = {
         ...selectedUser,
         rol: rolePayload.rol
       };
       
-      // Opción 2: Solo actualizar el rol
-      // const updatePayload = {
-      //   rol: rolePayload.rol
-      // };
       
-      // Opción 3: Si tu API espera solo el rolId
-      // const updatePayload = {
-      //   rolId: rolePayload.rol.rolId
-      // };
-      
-      console.log('Sending update payload:', updatePayload);
-      console.log('API endpoint:', `/usuario/${selectedUser.id}`);
-      
-      // Usar PUT ya que PATCH no está soportado por tu API
+      // Usar PUT para actualizar el usuario
       const response = await api.put(`/usuario/${selectedUser.id}`, updatePayload);
       
-      // Si el PUT tampoco funciona, prueba estos endpoints alternativos:
-      // const response = await api.post(`/usuario/${selectedUser.id}/rol`, { rolId: rolePayload.rol.rolId });
-      // const response = await api.put(`/usuario/${selectedUser.id}/rol`, rolePayload.rol);
-      // const response = await api.patch(`/usuario/${selectedUser.id}/rol`, rolePayload.rol);
-      
-      console.log('API response:', response.data);
       
       // Actualizar el usuario en el estado local inmediatamente
       setUsers(prevUsers => 
@@ -268,6 +263,17 @@ function UserManagement() {
     loadUsers();
   };
 
+  // Función para manejar la selección de usuario y mostrar botones apropiados
+  const handleUserSelection = (user) => {
+    setSelectedUser(user);
+    setSelectedUserId(user.id);
+  };
+
+  // Función para verificar si se puede desactivar el usuario seleccionado
+  const canDisableUser = () => {
+    return selectedUser && selectedUser.estado === "Activo";
+  };
+
   const formatDate = (str) => str ? new Date(str).toLocaleDateString("en-GB") : "-";
   const genderDisplay = (g) => g === "M" ? "Male" : g === "F" ? "Female" : "Other";
 
@@ -281,6 +287,9 @@ function UserManagement() {
           onDisable={() => selectedUser && openDisableModal(selectedUser)}
           onAssign={() => selectedUser && openAssignRoleModal(selectedUser)}
           onRefresh={handleRefresh}
+          // Pasar información sobre si se puede desactivar el usuario
+          canDisable={canDisableUser()}
+          selectedUser={selectedUser}
         />
       </Topbar>
 
@@ -315,12 +324,19 @@ function UserManagement() {
           {successMessage && (
             <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-center gap-2 text-green-600">
-                <span className="material-icons">check_circle</span>
+                {/* Reemplazo del icono check_circle por un círculo SVG animado */}
+                <span className="inline-block">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="#22c55e" strokeWidth="3" fill="#bbf7d0" />
+                  </svg>
+                </span>
                 <span className="font-semibold">Success</span>
               </div>
               <p className="text-green-600 text-sm mt-1">{successMessage}</p>
             </div>
           )}
+
+          {/* Eliminar mensaje de usuario seleccionado. El error de usuario inactivo se muestra arriba automáticamente. */}
 
           {isLoading ? (
             <div className="text-center text-gray-500 py-4">
@@ -362,10 +378,7 @@ function UserManagement() {
                 {users.map((user, idx) => (
                   <tr 
                     key={user.id} 
-                    onClick={() => { 
-                      setSelectedUser(user); 
-                      setSelectedUserId(user.id); 
-                    }}
+                    onClick={() => handleUserSelection(user)}
                     className={`cursor-pointer transition ${
                       selectedUserId === user.id 
                         ? "bg-purple-100 ring-2 ring-purple-300" 
