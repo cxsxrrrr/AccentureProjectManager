@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import java.util.List;
 
 // Ruta principal para obtener info de recursos
@@ -59,6 +60,15 @@ public class RecursoController {
             @RequestBody RecursoDTO recursoDTO) {
 
         RecursoDTO actualizado = recursoService.actualizarRecursoxId(id, recursoDTO);
+        return ResponseEntity.ok(actualizado);
+    }
+
+    // Actualización parcial de recurso por ID (PATCH)
+    @PatchMapping("/{id}")
+    public ResponseEntity<RecursoDTO> patchRecursoById(
+            @PathVariable Long id,
+            @RequestBody RecursoDTO recursoDTO) {
+        RecursoDTO actualizado = recursoService.patchRecursoxId(id, recursoDTO);
         return ResponseEntity.ok(actualizado);
     }
 

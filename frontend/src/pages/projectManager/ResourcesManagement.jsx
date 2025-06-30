@@ -51,78 +51,131 @@ function ResourcesManagement() {
     setCreateOpen(false);
   };
 
-  const handleAssignResource = ({ resourceName, projectId }) => {
-    setResources((prev) => [
-      ...prev,
-      {
-        id: prev.length ? Math.max(...prev.map((r) => r.id)) + 1 : 1,
-        name: resourceName,
-        type: "Human",
-        availability: "Available",
-        cost: "$0",
-        unit_measure: 0,
-        description: "",
-        projectId,
-      },
-    ]);
-    setAssignOpen(false);
+  const handleAssignResource = async ({ resourceId, projectId }) => {
+    try {
+      if (!resourceId || !projectId) {
+        throw new Error("Resource ID or Project ID is missing.");
+      }
+
+      // Validar que los IDs sean números válidos
+      if (isNaN(resourceId) || isNaN(projectId)) {
+        throw new Error("Invalid Resource ID or Project ID.");
+      }
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (!user?.usuarioId) {
+        throw new Error("User ID is missing. Please log in again.");
+      }
+
+      const body = {
+        recursoId: resourceId,
+        proyectoId: projectId,
+        asignadoPor: user.usuarioId,
+      };
+
+      console.log("Assigning resource with payload:", body);
+
+      const response = await api.post("http://localhost:8080/api/recursos-proyecto", body);
+
+      if (response.status === 200 || response.status === 201) {
+        console.log("Resource assigned successfully.", response.data);
+        alert("Resource assigned successfully.");
+      } else {
+        console.error("Unexpected response status:", response.status, response.data);
+        throw new Error("Failed to assign resource. Please check the server logs.");
+      }
+
+      setAssignOpen(false);
+    } catch (error) {
+      console.error("Error assigning resource:", error);
+      alert("Error assigning resource. Please try again.");
+    }
   };
 
   // Update resource via backend and update state
   const handleUpdateResource = async (updatedResource) => {
     try {
-      // Prepare payload for API
+      const recursoId = updatedResource.recursoId || updatedResource.id;
+      if (!recursoId) {
+        throw new Error("Resource ID is missing.");
+      }
+
       const payload = {
-        nombreRecurso: updatedResource.name,
-        descripcionRecurso: updatedResource.description,
-        estado: updatedResource.availability,
-        coste: updatedResource.cost,
-        cantidad: Number(updatedResource.unit),
-        tipo: updatedResource.type,
+        nombreRecurso: updatedResource.nombreRecurso,
+        descripcionRecurso: updatedResource.descripcionRecurso,
+        estado: updatedResource.estado,
+        coste: parseFloat(updatedResource.coste),
+        cantidad: parseInt(updatedResource.cantidad, 10),
+        tipo: updatedResource.tipo,
       };
-      // Send PUT request to update resource
-      const res = await api.put(`/recursos/${updatedResource.recursoId}`, payload);
-      const updated = res.data;
-      // Update local state with server response
-      setResources((prev) =>
-        prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
-      );
+
+      console.log("Preparing to send update request with payload:", payload);
+
+      const response = await api.put(`http://localhost:8080/api/recursos/${recursoId}`, payload);
+
+      console.log("Response received:", response);
+
+      if (response.status === 200 || response.status === 201) {
+        const updated = response.data;
+        console.log("Resource updated successfully.", updated);
+        setResources((prev) =>
+          prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
+        );
+      } else {
+        console.error("Unexpected response status:", response.status, response.data);
+        throw new Error("Failed to update resource. Please check the server logs.");
+      }
+
+      setUpdateOpen(false);
+      setResourceToEdit(null);
     } catch (error) {
       console.error("Error updating resource:", error);
+      alert("Error updating resource. Please try again.");
     }
-    setUpdateOpen(false);
-    setResourceToEdit(null);
   };
 
   // Disable a resource via API (set estado to Disabled) and update state
   const handleDisableResource = async (id) => {
-    // Find resource to disable
-    const resToDisable = resources.find((r) => r.recursoId === id);
-    if (!resToDisable) {
+    try {
+      if (!id) {
+        throw new Error("Resource ID is missing.");
+      }
+
+      const resourceToDisable = resources.find((r) => r.recursoId === id);
+      if (!resourceToDisable) {
+        throw new Error("Resource not found.");
+      }
+
+      const payload = {
+        nombreRecurso: resourceToDisable.nombreRecurso,
+        descripcionRecurso: resourceToDisable.descripcionRecurso,
+        estado: "Disabled",
+        coste: resourceToDisable.coste,
+        cantidad: resourceToDisable.cantidad,
+        tipo: resourceToDisable.tipo,
+      };
+
+      console.log("Disabling resource with payload:", payload);
+
+      const response = await api.put(`/recursos/${id}`, payload);
+
+      if (response.status === 200 || response.status === 201) {
+        const updated = response.data;
+        console.log("Resource disabled successfully.", updated);
+        setResources((prev) =>
+          prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
+        );
+      } else {
+        console.error("Unexpected response status:", response.status, response.data);
+        throw new Error("Failed to disable resource. Please check the server logs.");
+      }
+
       setDisableOpen(false);
       setSelectedResourceId(null);
-      return;
-    }
-    try {
-      const payload = {
-        nombreRecurso: resToDisable.nombreRecurso,
-        descripcionRecurso: resToDisable.descripcionRecurso,
-        estado: "Disabled",
-        coste: resToDisable.coste,
-        cantidad: resToDisable.cantidad,
-        tipo: resToDisable.tipo,
-      };
-      const res = await api.put(`/recursos/${id}`, payload);
-      const updated = res.data;
-      // Update local state with server response
-      setResources((prev) =>
-        prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
-      );
     } catch (error) {
       console.error("Error disabling resource:", error);
+      alert("Error disabling resource. Please try again.");
     }
-    setDisableOpen(false);
-    setSelectedResourceId(null);
   };
 
   return (

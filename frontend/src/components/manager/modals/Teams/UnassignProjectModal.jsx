@@ -1,26 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import helpIcon from "../../../../assets/icons/help.svg";
 import api from "../../../../services/axios";
 
 function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
+  // Permitir seleccionar el proyecto por nombre o id
+  const [selectedProject, setSelectedProject] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  // Extrae la info del proyecto asignado
-  const assignedProject = user?.proyecto;
-  const projectId = assignedProject?.proyectoId || assignedProject?.id;
-  const canUnassign = !!assignedProject && !!projectId;
+  // Actualiza el proyecto seleccionado si cambia el usuario
+  useEffect(() => {
+    // Si el usuario tiene proyectos asignados, selecciona el primero por defecto
+    if (user && Array.isArray(user.proyectosAsignados) && user.proyectosAsignados.length > 0) {
+      setSelectedProject(user.proyectosAsignados[0].proyectoId || user.proyectosAsignados[0].nombreProyecto);
+    } else {
+      setSelectedProject("");
+    }
+  }, [user]);
 
   const handleUnassign = async () => {
     if (!canUnassign || submitting) return;
     setSubmitting(true);
     setError("");
     try {
+      // Busca el proyecto seleccionado en la lista de proyectos asignados
+      const proyectoObj = Array.isArray(user.proyectosAsignados)
+        ? user.proyectosAsignados.find(
+            p => p.proyectoId === selectedProject || p.nombreProyecto === selectedProject
+          )
+        : null;
+      const proyectoId = proyectoObj ? proyectoObj.proyectoId : selectedProject;
       await api.post("/asignaciones/unassign", {
         usuarioId: user.id || user.usuarioId,
-        proyectoId: projectId,
+        proyectoId: proyectoId,
       });
-
       if (onUnassign) onUnassign(user);
       onClose();
     } catch (err) {
@@ -54,39 +67,53 @@ function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
         </div>
         {/* User Info */}
         <div className="bg-gray-50 rounded-xl p-5 mb-8 flex flex-wrap justify-between">
-          <div className="text-sm">
+          <div className="text-sm text-gray-500">
             <div className="font-semibold mb-1">User Details</div>
-            <div>Name: <span className="font-medium">{user.nombre} {user.apellido}</span></div>
-            <div>Email: <span className="font-medium">{user.email}</span></div>
-            <div>Role: <span className="font-medium">{user.rol?.nombre}</span></div>
+            <div>Name: <span className="font-medium">{user.nombre || user.name || "-"}</span></div>
+            <div>Email: <span className="font-medium">{user.email || "-"}</span></div>
+            <div>Role: <span className="font-medium">{user.rol?.nombre || user.role || "-"}</span></div>
+            <div>ID Document: <span className="font-medium">{user.cedula || "-"}</span></div>
             <div>
               Current Status:{" "}
               <span className={`ml-2 px-3 py-1 rounded-full text-xs font-semibold
-                ${user.status === "Activo" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"}
-              `}>
-                {user.status === "Activo" ? "Active" : "Inactive"}
+                ${user.status === "Active" || user.status === "Activo"
+                  ? "bg-green-100 text-green-700"
+                  : user.status === "Unassigned" || user.status === "Sin asignar"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-red-100 text-red-600"
+                }`}>
+                {user.status || "-"}
               </span>
             </div>
           </div>
         </div>
         {/* Proyecto asignado */}
         <div className="mb-6">
-          <div className="font-medium mb-2">Assigned Project</div>
-          <div
-            className={`
-              flex items-center justify-between
-              px-5 py-4 rounded-xl border-2
-              ${canUnassign
-                ? "bg-red-600/90 border-red-600 text-white"
-                : "bg-gray-200/70 border-gray-300 text-gray-400"
-              }
-              text-lg font-semibold mb-1 transition
-            `}
-          >
-            <span>
-              {assignedProject?.nombreProyecto || "No project assigned"}
-            </span>
-          </div>
+          <div className="font-medium mb-2">Select a project to unassign the employee</div>
+          {Array.isArray(user.proyectosAsignados) && user.proyectosAsignados.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {user.proyectosAsignados.map((p) => (
+                <div
+                  key={p.proyectoId}
+                  className={`flex items-center justify-between px-5 py-4 rounded-xl border-2 cursor-pointer
+                    ${selectedProject === p.proyectoId
+                      ? "bg-red-600/90 border-red-600 text-white"
+                      : "bg-gray-200/70 border-gray-300 text-gray-400"
+                    }
+                    text-lg font-semibold mb-1 transition
+                  `}
+                  onClick={() => setSelectedProject(p.proyectoId)}
+                >
+                  <span>{p.nombreProyecto}</span>
+                  {selectedProject === p.proyectoId && (
+                    <span className="material-icons text-2xl">check</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-gray-400 px-5 py-4">No project assigned</div>
+          )}
         </div>
         {/* Error message */}
         {error && (
