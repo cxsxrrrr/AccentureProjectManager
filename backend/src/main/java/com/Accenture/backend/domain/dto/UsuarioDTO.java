@@ -3,12 +3,12 @@ package com.Accenture.backend.domain.dto;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @AllArgsConstructor
@@ -21,7 +21,7 @@ public class UsuarioDTO {
     private String nombre;
     private String apellido;
     private RolDTO rol;
-    
+
     private Long cedula;
 
     private char genero;
@@ -42,6 +42,4 @@ public class UsuarioDTO {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private Integer intentosLogin;
 
-
 }
-

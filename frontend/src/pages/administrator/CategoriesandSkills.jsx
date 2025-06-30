@@ -57,11 +57,12 @@ function CategoriesandSkills() {
     try {
       const res = await api.post("/category", {
         nombre: newCat.name,
-        descripcion: newCat.description
+        descripcion: newCat.description,
+        estado: "activo"
       });
       setCategories(prev => [
         ...prev,
-        { id: res.data.categoriaId, name: res.data.nombre, description: res.data.descripcion }
+        { id: res.data.categoriaId, name: res.data.nombre, description: res.data.descripcion, estado: res.data.estado?.toLowerCase?.() || "activo" }
       ]);
     } catch {
       alert("Error al crear la categoría");
@@ -77,10 +78,11 @@ function CategoriesandSkills() {
     try {
       await api.put(`/category/${catData.id}`, {
         nombre: catData.name,
-        descripcion: catData.description
+        descripcion: catData.description,
+        estado: "activo"
       });
       setCategories(prev =>
-        prev.map(c => (c.id === catData.id ? catData : c))
+        prev.map(c => (c.id === catData.id ? { ...catData, estado: "activo" } : c))
       );
     } catch {
       alert("Error al actualizar");
@@ -116,12 +118,12 @@ function CategoriesandSkills() {
     try {
       const res = await api.post("/skills", {
         nombre: newSkill.name,
-        estado: "ACTIVA",
+        estado: "activo",
         categoriaId: catObj.id
       });
       setSkills(prev => [
         ...prev,
-        { id: res.data.skillId, name: res.data.nombre, category: catObj.name || "" }
+        { id: res.data.skillId, name: res.data.nombre, category: catObj.name || "", estado: res.data.estado?.toLowerCase?.() || "activo" }
       ]);
     } catch {
       alert("Error al crear habilidad");
@@ -139,11 +141,11 @@ function CategoriesandSkills() {
       const catObj = categories.find(c => c.name === skillData.category);
       await api.put(`/skills/${skillData.id}`, {
         nombre: skillData.name,
-        estado: "ACTIVA",
+        estado: "activo",
         categoriaId: catObj?.id
       });
       setSkills(prev =>
-        prev.map(s => (s.id === skillData.id ? skillData : s))
+        prev.map(s => (s.id === skillData.id ? { ...skillData, estado: "activo" } : s))
       );
     } catch {
       alert("Error al actualizar habilidad");

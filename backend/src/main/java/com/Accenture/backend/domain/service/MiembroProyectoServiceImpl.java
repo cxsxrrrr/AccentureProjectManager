@@ -26,6 +26,9 @@ public class MiembroProyectoServiceImpl implements MiembroProyectoService {
     @Autowired
     private ProyectoRepository proyectoRepository;
 
+    @Autowired
+    private com.Accenture.backend.util.ProyectoMapper proyectoMapper;
+
     @Override
     public List<MiembroProyectoDTO> listarPorProyecto(Long proyectoId) {
         List<MiembroProyecto> miembros = miembroProyectoRepository.findByProyecto_ProyectoId(proyectoId);
@@ -69,6 +72,8 @@ public class MiembroProyectoServiceImpl implements MiembroProyectoService {
         dto.setId(miembro.getId());
         dto.setUsuarioId(miembro.getUsuario().getUsuarioId());
         dto.setProyectoId(miembro.getProyecto().getProyectoId());
+        // Map full Proyecto object
+        dto.setProyecto(proyectoMapper.toDTO(miembro.getProyecto()));
         dto.setFechaAsignacion(miembro.getFechaAsignacion());
         dto.setFechaDesignacion(miembro.getFechaDesignacion());
         dto.setCapacidadMaxima(miembro.getCapacidadMaxima());

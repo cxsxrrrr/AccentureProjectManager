@@ -6,8 +6,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Column;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,7 +13,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /*
@@ -53,13 +50,11 @@ public class Recurso {
 
     @Column(length = 50)
     private Double costo;
+    
+    // Cantidad disponible del recurso
+    private Integer cantidad;
 
-    // Foreign Keys
-
-    @ManyToOne
-    @JoinColumn(name = "proyecto_id", referencedColumnName = "proyectoId")
-    private Proyecto proyecto;
-
+    // Constructor sin proyecto (asignación externalizada)
     public Recurso(Long recursoId) {
         this.recursoId = recursoId;
     }
