@@ -18,7 +18,10 @@ export const authService = {
       
       // Obtener información del usuario para redireccionar según rol
       const usuarioRes = await api.get(`/usuario/cedula/${cedula}`);
-      const rolId = usuarioRes.data.rol?.rolId;
+      const usuario = usuarioRes.data;
+      // Guardar información del usuario en localStorage
+      localStorage.setItem('user', JSON.stringify(usuario));
+      const rolId = usuario.rol?.rolId;
       switch (rolId) {
         case 1:
           window.location.href = '/admin';
