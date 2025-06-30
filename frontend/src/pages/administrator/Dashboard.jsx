@@ -25,14 +25,20 @@ function Dashboard() {
       .then(res => {
         // Adaptar si res.data es un array de usuarios
         const users = Array.isArray(res.data) ? res.data : [];
-        setEmployees(
-          users.map(u => ({
+        // Obtener categoría real por usuario (si existe endpoint)
+        Promise.all(users.map(async u => {
+          let category = "-";
+          try {
+            const res = await api.get(`/category/user/${u.usuarioId}`);
+            category = res.data[0]?.nombre || "-";
+          } catch {}
+          return {
             name: u.nombre + (u.apellido ? ` ${u.apellido}` : ""),
-            category: u.categoria?.nombre || "-",
+            category,
             age: calcularEdad(u.fechaNacimiento),
             status: estadoLegible(u.estado),
-          }))
-        );
+          };
+        })).then(setEmployees);
 
         // StatCard
         setStats([
@@ -65,7 +71,6 @@ function Dashboard() {
         setProjects(
           projs.map(p => ({
             task: p.nombreProyecto,
-            category: p.categoria?.nombre || "-",
             status: estadoLegible(p.estado),
           }))
         );
