@@ -1,44 +1,28 @@
 import React, { useState } from "react";
-import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el path si es necesario
-import api from "../../../../services/axios"; // Ajusta el path si es necesario
+import helpIcon from "../../../../assets/icons/help.svg";
+import api from "../../../../services/axios";
 
 function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) {
-  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   if (!isOpen || !user) return null;
 
-  const handleSelect = (projectName) => setSelectedProject(projectName);
+  const handleSelect = (projectId) => setSelectedProjectId(projectId);
 
   const handleAssign = async () => {
-    if (!selectedProject || submitting) return;
+    if (!selectedProjectId || submitting) return;
     setSubmitting(true);
     setError("");
 
     try {
-      // Buscar el objeto del proyecto por 'name'
-      const projectObj = projects.find(
-        (p) => (typeof p === "object" ? p.name === selectedProject : p === selectedProject)
-      );
-
-      // Tomar el id (debería ser .id), con fallback si solo tienes el nombre
-      const projectId = typeof projectObj === "object" ? projectObj.id || projectObj.proyectoId : undefined;
-
-      // Si no hay id, asigna solo el nombre (sólo como ejemplo/manual, real sería siempre por id)
-      // >>>> Aquí debes poner la llamada a TU ENDPOINT índice, EJEMPLO:
-      //      api.post("/asignaciones", { usuarioId, proyectoId })
-      //      O lo que uses realmente, según tu backend
-
-      // --- EJEMPLO: POST /api/asignaciones
       await api.post("/asignaciones", {
         usuarioId: user.id || user.usuarioId,
-        proyectoId: projectId, // si tienes id, pasa id. Si no, pasar name ESTÁ MAL pero lo dejo por si tus datos son así.
-        // proyectoNombre: projectObj?.name || selectedProject
+        proyectoId: selectedProjectId,
       });
 
-      // ÉXITO: notificar fuera
-      if (onAssign) onAssign(selectedProject); // Puedes pasar el id o el obj, depende como lo uses afuera
+      if (onAssign) onAssign(selectedProjectId);
       onClose();
       setError("");
     } catch (err) {
@@ -72,20 +56,20 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
         {/* User Details */}
         <div className="bg-gray-50 rounded-xl px-6 py-4 mb-7 flex flex-wrap justify-between items-center">
           <div className="flex flex-col gap-1 text-sm text-gray-500">
-            <div><span className="font-semibold">Name:</span> {user.name}</div>
+            <div><span className="font-semibold">Name:</span> {user.nombre} {user.apellido}</div>
             <div><span className="font-semibold">Email:</span> {user.email}</div>
-            <div><span className="font-semibold">Role:</span> {user.role}</div>
+            <div><span className="font-semibold">Role:</span> {user.rol?.nombre}</div>
           </div>
           <div>
             <div className="text-right text-gray-500 text-sm mb-1">Current Status:</div>
             <span className={`px-3 py-1 rounded-full font-bold text-xs
-              ${user.status === "Active"
+              ${user.status === "Activo"
                 ? "bg-green-100 text-green-700"
                 : user.status === "Unassigned"
                 ? "bg-yellow-100 text-yellow-700"
                 : "bg-red-100 text-red-600"
               }
-            `}>{user.status}</span>
+            `}>{user.status === "Activo" ? "Active" : "Inactive"}</span>
           </div>
         </div>
 
@@ -98,21 +82,21 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
             Select a project to assign the employee
           </div>
           <div className="flex flex-col gap-3 max-h-52 overflow-y-auto pr-2">
-            {projects.map((project, idx) => (
+            {projects.map((project) => (
               <button
                 type="button"
-                key={idx}
+                key={project.proyectoId || project.id}
                 className={`
                   w-full text-left px-4 py-3 rounded-xl border 
                   transition font-medium text-base flex items-center justify-between
-                  ${selectedProject === (typeof project === "object" ? project.name : project)
+                  ${selectedProjectId === (project.proyectoId || project.id)
                     ? "bg-purple-100 border-purple-300 ring-2 ring-purple-200"
                     : "bg-white border-gray-300 hover:bg-gray-100"
                   }
                 `}
-                onClick={() => handleSelect(typeof project === "object" ? project.name : project)}
+                onClick={() => handleSelect(project.proyectoId || project.id)}
               >
-                {typeof project === "object" ? project.name : project}
+                {project.nombreProyecto}
               </button>
             ))}
           </div>
@@ -130,10 +114,10 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
           <button
             type="button"
-            disabled={!selectedProject || submitting}
+            disabled={!selectedProjectId || submitting}
             onClick={handleAssign}
             className={`px-8 py-2 rounded-xl font-semibold transition
-              ${selectedProject && !submitting
+              ${selectedProjectId && !submitting
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-200 text-white cursor-not-allowed"
               }`}
