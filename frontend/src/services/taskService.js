@@ -1,7 +1,7 @@
-import api from "./axios"; // Ya tienes este helper
+import api from "./axios";
 
-export const getTasks = () => api.get("/tarea");
-export const getTaskById = (id) => api.get(`/tarea/${id}`);
-export const createTask = (task) => api.post("/tarea", task);
-export const updateTask = (id, task) => api.put(`/tarea/${id}`, task);
-export const disableTask = (id) => api.patch(`/tarea/${id}/disable`);
+export const getTasks = () => api.get("/tareas");
+export const getTaskById = (id) => api.get(`/tareas/${id}`);
+export const createTask = (task) => api.put("/tareas", task); // <-- PUT y plural
+export const updateTask = (id, task) => api.put(`/tareas/${id}`, task);
+export const disableTask = (id) => api.patch(`/tareas/${id}/disable`);
