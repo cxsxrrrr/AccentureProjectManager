@@ -22,29 +22,37 @@ function CategoriesandSkills() {
   const [categories, setCategories] = useState([]);
   const [skills, setSkills] = useState([]);
 
+  // Estado para errores
+  const [error, setError] = useState(null);
+  // Estado de carga
+  const [isLoading, setIsLoading] = useState(true);
+
   // ==== CARGA INICIAL DESDE BACKEND ====
   useEffect(() => {
-    // Categorías
-    api.get("/category")
-      .then(res =>
-        setCategories(res.data.map(cat => ({
+    setIsLoading(true);
+    Promise.all([
+      api.get("/category"),
+      api.get("/skills")
+    ])
+      .then(([catRes, skillRes]) => {
+        setCategories(catRes.data.map(cat => ({
           id: cat.categoriaId,
           name: cat.nombre,
           description: cat.descripcion,
-        })))
-      )
-      .catch(() => setCategories([]));
-
-    // Skills
-    api.get("/skills")
-      .then(res =>
-        setSkills(res.data.map(skill => ({
-          id: skill.skillId, // o id si tu backend lo entrega así
+        })));
+        setSkills(skillRes.data.map(skill => ({
+          id: skill.skillId,
           name: skill.nombre,
           category: skill.categoria?.nombre || skill.categoriaNombre || "",
-        })))
-      )
-      .catch(() => setSkills([]));
+        })));
+        setError(null);
+      })
+      .catch(() => {
+        setCategories([]);
+        setSkills([]);
+        setError("Error al cargar los datos");
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   // ==== CRUD Categoría ====
@@ -166,6 +174,30 @@ function CategoriesandSkills() {
   };
 
   // ==== Render ====
+
+  // Refresca categorías y skills desde el backend
+  const handleRefresh = async () => {
+    try {
+      // Recarga categorías
+      const catRes = await api.get("/category");
+      setCategories(catRes.data.map(cat => ({
+        id: cat.categoriaId,
+        name: cat.nombre,
+        description: cat.descripcion,
+      })));
+      // Recarga skills
+      const skillRes = await api.get("/skills");
+      setSkills(skillRes.data.map(skill => ({
+        id: skill.skillId,
+        name: skill.nombre,
+        category: skill.categoria?.nombre || skill.categoriaNombre || "",
+      })));
+      setError(null); // Limpiar error si refresca bien
+    } catch {
+      setError("Error al refrescar los datos");
+    }
+  };
+
   return (
     <div className="admin-page">
       <Topbar title="Categories & Skills Management">
