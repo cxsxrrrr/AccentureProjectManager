@@ -21,24 +21,8 @@ export const authService = {
       const usuario = usuarioRes.data;
       // Guardar información del usuario en localStorage
       localStorage.setItem('user', JSON.stringify(usuario));
-      const rolId = usuario.rol?.rolId;
-      switch (rolId) {
-        case 1:
-          window.location.href = '/admin';
-          break;
-        case 2:
-          window.location.href = '/manager';
-          break;
-        case 3:
-          window.location.href = '/team';
-          break;
-        case 4:
-          window.location.href = '/client';
-          break;
-        default:
-          window.location.href = '/';
-      }
-      return { success: true, token };
+      // Return token and user for component to handle navigation
+      return { success: true, token, usuario };
     } catch (error) {
       console.log("Error completo:", error); // Para debug
       
@@ -64,8 +48,8 @@ export const authService = {
   register: async (usuarioData) => {
     try {
       const response = await api.post('/auth/register', usuarioData);
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: response.data 
       };
     } catch (error) {

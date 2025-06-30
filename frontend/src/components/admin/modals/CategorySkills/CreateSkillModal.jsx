@@ -16,11 +16,19 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
     }
   }, [isOpen]);
 
-  // Buscador de categorías (usa nombre y descripcion, respetando tus modelos)
-  const filteredCategories = categories.filter(c =>
-  (typeof c?.nombre === "string" && c.nombre.toLowerCase().includes(catSearch.toLowerCase())) ||
-  (typeof c?.descripcion === "string" && c.descripcion.toLowerCase().includes(catSearch.toLowerCase()))
-);
+
+  // Normaliza categorías para que funcionen con el nuevo modelo del frontend
+  const normalizedCategories = categories.map(c => ({
+    id: c.id || c.categoriaId,
+    name: c.name || c.nombre,
+    description: c.description || c.descripcion
+  }));
+
+  const filteredCategories = normalizedCategories.filter(c =>
+    (typeof c?.name === "string" && c.name.toLowerCase().includes(catSearch.toLowerCase())) ||
+    (typeof c?.description === "string" && c.description.toLowerCase().includes(catSearch.toLowerCase()))
+  );
+
 
   const valid = nombre.trim() && categoriaId;
 
@@ -28,9 +36,12 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
     e.preventDefault();
     setTouched(true);
     if (!valid) return;
+    // Busca la categoría seleccionada para enviar el id correcto
+    const selectedCat = normalizedCategories.find(c => c.id === categoriaId);
     onCreate && onCreate({
-      nombre: nombre.trim(),
-      categoria_id: categoriaId
+      name: nombre.trim(),
+      category: selectedCat ? selectedCat.name : "",
+      category_id: selectedCat ? selectedCat.id : categoriaId
     });
     toggle();
   };
@@ -89,23 +100,23 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
               )}
               {filteredCategories.map(c => (
                 <button
-                  key={c.categoria_id}
+                  key={c.id}
                   type="button"
-                  onClick={() => setCategoriaId(c.categoria_id)}
+                  onClick={() => setCategoriaId(c.id)}
                   className={`
                     flex flex-col items-start p-4 rounded-xl border w-full transition
                     text-left shadow-sm
-                    ${categoriaId === c.categoria_id
+                    ${categoriaId === c.id
                       ? "bg-purple-500 text-white border-purple-500"
                       : "bg-white border-gray-200 hover:bg-purple-100"}
                   `}
                 >
                   <div className="flex items-center w-full">
-                    <span className="font-bold text-lg flex-1">{c.nombre}</span>
-                    {categoriaId === c.categoria_id && <FiCheck className="text-2xl ml-2 font-bold" />}
+                    <span className="font-bold text-lg flex-1">{c.name}</span>
+                    {categoriaId === c.id && <FiCheck className="text-2xl ml-2 font-bold" />}
                   </div>
-                  <span className={`text-xs mt-2 ${categoriaId === c.categoria_id ? "text-purple-100" : "text-gray-500"}`}>
-                    {c.descripcion || "Sin descripción"}
+                  <span className={`text-xs mt-2 ${categoriaId === c.id ? "text-purple-100" : "text-gray-500"}`}>
+                    {c.description || "Sin descripción"}
                   </span>
                 </button>
               ))}

@@ -96,4 +96,12 @@ public class TareaServiceImpl implements TareaService {
                 .map(tareaMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<TareaDTO> listarTodasLasTareas() {
+        List<Tarea> tareas = tareaRepository.findAll();
+        return tareas.stream()
+                .map(tareaMapper::toDTO)
+                .collect(Collectors.toList());
+    }
 }

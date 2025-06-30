@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import "../../stylesheets/page.css";
@@ -9,195 +8,162 @@ import UpdateCategoryModal from "../../components/admin/modals/CategorySkills/Up
 import UpdateSkillModal from "../../components/admin/modals/CategorySkills/UpdateSkillModal";
 import DisableCategoryModal from "../../components/admin/modals/CategorySkills/DisableCategoryModal";
 import DisableSkillModal from "../../components/admin/modals/CategorySkills/DisableSkillModal";
+import api from "../../services/axios"; // Ajusta el path si tu configuración cambia
 
 function CategoriesandSkills() {
-  const [categories, setCategories] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-
+  // Selección
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedSkillId, setSelectedSkillId] = useState(null);
 
+  // Tabs
   const [tab, setTab] = useState("categories");
 
-  const [isCreateCatOpen, setCreateCatOpen] = useState(false);
-  const [isCreateSkillOpen, setCreateSkillOpen] = useState(false);
-  const [isUpdateCatOpen, setUpdateCatOpen] = useState(false);
-  const [catToEdit, setCatToEdit] = useState(null);
-  const [isUpdateSkillOpen, setUpdateSkillOpen] = useState(false);
-  const [skillToEdit, setSkillToEdit] = useState(null);
-  const [isDisableCategoryOpen, setDisableCategoryOpen] = useState(false);
-  const [isDisableSkillOpen, setDisableSkillOpen] = useState(false);
+  // Datos reales de API
+  const [categories, setCategories] = useState([]);
+  const [skills, setSkills] = useState([]);
 
-  // Verificar autenticación al cargar el componente
+  // ==== CARGA INICIAL DESDE BACKEND ====
   useEffect(() => {
-    if (!localStorage.getItem("token")) {
-      window.location.href = '/login';
-      return;
-    }
-    loadData();
+    // Categorías
+    api.get("/category")
+      .then(res =>
+        setCategories(res.data.map(cat => ({
+          id: cat.categoriaId,
+          name: cat.nombre,
+          description: cat.descripcion,
+        })))
+      )
+      .catch(() => setCategories([]));
+
+    // Skills
+    api.get("/skills")
+      .then(res =>
+        setSkills(res.data.map(skill => ({
+          id: skill.skillId, // o id si tu backend lo entrega así
+          name: skill.nombre,
+          category: skill.categoria?.nombre || skill.categoriaNombre || "",
+        })))
+      )
+      .catch(() => setSkills([]));
   }, []);
 
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const token = localStorage.getItem("token");
-
-<<<<<<< HEAD
-      const [categoriesResponse, skillsResponse] = await Promise.all([
-        axios.get("http://localhost:8080/api/categories", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get("http://localhost:8080/api/skills", {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-
-=======
-      // Primero cargar categorías
-      const categoriesResponse = await axios.get(
-        "http://localhost:8080/api/category", 
-        config
-      );
-      
-      // Verificar si la respuesta tiene datos
-      if (!categoriesResponse.data) {
-        throw new Error("No se recibieron datos de categorías");
-      }
-      
->>>>>>> 3ada313 (test pt 4)
-      setCategories(categoriesResponse.data);
-      setSkills(sskillsResponse.data);
-    } catch (err) {
-      console.error("Error loading data:", err);
-      setError("Error loading data. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // ==== CRUD Categoría ====
+  const [isCreateCatOpen, setCreateCatOpen] = useState(false);
+  const [isUpdateCatOpen, setUpdateCatOpen] = useState(false);
+  const [isDisableCategoryOpen, setDisableCategoryOpen] = useState(false);
+  const [catToEdit, setCatToEdit] = useState(null);
 
   const handleCreateCategory = async (newCat) => {
     try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        "http://localhost:8080/api/category",
-        newCat,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setCategories((prev) => [...prev, response.data]);
-      setCreateCatOpen(false);
-    } catch (err) {
-      console.error("Error creating category:", err);
-      setError("Error creating category. Please try again.");
+      const res = await api.post("/category", {
+        nombre: newCat.name,
+        descripcion: newCat.description
+      });
+      setCategories(prev => [
+        ...prev,
+        { id: res.data.categoriaId, name: res.data.nombre, description: res.data.descripcion }
+      ]);
+    } catch {
+      alert("Error al crear la categoría");
     }
-
   };
 
-  const handleCreateSkill = async (newSkill) => {
-    try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      const response = await axios.post(
-        "http://localhost:8080/api/skills",
-        newSkill,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSkills((prev) => [...prev, response.data]);
-      setCreateSkillOpen(false);
-    } catch (err) {
-      console.error("Error creating skill:", err);
-      setError("Error creating skill. Please try again.");
-    }
+  const openUpdateCategoryModal = (cat) => {
+    setCatToEdit(cat);
+    setUpdateCatOpen(true);
   };
 
   const handleUpdateCategory = async (catData) => {
     try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      await axios.put(
-        `http://localhost:8080/api/category/${catData.id}`,
-        catData,
-        { headers: { Authorization: `Bearer ${token}` } }
+      await api.put(`/category/${catData.id}`, {
+        nombre: catData.name,
+        descripcion: catData.description
+      });
+      setCategories(prev =>
+        prev.map(c => (c.id === catData.id ? catData : c))
       );
-
-      setCategories((prev) =>
-        prev.map((c) => (c.id === catData.id ? catData : c))
-      );
+    } catch {
+      alert("Error al actualizar");
+    } finally {
       setUpdateCatOpen(false);
-    } catch (err) {
-      console.error("Error updating category:", err);
-      setError("Error updating category. Please try again.");
-    }
-  };
-
-  const handleUpdateSkill = async (skillData) => {
-    try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      await axios.put(
-        `http://localhost:8080/api/skills/${skillData.id}`,
-        skillData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      setSkills((prev) =>
-        prev.map((s) => (s.id === skillData.id ? skillData : s))
-      );
-      setUpdateSkillOpen(false);
-    } catch (err) {
-      console.error("Error updating skill:", err);
-      setError("Error updating skill. Please try again.");
     }
   };
 
   const handleDisableCategory = async (categoryId) => {
     try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`http://localhost:8080/api/category/${categoryId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setCategories((prev) => prev.filter((c) => c.id !== categoryId));
+      await api.delete(`/category/${categoryId}`);
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+    } catch {
+      alert("Error al eliminar la categoría");
+    } finally {
       setDisableCategoryOpen(false);
-    } catch (err) {
-      console.error("Error disabling category:", err);
-      setError("Error disabling category. Please try again.");
+    }
+  };
+
+  // ==== CRUD Skill ====
+  const [isCreateSkillOpen, setCreateSkillOpen] = useState(false);
+  const [isUpdateSkillOpen, setUpdateSkillOpen] = useState(false);
+  const [isDisableSkillOpen, setDisableSkillOpen] = useState(false);
+  const [skillToEdit, setSkillToEdit] = useState(null);
+
+  const handleCreateSkill = async (newSkill) => {
+    // Busca la categoría por nombre para conseguir el ID
+    const catObj = categories.find(c => c.name === newSkill.category);
+    if (!catObj || !catObj.id) {
+      alert("Debes seleccionar una categoría válida para la habilidad.");
+      return;
+    }
+    try {
+      const res = await api.post("/skills", {
+        nombre: newSkill.name,
+        estado: "ACTIVA",
+        categoriaId: catObj.id
+      });
+      setSkills(prev => [
+        ...prev,
+        { id: res.data.skillId, name: res.data.nombre, category: catObj.name || "" }
+      ]);
+    } catch {
+      alert("Error al crear habilidad");
+    }
+  };
+
+  const openUpdateSkillModal = (skill) => {
+    setSkillToEdit(skill);
+    setUpdateSkillOpen(true);
+  };
+
+  const handleUpdateSkill = async (skillData) => {
+    try {
+      // Busca la categoría por nombre para conseguir el ID
+      const catObj = categories.find(c => c.name === skillData.category);
+      await api.put(`/skills/${skillData.id}`, {
+        nombre: skillData.name,
+        estado: "ACTIVA",
+        categoriaId: catObj?.id
+      });
+      setSkills(prev =>
+        prev.map(s => (s.id === skillData.id ? skillData : s))
+      );
+    } catch {
+      alert("Error al actualizar habilidad");
+    } finally {
+      setUpdateSkillOpen(false);
     }
   };
 
   const handleDisableSkill = async (skillId) => {
     try {
-      setError(null);
-      const token = localStorage.getItem("token");
-
-      await axios.delete(`http://localhost:8080/api/skills/${skillId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      setSkills((prev) => prev.filter((s) => s.id !== skillId));
+      await api.delete(`/skills/${skillId}`);
+      setSkills(prev => prev.filter(s => s.id !== skillId));
+    } catch {
+      alert("Error al eliminar habilidad");
+    } finally {
       setDisableSkillOpen(false);
-    } catch (err) {
-      console.error("Error disabling skill:", err);
-      setError("Error disabling skill. Please try again.");
     }
   };
 
-  const handleRefresh = () => {
-    loadData();
-  };
-
+  // ==== Render ====
   return (
     <div className="admin-page">
       <Topbar title="Categories & Skills Management">
