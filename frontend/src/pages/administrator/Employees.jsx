@@ -55,64 +55,50 @@ function Employees() {
       setIsLoading(true);
       setError(null);
 
-      // Verificar que el usuario esté autenticado
-      if (!authService.isAuthenticated()) {
-        throw new Error('No authenticated');
-      }
+      // Obtener usuarios del backend
+      const response = await api.get('/usuario');
+      const employeesFromApi = Array.isArray(response.data) ? response.data : [response.data];
 
-      // Usar la instancia de axios configurada que incluye automáticamente el token
-      // Asumiendo que el endpoint para empleados es '/empleados' o '/employees'
-      const response = await api.get('/usuario'); // Ajusta la ruta según tu API
-      
-      const employeesFromApi = response.data;
-      const formattedEmployees = employeesFromApi.map((emp) => ({
-        id: emp.empleadoId || emp.usuarioId,
-        nombre: emp.nombre,
-        apellido: emp.apellido,
-        email: emp.email,
-        numeroTelefono: emp.numeroTelefono,
-        cedula: emp.cedula,
-        genero: emp.genero,
-        fechaNacimiento: emp.fechaNacimiento,
-        estado: emp.estado,
-        fechaCreacion: emp.fechaCreacion,
-        ultimoAcceso: emp.ultimoAcceso,
-        rol: emp.rol || emp.rolUsuario || null,
-        // Categoría: puede venir como objeto, string o array (tomar el primer nombre si es array de objetos)
-        category: Array.isArray(emp.categoria)
-          ? (emp.categoria[0]?.nombre || emp.categoria[0] || "Developer")
-          : (emp.categoria && emp.categoria.nombre)
-            ? emp.categoria.nombre
-            : (emp.categoria || emp.category || "Developer"),
-        // Skills: puede venir como array de objetos, strings o anidado en categoria
-        skills: Array.isArray(emp.habilidades)
-          ? emp.habilidades.map(h => h.nombre || h.skillName || h)
-          : (Array.isArray(emp.skills) ? emp.skills.map(s => s.nombre || s.skillName || s) :
-            (emp.categoria && Array.isArray(emp.categoria.skills))
-              ? emp.categoria.skills.map(s => s.nombre || s.skillName || s)
-              : []),
-        departamento: emp.departamento,
-        puesto: emp.puesto,
-        salario: emp.salario,
-      }));
-      
+      // Filtrar solo usuarios con rol "team", "member" o "team member" (case-insensitive)
+      const filtered = employeesFromApi.filter(emp => {
+        const roleName = (emp.rol?.nombre || "").toLowerCase();
+        return ["team", "member", "team member"].includes(roleName);
+      });
+
+      // Mapear categorías y skills para cada usuario
+      const formattedEmployees = await Promise.all(
+        filtered.map(async (emp) => {
+          // Obtener categoría
+          const categoryRes = await api.get(`/category/user/${emp.usuarioId}`);
+          const category = categoryRes.data[0]?.nombre || "";
+
+          // Obtener skills
+          const skillsRes = await api.get(`/skills/usuario/${emp.usuarioId}`);
+          const skills = skillsRes.data.map(skill => skill.nombre);
+
+          return {
+            id: emp.usuarioId,
+            nombre: emp.nombre,
+            apellido: emp.apellido,
+            email: emp.email,
+            numeroTelefono: emp.numeroTelefono,
+            cedula: emp.cedula,
+            genero: emp.genero,
+            fechaNacimiento: emp.fechaNacimiento,
+            estado: emp.estado,
+            fechaCreacion: emp.fechaCreacion,
+            ultimoAcceso: emp.ultimoAcceso,
+            rol: emp.rol || null,
+            category,
+            skills,
+          };
+        })
+      );
+
       setEmployees(formattedEmployees);
     } catch (err) {
       console.error("Error loading employees:", err);
-      
-      // Manejo específico de errores
-      if (err.response?.status === 401) {
-        // Token expirado o inválido - el interceptor ya maneja esto
-        setError("Session expired. Please login again.");
-        authService.logout();
-      } else if (err.response?.status === 403) {
-        setError("You don't have permission to view employees.");
-      } else if (err.message === 'No authenticated') {
-        setError("Please login to continue.");
-        authService.logout();
-      } else {
-        setError("Error loading employees. Please try again.");
-      }
+      setError("Error loading employees. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -254,7 +240,7 @@ function Employees() {
                     <td className="py-5 px-6 whitespace-nowrap text-gray-800 text-sm">{formatDate(emp.fechaNacimiento)}</td>
                     {/* CATEGORY & SKILLS */}
                     <td className="py-5 px-6 whitespace-nowrap">
-                      <div className="font-semibold text-sm mb-1">{emp.category}</div>
+                      <div className="font-semibold text-sm mb-1 text-blue-500">{emp.category}</div>
                       <div className="flex flex-wrap gap-1">
                         {emp.skills && emp.skills.length > 0 ? (
                           emp.skills.slice(0, 3).map((skill, index) => (
@@ -266,7 +252,7 @@ function Employees() {
                             </span>
                           ))
                         ) : (
-                          <span className="text-gray-400 text-xs">No skills listed</span>
+                          <span className="text-gray-400 text-xs">No Skills Found</span>
                         )}
                         {emp.skills && emp.skills.length > 3 && (
                           <span className="text-gray-500 text-xs">+{emp.skills.length - 3} more</span>
