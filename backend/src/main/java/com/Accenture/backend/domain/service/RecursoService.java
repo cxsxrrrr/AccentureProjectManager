@@ -77,6 +77,27 @@ public class RecursoService {
         return recursoMapper.toDTO(updated);
     }
 
+    // Actualización parcial de recurso por ID (PATCH)
+    public RecursoDTO patchRecursoxId(Long recursoId, RecursoDTO dto) {
+        Recurso recursoExistente = Optional.ofNullable(recursoDAO.buscarRecursoxId(recursoId))
+                .orElseThrow(() -> new ResourceNotFoundException("Recurso no encontrado"));
+        // Solo actualiza los campos no nulos del DTO recibido
+        if (dto.getNombreRecurso() != null) recursoExistente.setNombreRecurso(dto.getNombreRecurso());
+        if (dto.getDescripcionRecurso() != null) recursoExistente.setDescripcionRecurso(dto.getDescripcionRecurso());
+        if (dto.getEstado() != null) recursoExistente.setDisponibilidad(dto.getEstado());
+        if (dto.getCoste() != null) {
+            try {
+                recursoExistente.setCosto(Double.valueOf(dto.getCoste()));
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("El campo 'coste' debe ser un número válido");
+            }
+        }
+        if (dto.getTipo() != null) recursoExistente.setTipo(dto.getTipo());
+        if (dto.getCantidad() != null) recursoExistente.setCantidad(dto.getCantidad());
+        Recurso updated = recursoDAO.actualizarRecurso(recursoExistente);
+        return recursoMapper.toDTO(updated);
+    }
+
     // Normalizar texto removiendo acentos y pasando a mayúsculas
     private String normalize(String text) {
         if (text == null) return "";

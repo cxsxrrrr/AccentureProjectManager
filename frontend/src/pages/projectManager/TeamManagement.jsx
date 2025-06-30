@@ -367,7 +367,7 @@ function TeamManagement() {
         onClose={() => setShowAssign(false)}
         onAssign={handleAssignProject}
         user={selectedUser}
-        projects={proyectos}
+        projects={proyectos || []}
       />
       <UnassignProjectModal
         isOpen={showUnassign}

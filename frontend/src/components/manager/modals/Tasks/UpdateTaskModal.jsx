@@ -1,29 +1,15 @@
 import React, { useState, useEffect } from "react";
 import taskIcon from "../../../../assets/icons/task.svg";
 
-// Mock de proyectos y usuarios
-const proyectosMock = [
-  { proyectoId: 1, nombreProyecto: "Website Redesign" },
-  { proyectoId: 2, nombreProyecto: "Inventario 2025" },
-];
-const usuariosMock = [
-  { usuarioId: 1, name: "Jane Smith" },
-  { usuarioId: 2, name: "John Doe" },
-  { usuarioId: 3, name: "Carlos Reyes" },
-];
-
-function getToday() {
-  const d = new Date();
-  return d.toISOString().split("T")[0]; // yyyy-mm-dd
-}
-
-// Función para buscar nombre del usuario
-function getUserNameById(id) {
-  const u = usuariosMock.find((u) => u.usuarioId === Number(id));
-  return u ? u.name : "Unknown";
-}
-
-function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
+function UpdateTaskModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+  currentUser,
+  proyectos = [],
+  users = [],
+}) {
   const [form, setForm] = useState({
     proyectoId: "",
     nombre: "",
@@ -35,16 +21,37 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
   });
   const [errors, setErrors] = useState({});
 
+  function getUserNameById(id) {
+    const u = users.find((u) => u.usuarioId === Number(id));
+    return u ? u.name : "Unknown";
+  }
+
+  function getToday() {
+    const d = new Date();
+    return d.toISOString().split("T")[0];
+  }
+
   useEffect(() => {
     if (isOpen && initialData) {
+      // Trae el proyectoId correctamente aunque venga en formato plano u objeto
+      const pid =
+        (initialData.proyecto && initialData.proyecto.proyectoId) ||
+        initialData.proyectoId ||
+        "";
+
+      console.log("initialData en modal:", initialData);
+      console.log("Seteando proyectoId a:", pid);
+
       setForm({
-        proyectoId: initialData.proyecto?.proyectoId?.toString() || "",
+        proyectoId: pid.toString(),
         nombre: initialData.nombre || "",
         descripcion: initialData.descripcion || "",
         prioridad: initialData.prioridad || "MEDIA",
         fechaInicioEstimada: initialData.fechaInicioEstimada || "",
         fechaFinEstimada: initialData.fechaFinEstimada || "",
-        creadoPorId: initialData.creadoPor?.usuarioId?.toString() || "",
+        creadoPorId: initialData.creadoPor?.usuarioId
+          ? initialData.creadoPor.usuarioId.toString()
+          : currentUser?.usuarioId?.toString() || "", // Usa el usuario actual si no hay
       });
       setErrors({});
     }
@@ -69,14 +76,12 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
         errs.fechaFinEstimada = "End date cannot be before start date";
       }
     }
-
     if (field === "nombre" && value.length > 60) {
       errs.nombre = "Task name cannot be longer than 60 characters";
     }
     if (field === "descripcion" && value.length > 255) {
       errs.descripcion = "Description cannot be longer than 255 characters";
     }
-
     setErrors((prev) => ({ ...prev, ...errs }));
   };
 
@@ -94,6 +99,24 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
     let valid = true;
     let errs = {};
 
+    if (!form.creadoPorId || Number(form.creadoPorId) <= 0) {
+      errs.creadoPorId = "Invalid user";
+      valid = false;
+    }
+
+    // El campo proyectoId ya no se valida aquí porque es fijo y readonly
+    if (!form.nombre) {
+      errs.nombre = "Task name is required";
+      valid = false;
+    }
+    if (!form.fechaInicioEstimada) {
+      errs.fechaInicioEstimada = "Start date is required";
+      valid = false;
+    }
+    if (!form.fechaFinEstimada) {
+      errs.fechaFinEstimada = "End date is required";
+      valid = false;
+    }
     if (form.fechaInicioEstimada < today) {
       errs.fechaInicioEstimada = "Start date cannot be in the past";
       valid = false;
@@ -121,9 +144,10 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
     setErrors(errs);
     if (!valid) return;
 
+    // El objeto debe coincidir con lo que el backend espera
     const tareaEditada = {
-      tareasId: initialData.tareasId,
-      proyecto: { proyectoId: Number(form.proyectoId) },
+      id: initialData.id, // o tareasId si tu backend usa ese nombre
+      proyectoId: Number(form.proyectoId), // <--- SOLO EL ID!
       nombre: form.nombre,
       descripcion: form.descripcion,
       estado: initialData.estado || "NO_INICIADA",
@@ -132,10 +156,11 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
       fechaFinEstimada: form.fechaFinEstimada,
       fechaInicioReal: initialData.fechaInicioReal || null,
       fechaFinReal: initialData.fechaFinReal || null,
-      creadoPor: { usuarioId: Number(form.creadoPorId) },
+      creadoPorId: Number(form.creadoPorId),
       fechaCreacion: initialData.fechaCreacion,
       ultimaActualizacion: new Date().toISOString(),
     };
+    console.log("tareaEditada que se envía al backend:", tareaEditada);
     onSave(tareaEditada);
   };
 
@@ -171,21 +196,16 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
           {/* General Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="font-semibold text-sm flex flex-col">
-              Project *
-              <select
-                name="proyectoId"
-                value={form.proyectoId}
-                onChange={handleChange}
-                required
-                className="mt-1 border rounded w-full px-3 py-2"
-              >
-                <option value="">Select project</option>
-                {proyectosMock.map((p) => (
-                  <option key={p.proyectoId} value={p.proyectoId}>
-                    {p.nombreProyecto}
-                  </option>
-                ))}
-              </select>
+              Project
+              <input
+                value={
+                  proyectos.find(
+                    (p) => p.proyectoId === Number(form.proyectoId)
+                  )?.nombreProyecto || "Not assigned"
+                }
+                readOnly
+                className="mt-1 border rounded w-full px-3 py-2 bg-gray-100 cursor-not-allowed"
+              />
             </label>
             <label className="font-semibold text-sm flex flex-col">
               Created By *
@@ -207,8 +227,12 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
               placeholder="Enter task name"
               className="mt-1 border rounded w-full px-3 py-2"
             />
-            <span className="text-xs text-gray-400 mt-1">{form.nombre.length}/60</span>
-            {errors.nombre && <span className="text-xs text-red-500">{errors.nombre}</span>}
+            <span className="text-xs text-gray-400 mt-1">
+              {form.nombre.length}/60
+            </span>
+            {errors.nombre && (
+              <span className="text-xs text-red-500">{errors.nombre}</span>
+            )}
           </label>
           <label className="font-semibold text-sm flex flex-col w-full">
             Description
@@ -221,19 +245,28 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
               className="mt-1 border rounded w-full px-3 py-2"
               rows={2}
             />
-            <span className="text-xs text-gray-400 mt-1">{form.descripcion.length}/255</span>
-            {errors.descripcion && <span className="text-xs text-red-500">{errors.descripcion}</span>}
+            <span className="text-xs text-gray-400 mt-1">
+              {form.descripcion.length}/255
+            </span>
+            {errors.descripcion && (
+              <span className="text-xs text-red-500">{errors.descripcion}</span>
+            )}
           </label>
           {/* Status y prioridad */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="font-semibold text-sm flex flex-col">
               Status
-              <span className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${
-                initialData.estado === "COMPLETADA" ? "bg-green-100 text-green-700"
-                : initialData.estado === "EN_PROGRESO" ? "bg-blue-100 text-blue-700"
-                : initialData.estado === "BLOQUEADA" ? "bg-red-100 text-red-700"
-                : "bg-yellow-100 text-yellow-700"
-              }`}>
+              <span
+                className={`inline-block mt-1 px-3 py-1 rounded-full text-xs font-bold ${
+                  initialData.estado === "COMPLETADA"
+                    ? "bg-green-100 text-green-700"
+                    : initialData.estado === "EN_PROGRESO"
+                    ? "bg-blue-100 text-blue-700"
+                    : initialData.estado === "BLOQUEADA"
+                    ? "bg-red-100 text-red-700"
+                    : "bg-yellow-100 text-yellow-700"
+                }`}
+              >
                 {initialData.estado === "NO_INICIADA" && "Not Started"}
                 {initialData.estado === "EN_PROGRESO" && "In Progress"}
                 {initialData.estado === "COMPLETADA" && "Completed"}
@@ -255,7 +288,7 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
               </select>
             </label>
           </div>
-          {/* Fechas */}
+          {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <label className="font-semibold text-sm flex flex-col">
               Estimated Start *
@@ -269,7 +302,9 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
                 className="mt-1 border rounded w-full px-3 py-2"
               />
               {errors.fechaInicioEstimada && (
-                <span className="text-xs text-red-500">{errors.fechaInicioEstimada}</span>
+                <span className="text-xs text-red-500">
+                  {errors.fechaInicioEstimada}
+                </span>
               )}
             </label>
             <label className="font-semibold text-sm flex flex-col">
@@ -284,11 +319,12 @@ function UpdateTaskModal({ isOpen, onClose, onSave, initialData }) {
                 className="mt-1 border rounded w-full px-3 py-2"
               />
               {errors.fechaFinEstimada && (
-                <span className="text-xs text-red-500">{errors.fechaFinEstimada}</span>
+                <span className="text-xs text-red-500">
+                  {errors.fechaFinEstimada}
+                </span>
               )}
             </label>
           </div>
-
           {/* Footer */}
           <div className="flex justify-end gap-3 mt-6">
             <button

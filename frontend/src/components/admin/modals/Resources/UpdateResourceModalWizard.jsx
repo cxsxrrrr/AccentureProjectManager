@@ -54,7 +54,17 @@ const UpdateResourceModalWizard = ({
 
   // Guardar cambios
   const handleSave = (data) => {
-    const finalData = { ...form, ...data };
+    const finalData = {
+      id: form.id || resource?.id || resource?.recursoId || "",
+      nombreRecurso: form.name || "",
+      tipo: form.type || "",
+      coste: parseFloat(form.cost || "0"),
+      estado: form.availability || "",
+      cantidad: parseInt(data.unit_measure || "0", 10),
+      descripcionRecurso: data.description || "",
+    };
+
+    console.log("Final data to save:", finalData); // Log para depuración
     onSave(finalData);
     setStep(1);
     onClose();

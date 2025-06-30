@@ -68,7 +68,10 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
         </button>
         <button
           className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow"
-          onClick={() => onSave(local)}
+          onClick={() => {
+            console.log("Step 2 data:", local); // Log para depuración
+            onSave(local);
+          }}
         >
           Save Change
         </button>

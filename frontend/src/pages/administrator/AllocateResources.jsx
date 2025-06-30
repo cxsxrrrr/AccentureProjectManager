@@ -47,10 +47,20 @@ function AllocateResources() {
       }
 
       // Usar la instancia de axios configurada que incluye automáticamente el token
-      const response = await api.get('/recursos');
-      
+      // Cambiar la URL al endpoint correcto
+      const response = await api.get('http://localhost:8080/api/recursos');
       const resourcesFromApi = response.data;
-      setResources(resourcesFromApi);
+      // Mapear los campos del backend a los del frontend
+      const formattedResources = resourcesFromApi.map((r) => ({
+        id: r.recursoId,
+        name: r.nombreRecurso,
+        description: r.descripcionRecurso,
+        availability: r.estado === 'Disponible' ? 'Available' : r.estado,
+        cost: r.coste,
+        type: r.tipo,
+        unit_measure: r.cantidad,
+      }));
+      setResources(formattedResources);
     } catch (err) {
       console.error("Error loading resources:", err);
       
@@ -72,8 +82,35 @@ function AllocateResources() {
     }
   };
 
-  const handleAssignResource = async ({ resourceName, projectId }) => {
+  const handleAssignResource = async ({ resourceId, projectId }) => {
     try {
+      if (!resourceId || !projectId) {
+        throw new Error("Resource ID or Project ID is missing.");
+      }
+
+      // Validar que los IDs sean números válidos
+      if (isNaN(resourceId) || isNaN(projectId)) {
+        throw new Error("Invalid Resource ID or Project ID.");
+      }
+
+      // Obtener el usuario autenticado para asignadoPor
+      const assignedBy = authService.getCurrentUserId ? authService.getCurrentUserId() : 50; // fallback demo
+
+      console.log("Assigning resource:", { recursoId: resourceId, proyectoId: projectId, asignadoPor: assignedBy });
+
+      // Realizar la petición al backend
+      const response = await api.post('http://localhost:8080/api/recursos-proyecto', {
+        recursoId: resourceId,
+        proyectoId: projectId,
+        asignadoPor: assignedBy
+      });
+
+      if (response.status === 200) {
+        console.log("Resource assigned successfully.");
+      } else {
+        throw new Error("Failed to assign resource.");
+      }
+
       await loadResources();
       setAssignOpen(false);
     } catch (error) {
@@ -84,6 +121,17 @@ function AllocateResources() {
 
   const handleUpdateResource = async (updatedResource) => {
     try {
+      // Construir el body con los campos esperados por el backend
+      const body = {
+        nombreRecurso: updatedResource.name,
+        descripcionRecurso: updatedResource.description,
+        estado: updatedResource.availability === 'Available' ? 'Disponible' : updatedResource.availability,
+        coste: updatedResource.cost,
+        cantidad: updatedResource.unit_measure,
+        tipo: updatedResource.type,
+      };
+      // Hacer la petición PUT al endpoint con el id del recurso
+      await api.put(`http://localhost:8080/api/recursos/${updatedResource.id}`, body);
       await loadResources();
       setUpdateOpen(false);
       setResourceToEdit(null);
@@ -95,6 +143,7 @@ function AllocateResources() {
 
   const handleDisableResource = async (id) => {
     try {
+      await api.patch(`http://localhost:8080/api/recursos/${id}`, { estado: "Inactivo" });
       await loadResources();
       setDisableOpen(false);
       setSelectedResourceId(null);

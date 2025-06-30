@@ -89,7 +89,10 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
         </button>
         <button
           className="px-6 py-2 rounded-lg bg-purple-600 text-white font-semibold shadow"
-          onClick={() => onNext(local)}
+          onClick={() => {
+            console.log("Step 1 data:", local); // Log para depuración
+            onNext(local);
+          }}
         >
           Next
         </button>

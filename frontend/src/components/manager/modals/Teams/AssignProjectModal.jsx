@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el path si es necesario
-import api from "../../../../services/axios"; // Ajusta el path si es necesario
+
+import React, { useState, useEffect } from "react";
+import helpIcon from "../../../../assets/icons/help.svg";
+import api from "../../../../services/axios";
 
 function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) {
   const [selectedProject, setSelectedProject] = useState(null);
@@ -8,20 +9,42 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Restricción: no permitir abrir ni mostrar nada si el usuario ya tiene proyectos asignados
-  const alreadyAssigned = Array.isArray(user?.proyectosAsignados) && user.proyectosAsignados.length > 0;
-  if (!isOpen || !user || alreadyAssigned) return null;
+  // Reset states when modal opens/closes
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedProject(null);
+      setError("");
+      setSuccess(false);
+    }
+  }, [isOpen]);
 
-  // Normaliza proyectos para mostrar solo nombre y cliente
+  // Solo verificar si el modal debe mostrarse
+  if (!isOpen || !user) return null;
+
+  // Verificar si ya tiene proyectos asignados
+  const alreadyAssigned = Array.isArray(user?.proyectosAsignados) && user.proyectosAsignados.length > 0;
+
+  // Normalizar proyectos
   const normalizedProjects = Array.isArray(projects)
     ? projects
         .filter(p => p && (p.nombreProyecto || p.name || p.nombre))
         .map(p => ({
-            _id: p.id || p.proyectoId || p._id,
+            _id: p.proyectoId || p.id || p._id,
             _nombre: p.nombreProyecto || p.name || p.nombre,
-            _cliente: p.cliente?.nombre || (p.cliente && (p.cliente.nombre || p.cliente.name)) || ""
+            _cliente: p.cliente?.nombre || 
+                     (p.cliente && typeof p.cliente === 'object' ? (p.cliente.nombre || p.cliente.name) : p.cliente) || 
+                     "Sin cliente"
         }))
     : [];
+
+  // Debug temporal - remover después de verificar
+  console.log("Modal Debug:", {
+    isOpen,
+    user,
+    projects,
+    normalizedProjects,
+    alreadyAssigned
+  });
 
   const handleSelect = (projectId) => setSelectedProject(projectId);
 
@@ -32,30 +55,33 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
     setSuccess(false);
 
     try {
-      // Buscar el objeto del proyecto por id
-      const projectObj = normalizedProjects.find(
-        (p) => p._id === selectedProject
-      );
-      const projectId = projectObj ? projectObj._id : undefined;
-      // Payload esperado por el backend
+      const projectObj = normalizedProjects.find(p => p._id === selectedProject);
+      if (!projectObj) {
+        throw new Error("Proyecto no encontrado");
+      }
+
       const payload = {
         usuarioId: user.id || user.usuarioId,
-        proyectoId: projectId,
-        fechaAsignacion: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        proyectoId: projectObj._id,
+        fechaAsignacion: new Date().toISOString().slice(0, 10),
         fechaDesignacion: null,
         capacidadMaxima: 5.0,
         disponibilidad: true
       };
+
       await api.post("/miembros-proyectos", payload);
       setSuccess(true);
+      
       if (onAssign) onAssign(selectedProject);
+      
       setTimeout(() => {
         setSuccess(false);
         onClose();
       }, 1200);
-      setError("");
+      
     } catch (err) {
-      setError("Error assigning user to project.");
+      console.error("Error assigning project:", err);
+      setError(err.response?.data?.message || "Error assigning user to project.");
     } finally {
       setSubmitting(false);
     }
@@ -82,6 +108,15 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
         </div>
 
+        {/* Warning if already assigned */}
+        {alreadyAssigned && (
+          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <p className="text-yellow-800 font-semibold">
+              ⚠️ This user already has projects assigned. Please unassign first.
+            </p>
+          </div>
+        )}
+
         {/* User Details */}
         <div className="bg-gray-50 rounded-xl px-6 py-4 mb-7 flex flex-wrap justify-between items-center">
           <div className="flex flex-col gap-1 text-sm text-gray-500">
@@ -99,41 +134,61 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
                 ? "bg-yellow-100 text-yellow-700"
                 : "bg-red-100 text-red-600"
               }
-            `}>{user.status || "-"}</span>
+            `}>
+              {user.status || "-"}
+            </span>
           </div>
         </div>
 
-        {/* Error message */}
-        {error && <div className="mb-4 text-red-600 bg-red-100 px-3 py-2 rounded">{error}</div>}
-        {success && <div className="mb-4 text-green-700 bg-green-100 px-3 py-2 rounded font-semibold">User assigned to project successfully!</div>}
+        {/* Error/Success messages */}
+        {error && (
+          <div className="mb-4 text-red-600 bg-red-100 px-3 py-2 rounded">
+            {error}
+          </div>
+        )}
+        {success && (
+          <div className="mb-4 text-green-700 bg-green-100 px-3 py-2 rounded font-semibold">
+            ✅ User assigned to project successfully!
+          </div>
+        )}
 
         {/* Project Selection */}
         <div>
           <div className="mb-3 font-semibold text-gray-800">
             Select a project to assign the employee
+            <span className="text-sm text-gray-500 ml-2">
+              ({normalizedProjects.length} projects available)
+            </span>
           </div>
+          
           <div className="flex flex-col gap-3 max-h-52 overflow-y-auto pr-2">
-            {normalizedProjects.length === 0 && (
-              <div className="text-gray-400 text-center py-4">No projects found.</div>
+            {normalizedProjects.length === 0 ? (
+              <div className="text-gray-400 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                <p className="font-semibold">No projects available</p>
+                <p className="text-sm mt-1">Please check if projects are loaded correctly</p>
+              </div>
+            ) : (
+              normalizedProjects.map((project, idx) => (
+                <button
+                  type="button"
+                  key={project._id || idx}
+                  className={`
+                    w-full text-left px-4 py-3 rounded-xl border 
+                    transition font-medium text-base flex items-center justify-between
+                    ${selectedProject === project._id
+                      ? "bg-purple-100 border-purple-300 ring-2 ring-purple-200"
+                      : "bg-white border-gray-300 hover:bg-gray-100"
+                    }
+                    ${alreadyAssigned ? "opacity-50 cursor-not-allowed" : ""}
+                  `}
+                  onClick={() => !alreadyAssigned && handleSelect(project._id)}
+                  disabled={alreadyAssigned}
+                >
+                  <span className="font-semibold">{project._nombre}</span>
+                  <span className="text-xs text-gray-500 ml-2">{project._cliente}</span>
+                </button>
+              ))
             )}
-            {normalizedProjects.map((project, idx) => (
-              <button
-                type="button"
-                key={project._id || idx}
-                className={`
-                  w-full text-left px-4 py-3 rounded-xl border 
-                  transition font-medium text-base flex items-center justify-between
-                  ${selectedProject === project._id
-                    ? "bg-purple-100 border-purple-300 ring-2 ring-purple-200"
-                    : "bg-white border-gray-300 hover:bg-gray-100"
-                  }
-                `}
-                onClick={() => handleSelect(project._id)}
-              >
-                <span className="font-semibold">{project._nombre}</span>
-                <span className="text-xs text-gray-500 ml-2">{project._cliente}</span>
-              </button>
-            ))}
           </div>
         </div>
 
@@ -149,10 +204,10 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
           <button
             type="button"
-            disabled={!selectedProject || submitting}
+            disabled={!selectedProject || submitting || alreadyAssigned}
             onClick={handleAssign}
             className={`px-8 py-2 rounded-xl font-semibold transition
-              ${selectedProject && !submitting
+              ${selectedProject && !submitting && !alreadyAssigned
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-200 text-white cursor-not-allowed"
               }`}

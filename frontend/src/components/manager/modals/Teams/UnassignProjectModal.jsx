@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import helpIcon from "../../../../assets/icons/help.svg"; // Cambia el ícono si prefieres otro
-import api from "../../../../services/axios"; // Ajusta si tu path varía
+import helpIcon from "../../../../assets/icons/help.svg";
+import api from "../../../../services/axios";
 
 function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
   // Permitir seleccionar el proyecto por nombre o id
@@ -17,8 +17,6 @@ function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
       setSelectedProject("");
     }
   }, [user]);
-
-  const canUnassign = selectedProject && selectedProject !== "None";
 
   const handleUnassign = async () => {
     if (!canUnassign || submitting) return;
@@ -89,7 +87,7 @@ function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
             </div>
           </div>
         </div>
-        {/* Select Project to Unassign */}
+        {/* Proyecto asignado */}
         <div className="mb-6">
           <div className="font-medium mb-2">Select a project to unassign the employee</div>
           {Array.isArray(user.proyectosAsignados) && user.proyectosAsignados.length > 0 ? (
@@ -142,7 +140,6 @@ function UnassignProjectModal({ isOpen, onClose, onUnassign, user }) {
               ${!canUnassign || submitting ? "opacity-50 cursor-not-allowed" : ""}
             `}
           >
-            <span className="material-icons text-lg"></span>
             {submitting ? "Unassigning..." : "Unassign"}
           </button>
         </div>

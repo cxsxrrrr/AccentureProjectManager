@@ -1,19 +1,51 @@
 import React, { useState } from "react";
+import api from "../../../../services/axios";
 
 export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
   const [reason, setReason] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (reason) {
-      // Armamos el body como lo espera tu API (solo español)
-      onDisable({
+    if (!reason || !user) return;
+
+    setIsLoading(true);
+    try {
+      console.log('Disabling user:', user);
+      console.log('Reason:', reason);
+
+      // Preparar el payload para actualizar el usuario
+      const updatePayload = {
         ...user,
-        estado: "Inactivo", // Al deshabilitar, el estado debe pasar a Inactivo
-        motivo: reason      // El motivo (puedes cambiar la key si tu backend espera "reason" en inglés)
-      });
-      toggle();
+        estado: "Inactivo", // Cambiar estado a Inactivo
+        motivo: reason      // Agregar el motivo (si tu API lo soporta)
+      };
+
+      console.log('Update payload:', updatePayload);
+
+      // Hacer la llamada a la API para actualizar el usuario
+      const response = await api.put(`/usuario/${user.id}`, updatePayload);
+      
+      console.log('API response:', response.data);
+
+      // Llamar al callback del componente padre
+      if (onDisable) {
+        onDisable();
+      }
+
+      // Limpiar el formulario y cerrar modal
       setReason("");
+      toggle();
+
+    } catch (error) {
+      console.error("Error disabling user:", error);
+      console.error("Error response:", error.response?.data);
+      
+      // Aquí podrías mostrar un mensaje de error al usuario
+      // Por ahora solo logeamos el error
+      alert(`Error disabling user: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -23,8 +55,10 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
   const getUserFullName = (u) =>
     u ? `${u.nombre || u.firstName || ""} ${u.apellido || u.lastName || ""}` : "";
 
-  const getUserRole = (u) =>
-    u?.rol?.nombre || u?.role || "";
+  const getUserRole = (u) => {
+    if (!u?.rol) return "No Role";
+    return u.rol.nombre || u.rol.name || u.role || "";
+  };
 
   const getUserEmail = (u) =>
     u?.email || "";
@@ -51,6 +85,7 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
             className="ml-auto text-gray-400 hover:text-red-500 text-2xl"
             aria-label="Close modal"
             type="button"
+            disabled={isLoading}
           >
             ×
           </button>
@@ -86,13 +121,16 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
               value={reason}
               onChange={e => setReason(e.target.value)}
               required
-              className="w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-red-400"
+              disabled={isLoading}
+              className="w-full rounded border px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
             >
               <option value="">Select a reason</option>
-              <option>Security Issue</option>
-              <option>Voluntary Leave</option>
-              <option>Policy Violation</option>
-              <option>Other</option>
+              <option value="Security Issue">Security Issue</option>
+              <option value="Voluntary Leave">Voluntary Leave</option>
+              <option value="Policy Violation">Policy Violation</option>
+              <option value="Performance Issues">Performance Issues</option>
+              <option value="Contract Ended">Contract Ended</option>
+              <option value="Other">Other</option>
             </select>
           </div>
 
@@ -115,15 +153,26 @@ export default function DisableUserModal({ isOpen, toggle, user, onDisable }) {
             <button
               type="button"
               onClick={toggle}
-              className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium"
+              disabled={isLoading}
+              className="px-6 py-2 rounded-xl border bg-gray-100 text-gray-700 hover:bg-gray-200 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 flex items-center gap-2 transition"
+              disabled={isLoading || !reason}
+              className="px-6 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 flex items-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="text-lg">🗑️</span> Disable User
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <span className="text-lg">🗑️</span> Disable User
+                </>
+              )}
             </button>
           </div>
         </form>

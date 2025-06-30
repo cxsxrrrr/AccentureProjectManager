@@ -1,9 +1,7 @@
-// src/components/admin/dashboard/EmployeeStatusTable.jsx
 import React from "react";
 
-
 const EmployeeStatusTable = ({ data }) => (
-  <div className="bg-white rounded-2xl shadow p-6">
+  <div className="bg-white rounded-2xl shadow p-6 max-h-[400px] overflow-y-auto">
     <div className="flex items-center justify-between mb-4">
       <h3 className="font-semibold text-lg">Employee Status</h3>
     </div>
