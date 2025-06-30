@@ -25,6 +25,7 @@ function UserManagement() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
