@@ -1,32 +1,44 @@
-import React, { useState, useMemo } from "react";
 
-const ROLES = [
-  { name: "Admin", desc: "Full access to the system", color: "text-purple-600", border: "border-purple-400", shadow: "shadow-purple-200", rolId: 1, nombre: "Administrador" },
-  { name: "Manager", desc: "Team and project management", color: "text-purple-500", border: "border-purple-400", bg: "bg-purple-50", rolId: 2, nombre: "Gerente" },
-  { name: "Team Member", desc: "Development and maintenance", color: "text-green-600", border: "border-green-400", bg: "bg-green-50", rolId: 3, nombre: "Miembro de Equipo" },
-  { name: "Customer", desc: "Limited client access", color: "text-red-500", border: "border-red-400", bg: "bg-red-50", rolId: 4, nombre: "Cliente" },
-];
+import React, { useState, useMemo, useEffect } from "react";
+import api from "../../../../services/axios";
 
 export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
   const [search, setSearch] = useState("");
   const [selectedRole, setSelectedRole] = useState(null);
 
-  // Filtrar roles por búsqueda
+  // Estado para roles del backend
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setLoading(true);
+    setError(null);
+    api.get("/roles")
+      .then(res => setRoles(res.data || []))
+      .catch(() => setError("Error loading roles"))
+      .finally(() => setLoading(false));
+  }, [isOpen]);
+
+  // Filtrar roles por búsqueda y solo activos
   const filteredRoles = useMemo(() =>
-    ROLES.filter(role =>
-      role.name.toLowerCase().includes(search.toLowerCase())
-    ), [search]
+    (roles || [])
+      .filter(role => (role.estado?.toLowerCase?.() !== "inactivo"))
+      .filter(role =>
+        (role.nombre || "").toLowerCase().includes(search.toLowerCase())
+      ),
+    [roles, search]
   );
 
   // Asignar el rol en formato español
   const handleAssign = (e) => {
     e.preventDefault();
     if (selectedRole) {
-      // Aquí el adaptador al body esperado por la API:
       onAssign({
         rol: {
-          rolId: selectedRole.rolId,
-          nombre: selectedRole.nombre, // nombre en español
+          rolId: selectedRole.rolId || selectedRole.id,
+          nombre: selectedRole.nombre,
         }
       });
       setSelectedRole(null);
@@ -76,19 +88,25 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
 
         {/* Roles List */}
         <div className="mb-6 space-y-3 max-h-60 overflow-y-auto">
-          {filteredRoles.map(role => (
+          {loading ? (
+            <div className="text-center text-gray-400 py-4">Loading roles...</div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-4">Error loading roles</div>
+          ) : filteredRoles.length === 0 ? (
+            <div className="text-center text-gray-400 py-4">No roles found</div>
+          ) : filteredRoles.map(role => (
             <button
               type="button"
-              key={role.name}
+              key={role.id || role.rolId || role.nombre}
               onClick={() => setSelectedRole(role)}
               className={`w-full text-left px-4 py-3 rounded-xl border transition
-                ${selectedRole?.name === role.name
+                ${selectedRole?.id === role.id || selectedRole?.rolId === role.rolId
                   ? `bg-purple-50 border-purple-500 ring-2 ring-purple-300`
                   : "bg-white hover:bg-gray-50 border-gray-200"}
               `}
             >
-              <span className={`block font-semibold text-base ${role.color}`}>{role.name}</span>
-              <span className="block text-sm text-gray-500">{role.desc}</span>
+              <span className={`block font-semibold text-base text-purple-700`}>{role.nombre}</span>
+              <span className="block text-sm text-gray-500">{role.descripcion || ""}</span>
             </button>
           ))}
         </div>
@@ -103,7 +121,7 @@ export default function AssignRoleModal({ isOpen, toggle, user, onAssign }) {
             <div>
               Current role: <span className="font-bold">{getCurrentRole(user)}</span>
               <span className="mx-2">⟶</span>
-              New role: <span className="font-bold text-purple-600">{selectedRole.name}</span>
+              New role: <span className="font-bold text-purple-600">{selectedRole.nombre}</span>
             </div>
           </div>
         )}

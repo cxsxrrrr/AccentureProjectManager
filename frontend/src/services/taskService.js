@@ -1,8 +1,19 @@
 import api from "./axios";
 
-export const getTasks = () => api.get("http://localhost:8080/api/tareas");
-export const getTaskById = (id) => api.get(`http://localhost:8080/api/tareas/${id}`);
-export const createTask = (task) => api.put("http://localhost:8080/api/tareas", task); // <-- PUT y plural
-export const createTaskFlat = (payload) => api.put("http://localhost:8080/api/tareas", payload); // helper para payload plano
-export const updateTask = (id, task) => api.put(`http://localhost:8080/api/tareas/${id}`, task);
-export const disableTask = (id) => api.patch(`http://localhost:8080/api/tareas/${id}/disable`);
+// Obtener todas las tareas
+export const getTasks = () => api.get("/tareas");
+
+// Obtener una tarea por ID
+export const getTaskById = (id) => api.get(`/tareas/${id}`);
+
+// Crear una nueva tarea
+export const createTask = (task) => api.put("/tareas", task);
+
+// Actualizar una tarea existente
+export const updateTask = (task) => api.put("/tareas", task);
+
+
+// Deshabilitar una tarea
+export const disableTask = (id) => api.patch(`/tareas/${id}/disable`);
+
+export const saveTask = (task) => api.put("/tareas", task);

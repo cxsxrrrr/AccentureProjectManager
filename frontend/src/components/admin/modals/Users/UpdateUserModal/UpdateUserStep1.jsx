@@ -58,8 +58,7 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
     <form onSubmit={handleSubmit} className="p-8 space-y-4">
       {/* Header */}
       <div className="flex items-center mb-6 gap-3">
-        <span className="text-3xl text-purple-600 bg-purple-100 p-2 rounded-xl">
-        </span>
+
         <div>
           <h2 className="text-xl font-semibold">Update User</h2>
           <p className="text-sm text-gray-500">Complete the information to update user account</p>
