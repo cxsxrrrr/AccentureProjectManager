@@ -13,6 +13,11 @@ services:
       - ./backend/initdb:/docker-entrypoint-initdb.d
     networks:
       - pmnet
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
 
   backend:
     image: eclipse-temurin:21-jdk-alpine
@@ -26,28 +31,33 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      db:
+        condition: service_started
     networks:
       - pmnet
+    # healthcheck eliminado para desarrollo
 
   frontend:
     image: node:24-bookworm
     container_name: pm-frontend
     working_dir: /app
-    command: sh -c "rm -rf node_modules package-lock.json && npm install && npm run dev --host 0.0.0.0"
+    command: sh -c "npm install && npm run dev"
     volumes:
       - ./frontend:/app
+      - frontend_node_modules:/app/node_modules
     env_file:
       - ./frontend/.env.frontend
     ports:
       - "5173:5173"
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - pmnet
 
 volumes:
   db_data:
+  frontend_node_modules:
 
 networks:
   pmnet:

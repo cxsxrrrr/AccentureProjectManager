@@ -10,6 +10,10 @@ ports:
     onOpen: ignore
 
 tasks:
+  - name: Install Dependencies
+    command: |
+      cd /workspace/AccentureProjectManager/backend && ./gradlew build -x test
+      cd /workspace/AccentureProjectManager/frontend && npm install
   - name: Start Backend
     command: cd /workspace/AccentureProjectManager/backend && ./gradlew bootRun
   - name: Start Frontend
