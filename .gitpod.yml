@@ -1,0 +1,18 @@
+image:
+  file: Dockerfile
+
+ports:
+  - port: 8080
+    onOpen: open-preview
+  - port: 5173
+    onOpen: open-preview
+  - port: 5432
+    onOpen: ignore
+
+tasks:
+  - name: Start Backend
+    command: cd /workspace/AccentureProjectManager/backend && ./gradlew bootRun
+  - name: Start Frontend
+    command: cd /workspace/AccentureProjectManager/frontend && npm run dev --host 0.0.0.0
+  - name: Start Database
+    command: docker-entrypoint.sh postgres

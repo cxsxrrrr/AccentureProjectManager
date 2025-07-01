@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation } from "react-router-dom";
 import Sidebar from "../../components/common/Sidebar";
-import managerMenu from "../../config/sidebars/managerMenu";
+import managerMenu from "../../config/sidebars/ManagerMenu";
 import accentureLogo from "../../assets/accenture-logo.svg";
 
 function ManagerLayout() {
