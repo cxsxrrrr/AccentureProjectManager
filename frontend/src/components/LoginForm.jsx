@@ -31,32 +31,37 @@ export default function LoginForm() {
       const usuario = usuarioRes.data;
       localStorage.setItem("user", JSON.stringify(usuario));
 
-      // Also store friendly name and role for Sidebar display
-      const fullName = `${usuario.nombre}${
-        usuario.apellido ? " " + usuario.apellido : ""
-      }`;
-      localStorage.setItem("username", fullName);
-      localStorage.setItem("roleName", usuario.rol?.nombre || "");
-
-      // Redirect by role, support multiple possible backend field names
-      const roleObj = usuario.rol || {};
-      const roleId = roleObj.rolId ?? roleObj.rol ?? roleObj.id;
+      // Extrae el id de rol correctamente del objeto recibido
+      const roleId = usuario.rol?.rolId ?? usuario.rol?.id ?? (typeof usuario.rol === 'number' ? usuario.rol : null);
+      console.log('[LoginForm] usuario:', usuario);
+      console.log('[LoginForm] roleId:', roleId);
       if (!roleId) {
         setError("Usuario sin rol asignado o sin acceso autorizado.");
         return;
       }
+      // Guarda el usuario con el campo 'rol' como número
+      const userToStore = { ...usuario, rol: roleId };
+      localStorage.setItem("user", JSON.stringify(userToStore));
+      // Notifica a la app que hubo un cambio de autenticación
+      window.dispatchEvent(new Event('authChange'));
+      // También guarda el nombre y nombre de rol para el sidebar
+      const fullName = `${usuario.nombre}${usuario.apellido ? " " + usuario.apellido : ""}`;
+      localStorage.setItem("username", fullName);
+      localStorage.setItem("roleName", usuario.rol?.nombre || "");
+
+      // Redirige según el rol
       switch (roleId) {
         case 1:
-          navigate("/admin", { replace: true });
+          window.location.replace('/admin');
           break;
         case 2:
-          navigate("/manager", { replace: true });
+          window.location.replace('/manager');
           break;
         case 3:
-          navigate("/team", { replace: true });
+          window.location.replace('/team');
           break;
         case 4:
-          navigate("/client", { replace: true });
+          window.location.replace('/client');
           break;
         default:
           setError("Rol no reconocido. Acceso denegado.");
@@ -64,7 +69,7 @@ export default function LoginForm() {
       }
     } catch (err) {
       console.error("Login error:", err);
-      setError("Error de conexión con el servidor");
+      setError("Contraseña o cédula incorrecta. Por favor, inténtelo de nuevo.");
     } finally {
       setLoading(false);
     }

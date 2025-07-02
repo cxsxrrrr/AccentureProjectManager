@@ -29,10 +29,14 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Si el token expiró (401), redirigir al login
-    if (error.response?.status === 401) {
+    // Si el token expiró (401 o 403), limpiar sesión y redirigir al login
+    if (error.response?.status === 401 || error.response?.status === 403) {
       localStorage.removeItem('token');
-      window.location.href = '/#';
+      localStorage.removeItem('user');
+      localStorage.removeItem('username');
+      localStorage.removeItem('roleName');
+      window.dispatchEvent(new Event('authChange'));
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }

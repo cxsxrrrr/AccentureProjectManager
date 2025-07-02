@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FiSearch, FiCheck } from "react-icons/fi";
-import axios from "axios";
+import api from "../../../../services/axios";
 
 export default function DisableRoleModal({ isOpen, toggle, roles = [], onDisable }) {
   const [search, setSearch] = useState("");
@@ -23,21 +23,11 @@ export default function DisableRoleModal({ isOpen, toggle, roles = [], onDisable
     if (!selectedRole) return;
 
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:8080/api/roles/${selectedRole.id}`,
-        {
-          nombre: selectedRole.nombre,
-          descripcion: selectedRole.descripcion,
-          estado: "inactivo"
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      // PATCH para deshabilitar el rol
+      const response = await api.patch(
+        `/roles/${selectedRole.id}`,
+        { estado: "inactivo" }
       );
-
       // Llama al callback para actualizar la UI
       onDisable(response.data); 
     } catch (err) {

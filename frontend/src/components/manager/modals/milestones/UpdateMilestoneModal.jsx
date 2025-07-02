@@ -113,20 +113,28 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
             rows={3}
           />
           <div className="flex gap-4">
-            <input
-              name="fechaInicio"
-              type="date"
-              value={updatedMilestone.fechaInicio}
-              onChange={handleChange}
-              className="w-1/2 px-4 py-2 border rounded-xl"
-            />
-            <input
-              name="fechaPlaneada"
-              type="date"
-              value={updatedMilestone.fechaPlaneada}
-              onChange={handleChange}
-              className="w-1/2 px-4 py-2 border rounded-xl"
-            />
+            <div className="w-1/2 flex flex-col">
+              <label htmlFor="fechaInicio" className="mb-1 font-medium text-gray-700">Fecha de inicio</label>
+              <input
+                id="fechaInicio"
+                name="fechaInicio"
+                type="date"
+                value={updatedMilestone.fechaInicio}
+                onChange={handleChange}
+                className="px-4 py-2 border rounded-xl"
+              />
+            </div>
+            <div className="w-1/2 flex flex-col">
+              <label htmlFor="fechaPlaneada" className="mb-1 font-medium text-gray-700">Fecha planeada</label>
+              <input
+                id="fechaPlaneada"
+                name="fechaPlaneada"
+                type="date"
+                value={updatedMilestone.fechaPlaneada}
+                onChange={handleChange}
+                className="px-4 py-2 border rounded-xl"
+              />
+            </div>
           </div>
           <div className="border rounded-xl p-4 max-h-40 overflow-y-auto">
             <h3 className="text-lg font-semibold mb-2">Select Project</h3>
