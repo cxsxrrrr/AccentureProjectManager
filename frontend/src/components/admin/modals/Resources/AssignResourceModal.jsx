@@ -83,7 +83,17 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources, setResource
         throw new Error("Failed to assign resource. Unexpected status code.");
       }
     } catch (err) {
-      alert("Error assigning resource: " + (err.response?.data?.message || err.message));
+      // Custom error message for already assigned resource
+      const backendMsg = err.response?.data?.message || err.message || "";
+      if (
+        backendMsg.toLowerCase().includes("ya está asignado") ||
+        backendMsg.toLowerCase().includes("already assigned") ||
+        backendMsg.toLowerCase().includes("recurso ya asignado")
+      ) {
+        alert("Este recurso ya está asignado a un proyecto.");
+      } else {
+        alert("Error assigning resource: " + backendMsg);
+      }
     }
   };
 

@@ -59,7 +59,7 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
           : null,
       };
 
-      const response = await api.put(`/api/hitos/${milestone.hitoId}`, payload);
+      const response = await api.put(`/hitos/${milestone.hitoId}`, payload);
 
       if (response.status === 200) {
         const updatedData = response.data;
