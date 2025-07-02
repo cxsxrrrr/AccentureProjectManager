@@ -23,6 +23,8 @@ function AllocateResources() {
   const [isUpdateOpen, setUpdateOpen] = useState(false);
   const [resourceToEdit, setResourceToEdit] = useState(null);
   const [isDisableOpen, setDisableOpen] = useState(false);
+  // Para evitar que la selección de la tabla afecte la modal de Disable
+  const [disableModalKey, setDisableModalKey] = useState(0);
 
   // Filters
   const [categoryFilter, setCategoryFilter] = useState("All");
@@ -119,6 +121,14 @@ function AllocateResources() {
 
       const response = await api.post("http://localhost:8080/api/recursos-proyecto", body);
       if (response.status === 200 || response.status === 201) {
+        // Cambia el estado del recurso a Inactivo en el backend
+        await api.put(`http://localhost:8080/api/recursos/${resourceId}`, { estado: "Inactivo" });
+        // Actualiza el estado localmente para reflejar el cambio inmediato en la tabla
+        setResources(prev => prev.map(r =>
+          (r.id === resourceId || r.recursoId === resourceId)
+            ? { ...r, estado: "Inactivo" }
+            : r
+        ));
         alert("Resource assigned successfully.");
       } else {
         throw new Error("Failed to assign resource.");
@@ -168,7 +178,17 @@ function AllocateResources() {
     }
   };
 
+  // Filtra recursos con nombre válido y sin campos vacíos relevantes
   const filteredResources = resources.filter((resource) => {
+    // No mostrar recursos sin nombre o con nombre vacío
+    if (!resource.nombreRecurso || resource.nombreRecurso.trim() === "") return false;
+    // No mostrar recursos sin tipo, coste, cantidad o descripción (puedes ajustar los campos requeridos)
+    if (
+      resource.tipo === undefined || resource.tipo === null || resource.tipo === "" ||
+      resource.coste === undefined || resource.coste === null || resource.coste === "" ||
+      resource.cantidad === undefined || resource.cantidad === null || resource.cantidad === ""
+    ) return false;
+
     const matchesCategory =
       categoryFilter === "All" || resource.tipo === categoryFilter;
 
@@ -187,6 +207,7 @@ function AllocateResources() {
       <Topbar title="Allocate Resources">
         <TopControls
           module="resourceManager"
+          showAssignResource={false}
           onCreate={() => setCreateOpen(true)}
           onAssignResource={() => setAssignOpen(true)}
           onUpdate={
@@ -197,7 +218,10 @@ function AllocateResources() {
                 }
               : undefined
           }
-          onDisable={() => setDisableOpen(true)}
+          onDisable={() => {
+            setDisableOpen(true);
+            setDisableModalKey(prev => prev + 1); // fuerza reinicio de estado en modal
+          }}
           onRefresh={loadResources}
         />
       </Topbar>
@@ -222,6 +246,7 @@ function AllocateResources() {
         onSave={handleUpdateResource}
       />
       <DisableResourceModal
+        key={disableModalKey}
         isOpen={isDisableOpen}
         resources={resources}
         onClose={() => setDisableOpen(false)}

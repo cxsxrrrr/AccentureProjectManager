@@ -17,6 +17,7 @@ function TopControls({
   onAssign,
   onAssignResource,
   onUnassign,
+  showAssignResource = true,
   // Filtros empleados
   search = "",
   setSearch = () => {},
@@ -119,17 +120,19 @@ function TopControls({
     if (module === "resourceManager") {
       // Solo update y delete para resources (como lo quieres)
       return [
-        <button
-          key="assign-resource"
-          className="control-button"
-          onClick={onAssignResource}
-        >
-          <img src={assignResource} alt="" className="button-icon" />
-          Assign Resource
-        </button>,
+        showAssignResource !== false && (
+          <button
+            key="assign-resource"
+            className="control-button"
+            onClick={onAssignResource}
+          >
+            <img src={assignResource} alt="" className="button-icon" />
+            Assign Resource
+          </button>
+        ),
         ...common
-      ];
-    }    
+      ].filter(Boolean);
+    }
 
     if (module === "project") {
       // Solo update y delete para resources (como lo quieres)

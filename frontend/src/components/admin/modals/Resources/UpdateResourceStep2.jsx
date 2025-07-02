@@ -16,8 +16,10 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
   const handleChange = (e) => {
     let { name, value } = e.target;
     // Limita a 7 dígitos (solo números)
-    if (name === "unit") {
-      value = value.replace(/\D/, "");
+    if (name === "unit_measure") {
+      // Permite solo enteros positivos (sin ceros iniciales, sin decimales)
+      value = value.replace(/\D/g, "");
+      if (value.length > 1) value = value.replace(/^0+/, "");
       if (value.length > 7) value = value.slice(0, 7);
     }
     setLocal({ ...local, [name]: value });

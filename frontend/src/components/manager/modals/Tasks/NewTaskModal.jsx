@@ -33,25 +33,9 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
     }
   }, [isOpen, currentUser]);
 
+  // Solo validaciones de longitud en tiempo real
   const validate = (field, value) => {
-    const today = getToday();
     let errs = {};
-
-    if (field === "fechaInicioEstimada" || field === "fechaFinEstimada") {
-      if (form.fechaInicioEstimada && form.fechaInicioEstimada < today) {
-        errs.fechaInicioEstimada = "Start date cannot be in the past";
-      }
-      if (form.fechaFinEstimada && form.fechaFinEstimada < today) {
-        errs.fechaFinEstimada = "End date cannot be in the past";
-      }
-      if (
-        form.fechaInicioEstimada &&
-        form.fechaFinEstimada &&
-        form.fechaFinEstimada < form.fechaInicioEstimada
-      ) {
-        errs.fechaFinEstimada = "End date cannot be before start date";
-      }
-    }
     if (field === "nombre" && value.length > 60) {
       errs.nombre = "Task name cannot be longer than 60 characters";
     }
@@ -63,10 +47,18 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "nombre" && value.length > 60) return;
+    if (name === "nombre") {
+      // Solo letras, guion y parentesis
+      const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\-()\s]*$/;
+      if (!regex.test(value) && value !== "") return;
+      if (value.length > 60) return;
+    }
     if (name === "descripcion" && value.length > 255) return;
     setForm((prev) => ({ ...prev, [name]: value }));
-    validate(name, value);
+    // Solo validar longitud en tiempo real
+    if (name === "nombre" || name === "descripcion") {
+      validate(name, value);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -95,11 +87,12 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
       errs.fechaFinEstimada = "End date is required";
       valid = false;
     }
-    if (form.fechaInicioEstimada < today) {
+    // Validaciones de fechas SOLO aquí
+    if (form.fechaInicioEstimada && form.fechaInicioEstimada < today) {
       errs.fechaInicioEstimada = "Start date cannot be in the past";
       valid = false;
     }
-    if (form.fechaFinEstimada < today) {
+    if (form.fechaFinEstimada && form.fechaFinEstimada < today) {
       errs.fechaFinEstimada = "End date cannot be in the past";
       valid = false;
     }
@@ -124,7 +117,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
 
     // Construye el objeto igual que el JSON backend
     const tareaNueva = {
-      proyecto: { proyectoId: Number(form.proyectoId) }, // <-- Debe ser número y existir
+      proyecto: { proyectoId: Number(form.proyectoId) },
       nombre: form.nombre,
       descripcion: form.descripcion,
       estado: "NO_INICIADA",
@@ -137,7 +130,7 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
       fechaCreacion: new Date().toISOString(),
       ultimaActualizacion: new Date().toISOString(),
     };
-    console.log("Tarea a enviar:", tareaNueva); // Para depuración
+    console.log("Tarea a enviar:", tareaNueva);
     onSave(tareaNueva);
   };
 
@@ -310,7 +303,9 @@ function NewTaskModal({ isOpen, onClose, onSave, currentUser, proyectos }) {
             <button
               type="submit"
               disabled={
-                Object.keys(errors).length > 0 ||
+                Object.keys(errors).some(
+                  (key) => key === "nombre" || key === "descripcion"
+                ) ||
                 !form.proyectoId ||
                 Number(form.proyectoId) <= 0 ||
                 !form.nombre ||

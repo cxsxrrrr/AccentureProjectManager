@@ -1,9 +1,12 @@
-import React, { useState, useMemo } from "react";
+
+import React, { useState, useMemo, useEffect } from "react";
+
 
 export default function CreateUserStep2({
   values,
   categories,
   skills,
+  roles = [],
   isLoadingData,
   onBack,
   onSave,
@@ -14,7 +17,20 @@ export default function CreateUserStep2({
     email: values.email || "",
     categoria: values.categoria || "",
     habilidades: values.habilidades || [],
+    rol: values.rol || "",
   });
+
+  // Si el padre actualiza values (ej: back), sincroniza local
+  useEffect(() => {
+    setLocal((prev) => ({
+      ...prev,
+      numeroTelefono: values.numeroTelefono || "",
+      email: values.email || "",
+      categoria: values.categoria || "",
+      habilidades: values.habilidades || [],
+      rol: values.rol || "",
+    }));
+  }, [values]);
 
   // Filtrar categorías activas
   const activeCategories = useMemo(() => {
@@ -60,11 +76,14 @@ export default function CreateUserStep2({
     }));
   };
 
+
   const isFormValid =
     local.email &&
     local.numeroTelefono &&
     local.categoria &&
-    local.habilidades.length > 0;
+    local.habilidades.length > 0 &&
+    local.rol;
+
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -98,6 +117,30 @@ export default function CreateUserStep2({
             placeholder="+1 (555) 123-4456"
             className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
+        </div>
+      </div>
+
+      {/* Role Selection */}
+      <div>
+        <h3 className="text-lg font-semibold text-purple-700 flex items-center gap-2 mb-3 mt-6">
+          Role
+        </h3>
+        <div className="grid grid-cols-1 gap-3">
+          <label className="font-semibold text-sm">Role *</label>
+          <select
+            name="rol"
+            value={local.rol}
+            onChange={handleChange}
+            required
+            className="mb-2 border rounded w-full px-3 py-2"
+          >
+            <option value="">Select Role</option>
+            {(roles || []).map((r) => (
+              <option key={r.rolId || r.id} value={r.rolId || r.id}>
+                {r.nombre} - {r.descripcion}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
