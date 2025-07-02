@@ -121,105 +121,15 @@ function GenerateReport() {
     }
   }, [proyectos]);
 
-  // Filtrar y calcular KPIs
+  // Reiniciar KPIs cuando se cambia de proyecto o filtros y no se ha generado reporte
   useEffect(() => {
-    let filteredProjects = proyectos;
-    if (selectedProject) {
-      filteredProjects = filteredProjects.filter(
-        (p) => String(p.proyectoId) === selectedProject
-      );
-    }
-    if (selectedCategory) {
-      filteredProjects = filteredProjects.filter(
-        (p) => p.categoria === selectedCategory
-      );
-    }
-
-    let filteredTareas = tareas;
-    if (selectedProject) {
-      filteredTareas = filteredTareas.filter(
-        (t) =>
-          t.proyectoId === Number(selectedProject) ||
-          (t.proyecto && t.proyecto.proyectoId === Number(selectedProject))
-      );
-    }
-    if (selectedCategory) {
-      filteredTareas = filteredTareas.filter(
-        (t) => t.categoria === selectedCategory
-      );
-    }
-    if (selectedMember) {
-      filteredTareas = filteredTareas.filter(
-        (t) => String(t.creadoPorId) === selectedMember
-      );
-    }
-    if (dateRange.start) {
-      filteredTareas = filteredTareas.filter(
-        (t) => (t.fechaInicioEstimada || t.fechaInicio) >= dateRange.start
-      );
-    }
-    if (dateRange.end) {
-      filteredTareas = filteredTareas.filter(
-        (t) =>
-          (t.fechaFinEstimada || t.fechaPlaneada || t.fechaReal) <=
-          dateRange.end
-      );
-    }
-
-    // KPIs
-    // Completed Tasks
-    const completedTasks = filteredTareas.filter(
-      (t) =>
-        t.estado &&
-        (t.estado.toLowerCase() === "completada" ||
-          t.estado.toLowerCase().includes("complet"))
-    ).length;
-
-    // Milestones achieved (proporción de tareas completadas)
-    const milestonesAchieved = filteredTareas.length
-      ? `${Math.round((completedTasks / filteredTareas.length) * 100)}%`
-      : "0%";
-
-    // Estimated vs Real time (promedio de días de diferencia)
-    const estimatedRealDiffs = filteredTareas
-      .map((t) => {
-        let estimada = t.fechaFinEstimada || t.fechaPlaneada;
-        let real = t.fechaReal;
-        if (estimada && real) {
-          // Asume formato "YYYY-MM-DD"
-          const date1 = new Date(estimada);
-          const date2 = new Date(real);
-          return (date2 - date1) / (1000 * 60 * 60 * 24); // días
-        }
-        return null;
-      })
-      .filter((val) => val !== null);
-
-    const estimatedVsReal =
-      estimatedRealDiffs.length > 0
-        ? `${Math.round(
-            estimatedRealDiffs.reduce((a, b) => a + b, 0) /
-              estimatedRealDiffs.length
-          )} días`
-        : "0 días";
-
-    // Resource Utilization (mock estático, aquí debes poner tu lógica real si la tienes)
-    const resourcesUsed = "76%";
-
     setKpis({
-      completedTasks,
-      milestonesAchieved,
-      estimatedVsReal,
-      resourcesUsed,
+      completedTasks: 0,
+      milestonesAchieved: "0%",
+      estimatedVsReal: "0 días",
+      resourcesUsed: "0%",
     });
-  }, [
-    proyectos,
-    tareas,
-    selectedProject,
-    selectedCategory,
-    selectedMember,
-    dateRange,
-  ]);
+  }, [selectedProject, selectedCategory, selectedMember, dateRange]);
 
   const handleChangeMetric = (key) =>
     setMetrics((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -278,10 +188,101 @@ function GenerateReport() {
     doc.save("reporte.pdf");
   };
 
-  const handleGenerateReport = () => {
-    alert(
-      "Reporte generado (simulación). Ahora puedes exportar en PDF o Excel."
-    );
+  const handleGenerateReport = async () => {
+    if (!selectedProject) {
+      setKpis({
+        completedTasks: 0,
+        milestonesAchieved: "0%",
+        estimatedVsReal: "0 días",
+        resourcesUsed: "0%",
+      });
+      alert("Please select a project first.");
+      return;
+    }
+    try {
+      // Fetch project
+      const projectRes = await api.get(
+        `http://localhost:8080/api/proyectos/${selectedProject}`
+      );
+      // Fetch tasks
+      const tasksRes = await api.get(
+        `http://localhost:8080/api/tareas/proyecto/${selectedProject}`
+      );
+      // Fetch resources (ultrasimple)
+      const resourcesRes = await api.get(
+        `http://localhost:8080/api/recursos-proyecto/proyecto/${selectedProject}/ultrasimple`
+      );
+
+      const project = projectRes.data;
+      const tasks = tasksRes.data;
+      // resourcesRes.data could be an array of arrays, flatten it
+      const resources = Array.isArray(resourcesRes.data)
+        ? resourcesRes.data.flat()
+        : [];
+
+      // Completed vs Pending Tasks
+      const completedTasks = tasks.filter(
+        (t) =>
+          t.estado &&
+          (t.estado.toLowerCase() === "completada" ||
+            t.estado.toLowerCase().includes("complet"))
+      ).length;
+      const pendingTasks = tasks.length - completedTasks;
+
+      // Debug: Ver tareas y estados
+      console.log("[DEBUG] tasks:", tasks);
+      console.log("[DEBUG] completedTasks:", completedTasks, "pendingTasks:", pendingTasks);
+
+      // Milestone compliance (percentage of completed tasks)
+      const milestonesAchieved = tasks.length
+        ? `${Math.round((completedTasks / tasks.length) * 100)}%`
+        : "0%";
+      console.log("[DEBUG] milestonesAchieved:", milestonesAchieved);
+
+      // Estimated vs Real time (diferencia entre fechaInicio y fechaFinReal del proyecto seleccionado)
+      let estimatedVsReal = "0 días";
+      if (project && project.fechaInicio && project.fechaFinReal) {
+        const start = String(project.fechaInicio).split('T')[0];
+        const end = String(project.fechaFinReal).split('T')[0];
+        const date1 = new Date(start + 'T00:00:00Z');
+        const date2 = new Date(end + 'T00:00:00Z');
+        const diff = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+        estimatedVsReal = `${diff} días`;
+        console.log('[DEBUG] estimatedVsReal (proyecto):', estimatedVsReal, 'fechaInicio:', project.fechaInicio, 'fechaFinReal:', project.fechaFinReal);
+      } else {
+        console.log('[DEBUG] No hay fechas válidas en el proyecto para estimatedVsReal:', project);
+      }
+
+      // Resource utilization: % of resources with disponibilidad !== "Inactivo"
+      let resourcesUsed = "0%";
+      if (resources.length > 0) {
+        const active = resources.filter(
+          (r) =>
+            r.recurso &&
+            r.recurso.disponibilidad &&
+            r.recurso.disponibilidad.toLowerCase() !== "inactivo"
+        ).length;
+        resourcesUsed = `${Math.round((active / resources.length) * 100)}%`;
+      }
+      console.log("[DEBUG] resources:", resources);
+      console.log("[DEBUG] resourcesUsed:", resourcesUsed);
+
+      setKpis({
+        completedTasks,
+        milestonesAchieved,
+        estimatedVsReal,
+        resourcesUsed,
+      });
+    } catch (error) {
+      setKpis({
+        completedTasks: 0,
+        milestonesAchieved: "0%",
+        estimatedVsReal: "0 días",
+        resourcesUsed: "0%",
+      });
+      alert("Error fetching report data. Check your backend.");
+      console.error(error);
+    }
   };
 
   return (
@@ -314,11 +315,13 @@ function GenerateReport() {
               <label className="block text-sm text-gray-500 mb-1 font-semibold">
                 Projects
               </label>
-              <ul className="space-y-2 max-h-40 overflow-y-auto">
+              <ul className="space-y-2 max-h-80 overflow-y-auto">
                 {filteredProjects.map((project) => (
                   <li
                     key={project.proyectoId}
-                    className="p-2 border rounded-lg cursor-pointer hover:bg-purple-100"
+                    className={`p-2 border rounded-lg cursor-pointer hover:bg-purple-100 ${
+                      selectedProject === project.proyectoId ? "bg-purple-200" : ""
+                    }`}
                     onClick={() => setSelectedProject(project.proyectoId)}
                   >
                     {project.nombreProyecto}
@@ -402,12 +405,6 @@ function GenerateReport() {
             onClick={handleExportPdf}
           >
             Export PDF
-          </button>
-          <button
-            className="bg-white/80 text-purple-800 font-bold px-6 py-2 rounded-xl shadow hover:bg-white transition"
-            onClick={handleExportExcel}
-          >
-            Export Excel
           </button>
         </div>
       </div>

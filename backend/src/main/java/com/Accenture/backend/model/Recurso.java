@@ -6,6 +6,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Column;
+import jakarta.persistence.OneToMany;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /*
  * Entidad: Recursos
@@ -53,6 +57,11 @@ public class Recurso {
     
     // Cantidad disponible del recurso
     private Integer cantidad;
+
+    // Relaciones
+    @OneToMany(mappedBy = "recursoId")
+    @JsonIgnore
+    private List<RecursosProyecto> recursosProyecto;
 
     // Constructor sin proyecto (asignación externalizada)
     public Recurso(Long recursoId) {

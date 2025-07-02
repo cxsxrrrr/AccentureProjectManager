@@ -15,4 +15,6 @@ public interface TareaService {
     List<TareaDTO> listarPorPrioridad(String prioridad);
 
     List<TareaDTO> listarTodasLasTareas();
+
+    TareaDTO actualizarParcialmente(Long id, TareaDTO tareaDTO);
 }

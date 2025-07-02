@@ -85,18 +85,31 @@ function AssignedTasks() {
   const selectedTask = tasks.find(t => t.id === selectedId);
 
   // Actualizar el estado de una tarea (cuando vuelve del modal)
-  const handleUpdateTaskStatus = (newStatus) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === selectedId
-          ? { 
-              ...task, 
-              // update nested estado and ultima_actualizacion in tarea DTO
-              tarea: { ...task.tarea, estado: newStatus, ultimaActualizacion: new Date().toISOString() }
-            }
-          : task
-      )
-    );
+  const handleUpdateTaskStatus = async (newStatus) => {
+    const taskToUpdate = tasks.find(t => t.id === selectedId);
+    if (!taskToUpdate) return;
+    try {
+      // PATCH al backend para actualizar el estado (solo /tareas/)
+      const tareaId = taskToUpdate.tarea.id || taskToUpdate.tarea.tareasId;
+      await api.patch(`/tareas/${tareaId}`, { estado: newStatus });
+      setTasks(prev =>
+        prev.map(task =>
+          task.id === selectedId
+            ? {
+                ...task,
+                tarea: {
+                  ...task.tarea,
+                  estado: newStatus,
+                  ultimaActualizacion: new Date().toISOString(),
+                },
+              }
+            : task
+        )
+      );
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      alert("Error updating task status");
+    }
     setShowUpdateStatus(false);
   };
 

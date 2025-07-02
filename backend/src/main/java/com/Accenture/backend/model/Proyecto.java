@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /*
 * Entidad: Proyectos
@@ -57,8 +58,9 @@ public class Proyecto {
 
     // Foreign Keys
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "cliente_id", referencedColumnName = "usuarioId")
+    @JsonIgnore
     private Usuario cliente;
 
     @ManyToOne

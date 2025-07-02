@@ -1,5 +1,6 @@
 package com.Accenture.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,5 +28,6 @@ public class RecursosProyecto {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "asignado_por", referencedColumnName = "usuarioId")
+    @JsonIgnore
     private Usuario asignadoPor;
 }

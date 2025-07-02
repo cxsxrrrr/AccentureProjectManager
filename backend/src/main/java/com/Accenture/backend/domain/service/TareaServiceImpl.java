@@ -104,4 +104,38 @@ public class TareaServiceImpl implements TareaService {
                 .map(tareaMapper::toDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public TareaDTO actualizarParcialmente(Long id, TareaDTO tareaDTO) {
+        Tarea tarea = tareaRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Tarea no encontrada: " + id));
+
+        // Solo actualiza los campos no nulos del DTO
+        if (tareaDTO.getNombre() != null) tarea.setNombre(tareaDTO.getNombre());
+        if (tareaDTO.getDescripcion() != null) tarea.setDescripcion(tareaDTO.getDescripcion());
+        if (tareaDTO.getEstado() != null) {
+            tarea.setEstado(Tarea.EstadoTarea.valueOf(tareaDTO.getEstado().toUpperCase()));
+        }
+        if (tareaDTO.getPrioridad() != null) {
+            tarea.setPrioridad(Tarea.PrioridadTarea.valueOf(tareaDTO.getPrioridad().toUpperCase()));
+        }
+        if (tareaDTO.getFechaInicioEstimada() != null) tarea.setFechaInicioEstimada(tareaDTO.getFechaInicioEstimada());
+        if (tareaDTO.getFechaFinEstimada() != null) tarea.setFechaFinEstimada(tareaDTO.getFechaFinEstimada());
+        if (tareaDTO.getFechaInicioReal() != null) tarea.setFechaInicioReal(tareaDTO.getFechaInicioReal());
+        if (tareaDTO.getFechaFinReal() != null) tarea.setFechaFinReal(tareaDTO.getFechaFinReal());
+        if (tareaDTO.getPeso() != null) tarea.setPeso(tareaDTO.getPeso());
+        if (tareaDTO.getProyectoId() != null) {
+            Proyecto proyecto = proyectoRepository.findById(tareaDTO.getProyectoId())
+                .orElseThrow(() -> new RuntimeException("Proyecto no encontrado: " + tareaDTO.getProyectoId()));
+            tarea.setProyecto(proyecto);
+        }
+        if (tareaDTO.getCreadoPorId() != null) {
+            Usuario usuario = usuarioRepository.findById(tareaDTO.getCreadoPorId())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + tareaDTO.getCreadoPorId()));
+            tarea.setCreadoPor(usuario);
+        }
+
+        Tarea tareaActualizada = tareaRepository.save(tarea);
+        return tareaMapper.toDTO(tareaActualizada);
+    }
 }

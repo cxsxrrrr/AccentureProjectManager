@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.Accenture.backend.domain.dto.RecursosProyectoDTO;
+import com.Accenture.backend.domain.dto.RecursosProyectoSimpleDTO;
+import com.Accenture.backend.domain.dto.RecursosProyectoUltraSimpleDTO;
+import com.Accenture.backend.domain.dto.RecursosProyectoCreateDTO;
 import com.Accenture.backend.domain.service.RecursosProyectoService;
 
 @RestController
@@ -22,7 +25,11 @@ public class RecursosProyectoController {
 
     @PostMapping
     public ResponseEntity<RecursosProyectoDTO> create(@RequestBody RecursosProyectoDTO dto) {
-        return ResponseEntity.ok(service.save(dto));
+        try {
+            return ResponseEntity.ok(service.save(dto));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
     }
 
     @GetMapping("/{id}")
@@ -70,5 +77,25 @@ public class RecursosProyectoController {
     @GetMapping("/recurso/{recursoId}")
     public List<RecursosProyectoDTO> getByRecurso(@PathVariable Long recursoId) {
         return service.findByRecursoId(recursoId);
+    }
+
+    @GetMapping("/simple")
+    public List<RecursosProyectoSimpleDTO> getAllSimple() {
+        return service.findAllSimple();
+    }
+
+    @GetMapping("/proyecto/{proyectoId}/simple")
+    public List<RecursosProyectoSimpleDTO> getByProyectoSimple(@PathVariable Long proyectoId) {
+        return service.findByProyectoIdSimple(proyectoId);
+    }
+
+    @GetMapping("/ultrasimple")
+    public List<RecursosProyectoUltraSimpleDTO> getAllUltraSimple() {
+        return service.findAllUltraSimple();
+    }
+
+    @GetMapping("/proyecto/{proyectoId}/ultrasimple")
+    public List<RecursosProyectoUltraSimpleDTO> getByProyectoUltraSimple(@PathVariable Long proyectoId) {
+        return service.findByProyectoIdUltraSimple(proyectoId);
     }
 }

@@ -17,11 +17,13 @@ public interface VersionesDocumentosMapper {
     @Mapping(source = "documentosId.documentoId", target = "documentosId")
     @Mapping(source = "subidoPor.usuarioId", target = "subidoPor")
     @Mapping(source = "tareasId.tareasId", target = "tareasId")
+    @Mapping(source = "esUltimaVersion", target = "es_ultima_version")
     VersionesDocumentosDTO toDTO(VersionesDocumentos entity);
 
     @Mapping(source = "documentosId", target = "documentosId", qualifiedByName = "longToDocumentos")
     @Mapping(source = "subidoPor", target = "subidoPor", qualifiedByName = "longToUsuario")
     @Mapping(source = "tareasId", target = "tareasId", qualifiedByName = "longToTarea")
+    @Mapping(source = "es_ultima_version", target = "esUltimaVersion")
     VersionesDocumentos toEntity(VersionesDocumentosDTO dto);
 
     @Named("longToDocumentos")

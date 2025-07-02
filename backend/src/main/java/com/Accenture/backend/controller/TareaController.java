@@ -50,4 +50,11 @@ public class TareaController {
         List<TareaDTO> tareas = tareaService.listarTodasLasTareas();
         return ResponseEntity.ok(tareas);
     }
+
+    // Actualizar parcialmente una tarea
+    @PatchMapping("/{id}")
+    public ResponseEntity<TareaDTO> actualizarParcialmente(@PathVariable Long id, @RequestBody TareaDTO tareaDTO) {
+        TareaDTO tareaActualizada = tareaService.actualizarParcialmente(id, tareaDTO);
+        return ResponseEntity.ok(tareaActualizada);
+    }
 }

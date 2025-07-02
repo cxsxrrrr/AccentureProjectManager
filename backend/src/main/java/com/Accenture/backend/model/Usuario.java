@@ -1,5 +1,6 @@
 package com.Accenture.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
@@ -70,12 +71,15 @@ public class Usuario {
     private Rol rol;
 
     @OneToMany(mappedBy = "cliente")
+    @JsonIgnore
     private List<Proyecto> proyectosComoCliente;
 
     @OneToMany(mappedBy = "gerenteProyecto")
+    @JsonIgnore
     private List<Proyecto> proyectosComoGerente;
 
     @OneToMany(mappedBy = "creadoPor")
+    @JsonIgnore
     private List<Proyecto> proyectosCreados;
 
 }
