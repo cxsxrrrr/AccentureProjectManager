@@ -28,9 +28,6 @@ public class Rol {
    @Column(name = "descripcion", length = 500, nullable = false)
     private String descripcion;
 
-    // Relación con RolPermiso (uno a muchos) 
-    @OneToMany(mappedBy = "rol", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolPermiso> permisos = new HashSet<>();
 
     // Constructores
     public Rol() {
@@ -65,13 +62,6 @@ public class Rol {
         return descripcion;
     }
 
-    public Set<RolPermiso> getPermisos() {
-        return permisos;
-    }
-
-    public void setPermisos(Set<RolPermiso> permisos) {
-        this.permisos = permisos;
-    }
 
     public String getEstado() {
         return estado;

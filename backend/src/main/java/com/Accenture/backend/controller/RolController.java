@@ -43,4 +43,19 @@ public class RolController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<RolDTO> patchRol(@PathVariable Long id, @RequestBody RolDTO rolDTO) {
+        // Buscar el rol existente
+        return rolService.buscarPorId(id)
+                .map(existing -> {
+                    // Solo actualiza los campos presentes en el body
+                    if (rolDTO.getNombre() != null) existing.setNombre(rolDTO.getNombre());
+                    if (rolDTO.getEstado() != null) existing.setEstado(rolDTO.getEstado());
+                    if (rolDTO.getDescripcion() != null) existing.setDescripcion(rolDTO.getDescripcion());
+                    RolDTO actualizado = rolService.actualizarRol(existing);
+                    return ResponseEntity.ok(actualizado);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
