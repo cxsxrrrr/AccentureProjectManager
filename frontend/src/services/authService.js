@@ -13,7 +13,7 @@ export const authService = {
       console.log('Login URL:', 'http://localhost:8080/api/auth/login');
       console.log('Usuario URL:', `http://localhost:8080/api/usuario/cedula/${cedula}`);
 
-      const response = await api.post('http://localhost:8080/api/auth/login', {
+      const response = await api.post('/auth/login', {
         cedula,
         password,
       });
@@ -25,7 +25,7 @@ export const authService = {
       localStorage.setItem('token', token);
 
       // Obtener información del usuario para redireccionar según rol
-      const usuarioRes = await api.get(`http://localhost:8080/api/usuario/cedula/${cedula}`);
+      const usuarioRes = await api.get(`/usuario/cedula/${cedula}`);
       const usuario = usuarioRes.data;
 
       // Guardar información del usuario en localStorage
@@ -57,7 +57,7 @@ export const authService = {
   // Register
   register: async (usuarioData) => {
     try {
-      const response = await api.post('http://localhost:8080/api/auth/register', usuarioData);
+      const response = await api.post('/auth/register', usuarioData);
       return {
         success: true,
         user: response.data,

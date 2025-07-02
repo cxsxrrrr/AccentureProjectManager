@@ -62,4 +62,10 @@ public class ProyectoController {
         return ResponseEntity.ok(actualizado);
     }
 
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<ProyectoDTO>> obtenerProyectosPorCliente(@PathVariable Long clienteId) {
+        List<ProyectoDTO> proyectosCliente = proyectoService.obtenerProyectosPorCliente(clienteId);
+        return ResponseEntity.ok(proyectosCliente);
+    }
+
 }
