@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import projectIcon from "../../../../assets/icons/project.svg";
-import api from "../../../../services/axios"; // Ajusta el path si no corresponde
+import api from "../../../../services/axios"; // Ajusta el path si es necesario
 
 function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
   const [form, setForm] = useState({
@@ -9,19 +9,31 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
     startDate: "",
     endDate: "",
     client: "",
+    categoriaId: "",
   });
 
+  const [categorias, setCategorias] = useState([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  // Cargar categorías al abrir el modal
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchCategorias = async () => {
+      try {
+        const res = await api.get("/category");
+        setCategorias(res.data || []);
+      } catch {
+        setCategorias([]);
+      }
+    };
+    fetchCategorias();
+  }, [isOpen]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Asume que tu backend necesita:
-  // {
-  //    nombreProyecto, descripcionProyecto, fechaInicio, fechaFin, estado, cliente, gerenteProyecto, creadoPor
-  // }
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -30,6 +42,8 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
     try {
       // Obtener el usuario logueado (ajusta según tu auth)
       const user = JSON.parse(localStorage.getItem("user")) || {};
+
+      // 1. Crear el proyecto
       const payload = {
         nombreProyecto: form.title,
         descripcionProyecto: form.description,
@@ -40,12 +54,15 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
         gerenteProyecto: { usuarioId: user.usuarioId || user.id || 1 },
         creadoPor: { usuarioId: user.usuarioId || user.id || 1 },
       };
+      const projectRes = await api.post("/proyectos", payload);
+      const proyectoId = projectRes.data.proyectoId || projectRes.data.id;
 
-      // Consulta a la API real
-      const response = await api.post("/proyectos", payload);
+      // 2. Relacionar proyecto con categoría seleccionada usando el endpoint correcto
+      await api.post(
+        `/proyectos-categorias/asociar?proyectoId=${proyectoId}&categoriaId=${form.categoriaId}`
+      );
 
-      // Si tienes un onSave para refrescar tabla desde fuera, úsalo:
-      if (onSave) onSave(response.data);
+      if (onSave) onSave(projectRes.data);
       onClose();
       setForm({
         title: "",
@@ -53,9 +70,10 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
         startDate: "",
         endDate: "",
         client: "",
+        categoriaId: "",
       });
     } catch (err) {
-      setError("Ocurrió un error creando el proyecto.");
+      setError("Ocurrió un error creando el proyecto y su categoría.");
     } finally {
       setSubmitting(false);
     }
@@ -160,7 +178,24 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
                   ))}
                 </select>
               </label>
-              {/* El campo Manager ha sido eliminado porque el manager es el usuario logueado */}
+              <label className="font-semibold text-sm">
+                Category *
+                <select
+                  name="categoriaId"
+                  value={form.categoriaId}
+                  onChange={handleChange}
+                  required
+                  disabled={submitting}
+                  className="mt-1 border rounded w-full px-3 py-2"
+                >
+                  <option value="">Select category</option>
+                  {categorias.map((cat) => (
+                    <option key={cat.categoriaId} value={cat.categoriaId}>
+                      {cat.nombre}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           </div>
           {/* Footer */}

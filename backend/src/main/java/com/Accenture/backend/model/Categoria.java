@@ -20,7 +20,7 @@ import jakarta.persistence.Column;
 @Builder
 public class Categoria {
     @Id
-    @GeneratedValue (strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long categoriaId;
 
     @Column(length = 255)
