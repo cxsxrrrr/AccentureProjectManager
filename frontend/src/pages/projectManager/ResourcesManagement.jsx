@@ -25,25 +25,35 @@ function ResourcesManagement() {
     { id: 2, name: "HP TECHNLOGY" },
   ]);
 
+  // Filters
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState("All");
+
   // Selected resource based on ID
   const selectedResource = resources.find((r) => r.recursoId === selectedResourceId);
 
-  // Fetch resources from backend
+  // Función para cargar recursos desde backend
+  const loadResources = async () => {
+    try {
+      const response = await api.get("/recursos");
+      setResources(response.data);
+    } catch (error) {
+      console.error("Error fetching resources:", error);
+    }
+  };
+
+  // Carga inicial
   useEffect(() => {
-    api
-      .get("/recursos")
-      .then((res) => setResources(res.data))
-      .catch((err) => console.error("Error fetching resources:", err));
+    loadResources();
   }, []);
 
-  // Handlers
+  // Handler: Create Resource
   const handleCreateResource = (newResource) => {
     setResources((prev) => [
       ...prev,
       {
         id: prev.length ? Math.max(...prev.map((r) => r.id)) + 1 : 1,
         ...newResource,
-        // Homologar nombre de propiedad
         unit_measure: newResource.unit || 0,
         availability: newResource.availability || "Available",
       },
@@ -51,13 +61,13 @@ function ResourcesManagement() {
     setCreateOpen(false);
   };
 
+  // Handler: Assign Resource (con recarga de recursos)
   const handleAssignResource = async ({ resourceId, projectId }) => {
     try {
       if (!resourceId || !projectId) {
         throw new Error("Resource ID or Project ID is missing.");
       }
 
-      // Validar que los IDs sean números válidos
       if (isNaN(resourceId) || isNaN(projectId)) {
         throw new Error("Invalid Resource ID or Project ID.");
       }
@@ -73,26 +83,22 @@ function ResourcesManagement() {
         asignadoPor: user.usuarioId,
       };
 
-      console.log("Assigning resource with payload:", body);
-
       const response = await api.post("http://localhost:8080/api/recursos-proyecto", body);
 
       if (response.status === 200 || response.status === 201) {
-        console.log("Resource assigned successfully.", response.data);
         alert("Resource assigned successfully.");
+        await loadResources(); // <-- Aquí recargamos recursos luego de asignar
+        setAssignOpen(false);
       } else {
-        console.error("Unexpected response status:", response.status, response.data);
         throw new Error("Failed to assign resource. Please check the server logs.");
       }
-
-      setAssignOpen(false);
     } catch (error) {
       console.error("Error assigning resource:", error);
       alert("Error assigning resource. Please try again.");
     }
   };
 
-  // Update resource via backend and update state
+  // Handler: Update Resource
   const handleUpdateResource = async (updatedResource) => {
     try {
       const recursoId = updatedResource.recursoId || updatedResource.id;
@@ -109,20 +115,14 @@ function ResourcesManagement() {
         tipo: updatedResource.tipo,
       };
 
-      console.log("Preparing to send update request with payload:", payload);
-
       const response = await api.put(`http://localhost:8080/api/recursos/${recursoId}`, payload);
-
-      console.log("Response received:", response);
 
       if (response.status === 200 || response.status === 201) {
         const updated = response.data;
-        console.log("Resource updated successfully.", updated);
         setResources((prev) =>
           prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
         );
       } else {
-        console.error("Unexpected response status:", response.status, response.data);
         throw new Error("Failed to update resource. Please check the server logs.");
       }
 
@@ -134,7 +134,7 @@ function ResourcesManagement() {
     }
   };
 
-  // Disable a resource via API (set estado to Disabled) and update state
+  // Handler: Disable Resource
   const handleDisableResource = async (id) => {
     try {
       if (!id) {
@@ -155,18 +155,14 @@ function ResourcesManagement() {
         tipo: resourceToDisable.tipo,
       };
 
-      console.log("Disabling resource with payload:", payload);
-
       const response = await api.put(`/recursos/${id}`, payload);
 
       if (response.status === 200 || response.status === 201) {
         const updated = response.data;
-        console.log("Resource disabled successfully.", updated);
         setResources((prev) =>
           prev.map((r) => (r.recursoId === updated.recursoId ? updated : r))
         );
       } else {
-        console.error("Unexpected response status:", response.status, response.data);
         throw new Error("Failed to disable resource. Please check the server logs.");
       }
 
@@ -177,6 +173,24 @@ function ResourcesManagement() {
       alert("Error disabling resource. Please try again.");
     }
   };
+
+  // Filtrar recursos según categoría y estado (Active / Inactive)
+  const filteredResources = resources.filter((resource) => {
+    const matchesCategory =
+      categoryFilter === "All" || resource.tipo === categoryFilter;
+
+    // Mapear estado backend a Active/Inactive para filtro:
+    // Active = "Available" o "Disponible"
+    // Inactive = cualquier otro estado
+    const resourceStatus =
+      resource.estado === "Available" || resource.estado === "Disponible"
+        ? "Active"
+        : "Inactive";
+
+    const matchesStatus = statusFilter === "All" || resourceStatus === statusFilter;
+
+    return matchesCategory && matchesStatus;
+  });
 
   return (
     <div className="admin-page">
@@ -223,20 +237,41 @@ function ResourcesManagement() {
         onDisable={handleDisableResource}
       />
 
-      {/* Responsive Table */}
-      <div className="flex items-center justify-between mt-4 mb-2 px-2 flex-wrap">
+      {/* Filtros */}
+      <div className="flex items-center justify-between mt-4 mb-2 px-2 flex-wrap gap-4">
         <span className="text-purple-600 text-lg font-semibold cursor-pointer hover:underline">
           All Resources
         </span>
-        <div className="flex items-center gap-2 mt-2 md:mt-0">
+
+        <div className="flex items-center gap-2">
           <span className="text-gray-600 font-semibold">Category:</span>
-          <select className="rounded-lg border-gray-300 px-3 py-1">
-            <option>All</option>
+          <select
+            className="rounded-lg border-gray-300 px-3 py-1"
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Human">Human</option>
+            <option value="Material">Material</option>
+            <option value="Financial">Financial</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-gray-600 font-semibold">Status:</span>
+          <select
+            className="rounded-lg border-gray-300 px-3 py-1"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
           </select>
         </div>
       </div>
 
-      {/* Tabla de recursos (responsive con overflow-x para mobile) */}
+      {/* Tabla de recursos */}
       <div className="admin-content overflow-x-auto">
         <table className="min-w-[700px] w-full bg-white rounded-2xl shadow-xl border-separate border-spacing-y-2">
           <thead>
@@ -250,39 +285,45 @@ function ResourcesManagement() {
             </tr>
           </thead>
           <tbody>
-            {resources.map((resource) => (
-              <tr
-                key={resource.recursoId}
-                onClick={() => setSelectedResourceId(resource.recursoId)}
-                className={`cursor-pointer transition ${
-                  selectedResourceId === resource.recursoId
-                    ? "bg-purple-50 ring-2 ring-purple-200"
-                    : "hover:bg-gray-50"
-                }`}
-              >
-                <td className="px-6 py-4 font-semibold">{resource.nombreRecurso}</td>
-                <td className="px-6 py-4">{resource.tipo}</td>
-                <td className="px-6 py-4">
-                  <span
-                    className={`
-                      px-4 py-1 rounded-full font-bold text-sm
-                      ${
-                        resource.estado === "Available" || resource.estado === "Disponible"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-red-100 text-red-600"
-                      }
-                    `}
-                  >
-                    {resource.estado === "Available" || resource.estado === "Disponible"
-                      ? "Activo"
-                      : "Inactivo"}
-                  </span>
-                </td>
-                <td className="px-6 py-4">{resource.coste}</td>
-                <td className="px-6 py-4">{resource.cantidad}</td>
-                <td className="px-6 py-4">{resource.descripcionRecurso}</td>
-              </tr>
-            ))}
+            {filteredResources.map((resource) => {
+              // Mapear estado backend para mostrar en tabla:
+              const displayStatus =
+                resource.estado === "Available" || resource.estado === "Disponible"
+                  ? "Active"
+                  : "Inactive";
+
+              return (
+                <tr
+                  key={resource.recursoId}
+                  onClick={() => setSelectedResourceId(resource.recursoId)}
+                  className={`cursor-pointer transition ${
+                    selectedResourceId === resource.recursoId
+                      ? "bg-purple-50 ring-2 ring-purple-200"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  <td className="px-6 py-4 font-semibold">{resource.nombreRecurso}</td>
+                  <td className="px-6 py-4">{resource.tipo}</td>
+                  <td className="px-6 py-4">
+                    <span
+                      className={`
+                        px-4 py-1 rounded-full font-bold text-sm
+                        ${
+                          displayStatus === "Active"
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-600"
+                        }
+                      `}
+                    >
+                      {displayStatus}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">{resource.coste}</td>
+                  <td className="px-6 py-4">{resource.cantidad}</td>
+                  <td className="px-6 py-4">{resource.descripcionRecurso}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
