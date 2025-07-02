@@ -17,8 +17,10 @@ const CreateResourceStep2 = ({ values, onBack, onCreate, onCancel }) => {
     let { name, value } = e.target;
     // Limita a 7 dígitos (solo números)
     if (name === "unit") {
-      // Quita cualquier carácter no numérico
-      value = value.replace(/\D/, "");
+      // Permite solo enteros positivos (sin ceros iniciales, sin decimales)
+      value = value.replace(/\D/g, "");
+      // Elimina ceros iniciales innecesarios, pero permite un solo cero si es el único dígito
+      if (value.length > 1) value = value.replace(/^0+/, "");
       if (value.length > 7) value = value.slice(0, 7);
     }
     setLocal({ ...local, [name]: value });

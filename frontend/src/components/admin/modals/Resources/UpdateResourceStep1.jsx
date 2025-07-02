@@ -20,7 +20,30 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
   }, [values]);
 
   const handleChange = (e) => {
-    setLocal({ ...local, [e.target.name]: e.target.value });
+    let { name, value } = e.target;
+    if (name === "name") {
+      value = value.replace(/[^a-zA-Z0-9\-() ]/g, "");
+    }
+    if (name === "cost") {
+      // Solo números positivos, máximo 2 decimales, punto como separador
+      value = value.replace(/[^0-9.]/g, ""); // Solo dígitos y punto
+      // Solo un punto permitido
+      const parts = value.split('.');
+      if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
+      // No permitir punto al inicio
+      if (value.startsWith('.')) value = '';
+      // No permitir más de un cero al inicio (excepto si es "0.")
+      if (/^0[0-9]+/.test(value)) value = value.replace(/^0+/, '');
+      // Si hay punto, debe haber al menos un dígito antes y después, y máximo 2 decimales
+      if (value.includes('.')) {
+        let [intPart, decPart] = value.split('.');
+        // Si no hay dígito antes o después del punto, elimina el punto
+        if (intPart === '' || decPart === '') value = intPart;
+        // Limita a 2 decimales
+        else value = intPart + '.' + decPart.slice(0, 2);
+      }
+    }
+    setLocal({ ...local, [name]: value });
   };
 
   return (

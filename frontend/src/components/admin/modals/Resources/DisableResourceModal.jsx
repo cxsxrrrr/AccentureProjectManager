@@ -10,19 +10,31 @@ const DisableResourceModal = ({
   const [selectedId, setSelectedId] = useState(null);
   const [search, setSearch] = useState("");
 
+  // Reinicia selección al abrir la modal
+  React.useEffect(() => {
+    if (isOpen) setSelectedId(null);
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  // Normaliza recursos a la estructura estándar
-  const normalizedResources = resources.map((r) => ({
-    id: r.id || r.recursoId,
-    name: r.name || r.nombreRecurso,
-    type: r.type || r.tipo,
-    availability: r.availability || r.disponibilidad || r.estado,
-    cost: r.cost || r.coste,
-    unit_measure: r.unit_measure || r.unit || r.cantidad,
-    description: r.description || r.descripcionRecurso,
-    raw: r
-  }));
+  // Normaliza recursos a la estructura estándar y filtra los que tengan nombre válido y estén activos
+  const normalizedResources = resources
+    .filter(r => {
+      // Solo recursos activos y con nombre válido
+      const estado = r.estado || r.availability || r.disponibilidad;
+      const nombre = r.nombreRecurso || r.name;
+      return (estado === "Disponible" || estado === "Available") && nombre && nombre.trim() !== "";
+    })
+    .map((r) => ({
+      id: r.id || r.recursoId,
+      name: r.name || r.nombreRecurso,
+      type: r.type || r.tipo,
+      availability: r.availability || r.disponibilidad || r.estado,
+      cost: r.cost || r.coste,
+      unit_measure: r.unit_measure || r.unit || r.cantidad,
+      description: r.description || r.descripcionRecurso,
+      raw: r
+    }));
 
   // Filtrar recursos por nombre o descripción (case-insensitive)
   const filteredResources = normalizedResources.filter((r) =>

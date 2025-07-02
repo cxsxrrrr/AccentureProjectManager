@@ -176,8 +176,12 @@ function ResourcesManagement() {
 
   // Filtrar recursos según categoría y estado (Active / Inactive)
   const filteredResources = resources.filter((resource) => {
-    const matchesCategory =
-      categoryFilter === "All" || resource.tipo === categoryFilter;
+    // No mostrar recursos vacíos ni con status Inactive
+    const isEmpty =
+      !resource.nombreRecurso ||
+      !resource.tipo ||
+      resource.coste === undefined || resource.coste === null ||
+      resource.cantidad === undefined || resource.cantidad === null;
 
     // Mapear estado backend a Active/Inactive para filtro:
     // Active = "Available" o "Disponible"
@@ -187,8 +191,12 @@ function ResourcesManagement() {
         ? "Active"
         : "Inactive";
 
-    const matchesStatus = statusFilter === "All" || resourceStatus === statusFilter;
+    // Solo mostrar recursos activos y no vacíos
+    if (isEmpty || resourceStatus !== "Active") return false;
 
+    const matchesCategory =
+      categoryFilter === "All" || resource.tipo === categoryFilter;
+    const matchesStatus = statusFilter === "All" || resourceStatus === statusFilter;
     return matchesCategory && matchesStatus;
   });
 

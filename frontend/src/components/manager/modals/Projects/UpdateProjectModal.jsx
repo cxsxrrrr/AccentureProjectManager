@@ -35,13 +35,44 @@ function UpdateProjectModal({
   }, [initialData]);
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "title") {
+      // Solo letras, guion y parentesis
+      const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\-()\s]*$/;
+      if (!regex.test(value) && value !== "") return;
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setError("");
+
+    // Validaciones
+    const today = new Date().toISOString().split("T")[0];
+    if (!form.title) {
+      setError("Project name is required");
+      setSubmitting(false);
+      return;
+    }
+    const regex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\-()\s]*$/;
+    if (!regex.test(form.title)) {
+      setError("Project name: only letters, hyphens and parentheses allowed");
+      setSubmitting(false);
+      return;
+    }
+    if (!form.startDate || form.startDate < today) {
+      setError("Start date must be today or later");
+      setSubmitting(false);
+      return;
+    }
+    if (!form.endDate || form.endDate <= form.startDate) {
+      setError("End date must be after start date");
+      setSubmitting(false);
+      return;
+    }
+
     try {
       // Obtener el usuario logueado (ajusta según tu auth)
       const user = JSON.parse(localStorage.getItem("user")) || {};

@@ -62,22 +62,16 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources, setResource
         proyectoId: selectedProject.id,
         asignadoPor: user.usuarioId
       };
-
       const response = await api.post('http://localhost:8080/api/recursos-proyecto', body);
-
       if (response.status === 200 || response.status === 201) {
         await api.put(`/recursos/${selectedResourceId}`, { estado: "Inactive" });
-
         if (setResources) {
           setResources(prev => prev.map(r =>
             r.recursoId === selectedResourceId ? { ...r, estado: "Inactive" } : r
           ));
         }
-
         alert("Resource assigned successfully.");
-
         if (onSubmit) await onSubmit();
-
         onClose();
       } else {
         throw new Error("Failed to assign resource. Unexpected status code.");
@@ -129,7 +123,11 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources, setResource
           className="block w-full mb-3 border rounded-lg px-4 py-2 focus:outline-purple-500"
           placeholder="Search resource..."
           value={resourceSearch}
-          onChange={(e) => setResourceSearch(e.target.value)}
+          onChange={(e) => {
+            // Allow only letters, numbers, hyphens, and parentheses
+            let value = e.target.value.replace(/[^a-zA-Z0-9\-()]/g, "");
+            setResourceSearch(value);
+          }}
         />
         <div className="space-y-2 max-h-40 overflow-y-auto mb-6">
           {filteredResources.length === 0 ? (
@@ -154,7 +152,11 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources, setResource
           className="block w-full mb-3 border rounded-lg px-4 py-2 focus:outline-purple-500"
           placeholder="Search project..."
           value={projectSearch}
-          onChange={(e) => setProjectSearch(e.target.value)}
+          onChange={(e) => {
+            // Allow only letters, numbers, hyphens, and parentheses
+            let value = e.target.value.replace(/[^a-zA-Z0-9\-()]/g, "");
+            setProjectSearch(value);
+          }}
         />
         <div className="space-y-2 max-h-40 overflow-y-auto mb-6">
           {filteredProjects.length === 0 ? (

@@ -14,6 +14,7 @@ export default function CreateUserModal({
   const [skills, setSkills] = useState([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
   const [dataError, setDataError] = useState(null);
+  const [roles, setRoles] = useState([]);
 
   const [form, setForm] = useState({
     nombre: "",
@@ -31,11 +32,22 @@ export default function CreateUserModal({
     ultimoAcceso: new Date().toISOString(),
   });
 
+
   useEffect(() => {
     if (isOpen) {
       loadCategoriesAndSkills();
+      loadRoles();
     }
   }, [isOpen]);
+
+  const loadRoles = async () => {
+    try {
+      const res = await api.get('/roles');
+      setRoles(res.data || []);
+    } catch (err) {
+      setRoles([]);
+    }
+  };
 
   const loadCategoriesAndSkills = async () => {
     try {
@@ -108,6 +120,12 @@ export default function CreateUserModal({
   async function createUserWithAssociations(userData, categoriaNombre, habilidadesIds, categoriesList) {
     try {
       const nowISO = new Date().toISOString();
+      // --- Construir el body para crear usuario ---
+      let rolId = userData.rol;
+      // Si el valor es un objeto, extraer rolId
+      if (rolId && typeof rolId === "object" && (rolId.rolId || rolId.id)) {
+        rolId = rolId.rolId || rolId.id;
+      }
       const createUserBody = {
         nombre: userData.nombre,
         apellido: userData.apellido,
@@ -120,30 +138,40 @@ export default function CreateUserModal({
         estado: "Activo",
         fechaCreacion: nowISO,
         ultimoAcceso: nowISO,
+        rol: rolId && !isNaN(Number(rolId)) && Number(rolId) > 0 ? { rolId: Number(rolId) } : undefined,
       };
 
+      // 1. Crear usuario (con rol si aplica)
       const userResponse = await api.post("/auth/register", createUserBody);
       const createdUser = userResponse.data;
       const usuarioId = createdUser.usuarioId || createdUser.id;
-
       if (!usuarioId) throw new Error("No se recibió ID del usuario creado");
 
+      // 2. Asociar categoría
       const categoria = categoriesList.find(
         (cat) => (cat.nombre || cat.name) === categoriaNombre
       );
       if (!categoria) throw new Error("Categoría no encontrada");
-
       await api.post("/category/user/asociar", {
         usuarioId,
         categoriaId: categoria.id || categoria.categoriaId,
       });
 
+      // 3. Asociar skills
       for (const skillId of habilidadesIds) {
         await api.post("/skills/user/asociar", {
           usuarioId,
           skillId,
         });
       }
+
+      // Si el backend requiere la asociación por endpoint aparte, descomenta esto:
+      // if (rolId && !isNaN(Number(rolId)) && Number(rolId) > 0) {
+      //   await api.post("/usuario-roles", {
+      //     usuario: { usuarioId },
+      //     rol: { rolId: Number(rolId) },
+      //   });
+      // }
 
       return createdUser;
     } catch (error) {
@@ -234,6 +262,7 @@ export default function CreateUserModal({
             values={form}
             categories={categories}
             skills={skills}
+            roles={roles}
             isLoadingData={isLoadingData}
             onBack={handleBack}
             onSave={handleSave}
