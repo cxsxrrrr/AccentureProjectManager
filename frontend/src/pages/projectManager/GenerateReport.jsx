@@ -3,6 +3,7 @@ import Topbar from "../../components/common/Topbar";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import * as XLSX from "xlsx";
+import api from "../../services/axios";
 
 // Mock de datos de backend
 const mockProyectos = [
@@ -78,15 +79,47 @@ function GenerateReport() {
     estimatedVsReal: "0 días",
     resourcesUsed: "0%",
   });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProjects, setFilteredProjects] = useState([]);
 
-  // Simular fetch a backend
   useEffect(() => {
-    setTimeout(() => {
-      setProyectos(mockProyectos);
-      setTareas(mockTareas);
-      setMiembros(mockMiembros);
-    }, 300);
+    const fetchProjects = async () => {
+      try {
+        const response = await api.get("http://localhost:8080/api/proyectos");
+        if (response.status === 200) {
+          setProyectos(response.data);
+          setFilteredProjects(response.data);
+        } else {
+          console.error("Failed to fetch projects. Status:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching projects:", error);
+      }
+    };
+
+    fetchProjects();
   }, []);
+
+  const handleSearch = (e) => {
+    const searchTerm = e.target.value.toLowerCase();
+    setSearchTerm(searchTerm);
+
+    if (searchTerm) {
+      setFilteredProjects(
+        proyectos.filter((project) =>
+          project.nombreProyecto.toLowerCase().includes(searchTerm)
+        )
+      );
+    } else {
+      setFilteredProjects(proyectos);
+    }
+  };
+
+  useEffect(() => {
+    if (!searchTerm || searchTerm.trim() === "") {
+      setFilteredProjects(proyectos);
+    }
+  }, [proyectos]);
 
   // Filtrar y calcular KPIs
   useEffect(() => {
@@ -188,7 +221,6 @@ function GenerateReport() {
     dateRange,
   ]);
 
-  // Handlers
   const handleChangeMetric = (key) =>
     setMetrics((prev) => ({ ...prev, [key]: !prev[key] }));
 
@@ -264,102 +296,35 @@ function GenerateReport() {
             Filters & Criteria
           </h3>
           <div className="space-y-4">
-            {/* Report Type */}
+            {/* Search Bar */}
             <div>
               <label className="block text-sm text-gray-500 mb-1 font-semibold">
-                Report Type
+                Search Projects
               </label>
-              <select
+              <input
+                type="text"
                 className="w-full rounded-lg border-gray-300 p-2"
-                value={selectedReportType}
-                onChange={(e) => setSelectedReportType(e.target.value)}
-              >
-                <option value="">Select report type</option>
-                <option value="tasks">Tasks Report</option>
-                <option value="resources">Resources Report</option>
-                <option value="milestones">Milestones Report</option>
-              </select>
+                placeholder="Search by project name"
+                value={searchTerm}
+                onChange={handleSearch}
+              />
             </div>
-            {/* Time Period */}
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <label className="block text-sm text-gray-500 mb-1 font-semibold">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full rounded-lg border-gray-300 p-2"
-                  value={dateRange.start}
-                  onChange={(e) =>
-                    setDateRange((prev) => ({ ...prev, start: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="flex-1">
-                <label className="block text-sm text-gray-500 mb-1 font-semibold">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full rounded-lg border-gray-300 p-2"
-                  value={dateRange.end}
-                  onChange={(e) =>
-                    setDateRange((prev) => ({ ...prev, end: e.target.value }))
-                  }
-                />
-              </div>
-            </div>
-            {/* Categories */}
-            <div>
-              <label className="block text-sm text-gray-500 mb-1 font-semibold">
-                Categories
-              </label>
-              <select
-                className="w-full rounded-lg border-gray-300 p-2"
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-              >
-                <option value="">All categories</option>
-                <option value="frontend">Frontend</option>
-                <option value="backend">Backend</option>
-                <option value="design">Design</option>
-              </select>
-            </div>
-            {/* Projects */}
+            {/* Projects List */}
             <div>
               <label className="block text-sm text-gray-500 mb-1 font-semibold">
                 Projects
               </label>
-              <select
-                className="w-full rounded-lg border-gray-300 p-2"
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-              >
-                <option value="">All projects</option>
-                {proyectos.map((p) => (
-                  <option key={p.proyectoId} value={p.proyectoId}>
-                    {p.nombreProyecto}
-                  </option>
+              <ul className="space-y-2 max-h-40 overflow-y-auto">
+                {filteredProjects.map((project) => (
+                  <li
+                    key={project.proyectoId}
+                    className="p-2 border rounded-lg cursor-pointer hover:bg-purple-100"
+                    onClick={() => setSelectedProject(project.proyectoId)}
+                  >
+                    {project.nombreProyecto}
+                  </li>
                 ))}
-              </select>
-            </div>
-            {/* Members */}
-            <div>
-              <label className="block text-sm text-gray-500 mb-1 font-semibold">
-                Filter by Members
-              </label>
-              <select
-                className="w-full rounded-lg border-gray-300 p-2"
-                value={selectedMember}
-                onChange={(e) => setSelectedMember(e.target.value)}
-              >
-                <option value="">All members</option>
-                {miembros.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.nombre}
-                  </option>
-                ))}
-              </select>
+              </ul>
             </div>
           </div>
         </div>
