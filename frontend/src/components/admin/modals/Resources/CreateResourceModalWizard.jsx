@@ -17,7 +17,7 @@ const CreateResourceModalWizard = ({
     unit: "",
     description: "",
   });
-
+// Controla el estado del modal y el formulario
   // Resetear cuando abres/cierra
   React.useEffect(() => {
     if (!isOpen)
