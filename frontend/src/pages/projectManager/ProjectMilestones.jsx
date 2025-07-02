@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Topbar from "../../components/common/Topbar";
 import TopControls from "../../components/common/TopControls";
 import NewMilestoneModal from "../../components/manager/modals/milestones/NewMilestoneModal";
@@ -6,68 +6,121 @@ import UpdateMilestoneModal from "../../components/manager/modals/milestones/Upd
 import DisableMilestoneModal from "../../components/manager/modals/milestones/DisableMilestoneModal";
 import "../../stylesheets/page.css";
 
-// Datos simulados más completos
-const initialMilestones = [
-  {
-    id: 1,
-    nombre: "Completar el backend",
-    descripcion: "El backend debe ser completado en 1 mes",
-    fechaInicio: "2025-05-01",
-    fechaPlaneada: "2025-06-15",
-    fechaReal: "2025-07-15",
-    estado: "Completada",
-    assignedTo: "Carlos",
-  },
-  {
-    id: 2,
-    nombre: "Desarrollo frontend",
-    descripcion: "Implementar UI con React",
-    fechaInicio: "2025-06-01",
-    fechaPlaneada: "2025-07-01",
-    fechaReal: "",
-    estado: "En Progreso",
-    assignedTo: "Ana",
-  },
-  {
-    id: 3,
-    nombre: "Pruebas y QA",
-    descripcion: "Testear toda la app",
-    fechaInicio: "2025-07-05",
-    fechaPlaneada: "2025-07-20",
-    fechaReal: "",
-    estado: "Planificada",
-    assignedTo: "",
-  },
-];
-
 function ProjectMilestones() {
-  const [milestones, setMilestones] = useState(initialMilestones);
+  const [milestones, setMilestones] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
 
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
 
-  const selectedMilestone = milestones.find((m) => m.id === selectedId);
+  const selectedMilestone = milestones.find((m) => m.hitoId === selectedId) || {};
 
-  const handleCreate = (newMilestone) => {
-    const newItem = { ...newMilestone, id: Date.now() };
-    setMilestones([...milestones, newItem]);
-    setIsNewModalOpen(false);
+  useEffect(() => {
+    const fetchMilestones = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/hitos", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setMilestones(data);
+        } else {
+          console.error("Failed to fetch milestones. Status:", response.status, "Message:", response.statusText);
+        }
+      } catch (error) {
+        console.error("Error fetching milestones:", error);
+      }
+    };
+
+    fetchMilestones();
+  }, []);
+
+  const handleCreate = async (newMilestone) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newMilestone),
+      });
+
+      if (response.ok) {
+        const createdMilestone = await response.json();
+        setMilestones((prev) => [...prev, createdMilestone]);
+        setIsNewModalOpen(false);
+      } else {
+        console.error("Failed to create milestone:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error creating milestone:", error);
+    }
   };
 
-  const handleUpdate = (updated) => {
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === updated.id ? updated : m))
-    );
-    setIsEditModalOpen(false);
+  const handleUpdate = async (updatedMilestone) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos/${updatedMilestone.hitoId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...updatedMilestone,
+          proyecto: updatedMilestone.proyectoId
+            ? { proyectoId: updatedMilestone.proyectoId }
+            : null,
+        }),
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setMilestones((prev) =>
+          prev.map((m) => (m.hitoId === updatedData.hitoId ? updatedData : m))
+        );
+        setIsEditModalOpen(false);
+      } else {
+        console.error("Failed to update milestone:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error updating milestone:", error);
+    }
   };
 
-  const handleDisable = (disabled) => {
-    setMilestones((prev) =>
-      prev.map((m) => (m.id === disabled.id ? disabled : m))
-    );
-    setIsDisableModalOpen(false);
+  const handleDisable = async (disabledMilestone) => {
+    try {
+      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos/${disabledMilestone.hitoId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          estado: "Desactivado",
+        }),
+      });
+
+      if (response.ok) {
+        const updatedData = await response.json();
+        setMilestones((prev) =>
+          prev.map((m) => (m.hitoId === updatedData.hitoId ? updatedData : m))
+        );
+        setIsDisableModalOpen(false);
+      } else {
+        console.error("Failed to disable milestone:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error disabling milestone:", error);
+    }
+  };
+
+  const handleProjectClick = (projectId) => {
+    setSelectedId(projectId);
   };
 
   // Mapear estado para colores y etiquetas en español
@@ -84,9 +137,9 @@ function ProjectMilestones() {
         <TopControls
           module="milestone"
           onCreate={() => setIsNewModalOpen(true)}
-          onUpdate={selectedMilestone ? () => setIsEditModalOpen(true) : undefined}
-          onDisable={selectedMilestone ? () => setIsDisableModalOpen(true) : undefined}
-          onAssign={selectedMilestone ? () => {} : undefined}
+          onUpdate={selectedId ? () => setIsEditModalOpen(true) : undefined}
+          onDisable={selectedId ? () => setIsDisableModalOpen(true) : undefined}
+          onAssign={selectedId ? () => {} : undefined}
         />
       </Topbar>
 
@@ -121,12 +174,12 @@ function ProjectMilestones() {
             <tbody>
               {milestones.map((m, idx) => (
                 <tr
-                  key={m.id}
-                  onClick={() => setSelectedId(m.id)}
+                  key={m.hitoId}
+                  onClick={() => handleProjectClick(m.hitoId)}
                   className={`
                     cursor-pointer transition
                     ${
-                      selectedId === m.id
+                      selectedId === m.hitoId
                         ? "bg-purple-100 ring-2 ring-purple-200"
                         : idx % 2
                         ? "bg-gray-50"
@@ -142,13 +195,15 @@ function ProjectMilestones() {
                     {m.descripcion}
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
+                    <label className="block text-gray-700 font-medium">Fecha Inicio</label>
                     {m.fechaInicio || "-"}
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
+                    <label className="block text-gray-700 font-medium">Fecha Planeada</label>
                     {m.fechaPlaneada || "-"}
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
-                    {m.fechaReal || "-"}
+                    {m.fechaPlaneada || "-"}
                   </td>
                   <td className="py-4 px-6 w-1/6 whitespace-nowrap">
                     <span
@@ -160,7 +215,7 @@ function ProjectMilestones() {
                     </span>
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
-                    {m.assignedTo || "-"}
+                    {m.proyecto?.nombreProyecto || "-"}
                   </td>
                 </tr>
               ))}
@@ -180,7 +235,7 @@ function ProjectMilestones() {
       <NewMilestoneModal
         isOpen={isNewModalOpen}
         onClose={() => setIsNewModalOpen(false)}
-        onSave={handleCreate}
+        onCreate={handleCreate}
       />
 
       <UpdateMilestoneModal

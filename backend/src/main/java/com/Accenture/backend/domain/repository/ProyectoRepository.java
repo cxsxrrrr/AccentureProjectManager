@@ -15,6 +15,7 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Long> {
     List<Proyecto> findByNombreProyectoContainingIgnoreCase(String nombre);
     List<Proyecto> findByEstadoIgnoreCase(String estado);
     List<Proyecto> findByFechaInicioBetween(LocalDate fechaInicio, LocalDate fechaFin);
+    List<Proyecto> findByClienteUsuarioId(Long clienteId);
 
     @Modifying
     @Query("DELETE FROM Proyecto p WHERE p.proyectoId = :id")
