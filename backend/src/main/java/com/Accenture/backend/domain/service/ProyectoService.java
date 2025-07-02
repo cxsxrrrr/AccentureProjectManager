@@ -5,6 +5,7 @@ import com.Accenture.backend.dao.ProyectoDAO;
 import com.Accenture.backend.domain.dto.ProyectoDTO;
 import com.Accenture.backend.domain.repository.UsuarioRepository;
 import com.Accenture.backend.domain.repository.HitosProyectoRepository;
+import com.Accenture.backend.domain.repository.ProyectoRepository;
 
 import com.Accenture.backend.exception.ResourceNotFoundException;
 
@@ -33,7 +34,7 @@ public class ProyectoService {
     private final ProyectoDAO proyectoDAO;
     private final UsuarioRepository usuarioRepository;
     private final HitosProyectoRepository hitosRepo;
-
+    private final ProyectoRepository proyectoRepository;
     private final UsuarioMapper usuarioMapper;
     private final ProyectoMapper proyectoMapper;
 
@@ -42,12 +43,14 @@ public class ProyectoService {
             ProyectoDAO proyectoDAO,
             ProyectoMapper proyectoMapper,
             UsuarioRepository usuarioRepository,
+            ProyectoRepository proyectoRepository,
             UsuarioMapper usuarioMapper,
             HitosProyectoRepository hitosRepo
     ) {
         this.proyectoDAO = proyectoDAO;
         this.proyectoMapper = proyectoMapper;
         this.usuarioRepository = usuarioRepository;
+        this.proyectoRepository = proyectoRepository;
         this.usuarioMapper = usuarioMapper;
         this.hitosRepo = hitosRepo;
     }
@@ -157,6 +160,14 @@ public class ProyectoService {
     // Búsqueda de Proyectos por rango de fecha de inicio
     public List<ProyectoDTO> buscarProyectosPorFechaInicioEntre(LocalDate inicio, LocalDate fin) {
         return proyectoDAO.buscarProyectosPorFechaInicioEntre(inicio, fin).stream()
+                .map(proyectoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Busqueda de proyecto por cliente asociado
+    public List<ProyectoDTO> obtenerProyectosPorCliente(Long clienteId) {
+        List<Proyecto> proyectos = proyectoRepository.findByClienteUsuarioId(clienteId);
+        return proyectos.stream()
                 .map(proyectoMapper::toDTO)
                 .collect(Collectors.toList());
     }
