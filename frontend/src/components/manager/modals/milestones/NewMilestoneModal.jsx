@@ -90,7 +90,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
     try {
       const response = await api.post("http://localhost:8080/api/hitos", {
         ...milestone,
-        estado: "Activado",
+        estado: "Activo",
         fechaReal: milestone.fechaInicio, // Set fechaReal to fechaInicio
         proyecto: milestone.proyectoId
           ? { proyectoId: milestone.proyectoId }

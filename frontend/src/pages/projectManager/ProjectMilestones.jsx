@@ -143,6 +143,8 @@ function ProjectMilestones() {
     "En Progreso": "bg-blue-100 text-blue-700",
     Planificada: "bg-yellow-100 text-yellow-700",
     Deshabilitada: "bg-red-100 text-red-600",
+    Activo: "bg-green-100 text-green-700",
+    Desactivado: "bg-red-100 text-red-600",
   };
 
   return (

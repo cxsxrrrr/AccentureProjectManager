@@ -344,9 +344,10 @@ function TaskManagement() {
                   </td>
                   <td className="py-5 px-6">
                     <span
-                      className={`px-3 py-1 rounded-full font-bold text-xs ${getStatusClass(
+                      className={`inline-block min-w-[100px] max-w-[140px] text-center px-3 py-1 rounded-full font-bold text-sm truncate ${getStatusClass(
                         task.estado
                       )}`}
+                      style={{lineHeight: '1.2'}}
                     >
                       {getStatusLabel(task.estado)}
                     </span>
