@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../../services/axios";
 
-function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
+function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate, setToast }) {
   const [updatedMilestone, setUpdatedMilestone] = useState({
     nombre: "",
     descripcion: "",
@@ -9,28 +9,42 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
     fechaPlaneada: "",
     proyectoId: "",
   });
-
-  const [projects, setProjects] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (milestone) {
       setUpdatedMilestone({
         nombre: milestone.nombre || "",
         descripcion: milestone.descripcion || "",
-        fechaInicio: milestone.fechaInicio || "",
+        fechaInicio: milestone.fechaReal || "", // Use fechaReal for fechaInicio
         fechaPlaneada: milestone.fechaPlaneada || "",
         proyectoId: milestone.proyecto?.proyectoId || "",
       });
     }
-
-    api
-      .get("http://localhost:8080/api/proyectos")
-      .then((res) => setProjects(res.data))
-      .catch((err) => console.error("Error fetching projects:", err));
   }, [milestone]);
 
   const handleChange = (e) => {
     setUpdatedMilestone({ ...updatedMilestone, [e.target.name]: e.target.value });
+  };
+
+  const validateFields = () => {
+    const newErrors = {};
+    if (!updatedMilestone.nombre) newErrors.nombre = "El nombre es requerido.";
+    if (!updatedMilestone.descripcion) newErrors.descripcion = "La descripción es requerida.";
+    if (!updatedMilestone.fechaInicio) newErrors.fechaInicio = "La fecha de inicio es requerida.";
+    if (!updatedMilestone.fechaPlaneada) newErrors.fechaPlaneada = "La fecha planeada es requerida.";
+    if (!updatedMilestone.proyectoId) newErrors.proyectoId = "El proyecto es requerido.";
+
+    // Additional date validation
+    if (updatedMilestone.fechaInicio && updatedMilestone.fechaPlaneada) {
+      if (new Date(updatedMilestone.fechaInicio) > new Date(updatedMilestone.fechaPlaneada)) {
+        newErrors.fechaInicio = "La fecha de inicio no puede ser mayor que la fecha planeada.";
+        newErrors.fechaPlaneada = "La fecha planeada no puede ser menor que la fecha de inicio.";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
@@ -39,9 +53,8 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
       return;
     }
 
-    if (!updatedMilestone.nombre || !updatedMilestone.descripcion || !updatedMilestone.fechaInicio || !updatedMilestone.fechaPlaneada || !updatedMilestone.proyectoId) {
-      console.error("All fields are required.");
-      alert("Please fill out all fields before submitting.");
+    if (!validateFields()) {
+      alert("Por favor corrige los errores antes de enviar.");
       return;
     }
 
@@ -59,7 +72,7 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
           : null,
       };
 
-      const response = await api.put(`/hitos/${milestone.hitoId}`, payload);
+      const response = await api.patch(`/hitos/${milestone.hitoId}`, payload);
 
       if (response.status === 200) {
         const updatedData = response.data;
@@ -69,6 +82,7 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
           );
           return updatedMilestones;
         });
+        if (setToast) setToast("Milestone actualizado exitosamente");
         onClose();
       } else {
         console.error("Failed to update milestone:", response.statusText);
@@ -104,6 +118,9 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-xl"
           />
+          {errors && errors.nombre && (
+            <div className="text-red-500 text-sm">{errors.nombre}</div>
+          )}
           <textarea
             name="descripcion"
             placeholder="Description"
@@ -112,6 +129,9 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
             className="w-full px-4 py-2 border rounded-xl resize-none"
             rows={3}
           />
+          {errors && errors.descripcion && (
+            <div className="text-red-500 text-sm">{errors.descripcion}</div>
+          )}
           <div className="flex gap-4">
             <div className="w-1/2 flex flex-col">
               <label htmlFor="fechaInicio" className="mb-1 font-medium text-gray-700">Fecha de inicio</label>
@@ -123,6 +143,9 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
                 onChange={handleChange}
                 className="px-4 py-2 border rounded-xl"
               />
+              {errors && errors.fechaInicio && (
+                <div className="text-red-500 text-sm">{errors.fechaInicio}</div>
+              )}
             </div>
             <div className="w-1/2 flex flex-col">
               <label htmlFor="fechaPlaneada" className="mb-1 font-medium text-gray-700">Fecha planeada</label>
@@ -134,48 +157,10 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
                 onChange={handleChange}
                 className="px-4 py-2 border rounded-xl"
               />
+              {errors && errors.fechaPlaneada && (
+                <div className="text-red-500 text-sm">{errors.fechaPlaneada}</div>
+              )}
             </div>
-          </div>
-          <div className="border rounded-xl p-4 max-h-40 overflow-y-auto">
-            <h3 className="text-lg font-semibold mb-2">Select Project</h3>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              className="w-full px-4 py-2 border rounded-xl mb-2"
-              onChange={(e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                if (searchTerm) {
-                  setProjects((prevProjects) =>
-                    prevProjects.filter((project) =>
-                      project.nombreProyecto.toLowerCase().includes(searchTerm)
-                    )
-                  );
-                } else {
-                  api
-                    .get("http://localhost:8080/api/proyectos")
-                    .then((res) => setProjects(res.data))
-                    .catch((err) => console.error("Error fetching projects:", err));
-                }
-              }}
-            />
-            <ul className="space-y-2">
-              {projects.map((project) => (
-                <li
-                  key={project.proyectoId}
-                  className={`p-2 border rounded-lg cursor-pointer ${
-                    updatedMilestone.proyectoId === project.proyectoId ? "bg-purple-100" : ""
-                  }`}
-                  onClick={() =>
-                    setUpdatedMilestone({
-                      ...updatedMilestone,
-                      proyectoId: project.proyectoId,
-                    })
-                  }
-                >
-                  {project.nombreProyecto}
-                </li>
-              ))}
-            </ul>
           </div>
           <div className="space-y-4">
             <label className="block text-lg font-semibold">Estado</label>

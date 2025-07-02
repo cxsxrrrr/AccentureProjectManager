@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import api from "../../../../services/axios";
 
-function NewMilestoneModal({ isOpen, onClose, onCreate }) {
+function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
   const [milestone, setMilestone] = useState({
     nombre: "",
     descripcion: "",
@@ -11,6 +11,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
   });
 
   const [projects, setProjects] = useState([]);
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     api
@@ -52,22 +53,45 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
     setMilestone({ ...milestone, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
-    try {
-      if (
-        !milestone.nombre ||
-        !milestone.descripcion ||
-        !milestone.fechaInicio ||
-        !milestone.fechaPlaneada ||
-        !milestone.proyectoId
-      ) {
-        console.error("All fields are required.");
-        alert("Please fill out all fields before submitting.");
-        return;
-      }
+  const validate = () => {
+    const newErrors = {};
+    if (!milestone.nombre.trim())
+      newErrors.nombre = "El nombre es obligatorio.";
+    if (!milestone.descripcion.trim())
+      newErrors.descripcion = "La descripción es obligatoria.";
+    if (!milestone.fechaInicio)
+      newErrors.fechaInicio = "La fecha de inicio es obligatoria.";
+    if (!milestone.fechaPlaneada)
+      newErrors.fechaPlaneada = "La fecha planeada es obligatoria.";
+    if (!milestone.proyectoId)
+      newErrors.proyectoId = "Debe seleccionar un proyecto.";
 
+    // Validaciones de fechas
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (milestone.fechaInicio) {
+      const start = new Date(milestone.fechaInicio);
+      if (start < today)
+        newErrors.fechaInicio = "La fecha de inicio no puede ser menor a hoy.";
+    }
+    if (milestone.fechaInicio && milestone.fechaPlaneada) {
+      const start = new Date(milestone.fechaInicio);
+      const end = new Date(milestone.fechaPlaneada);
+      if (end < start)
+        newErrors.fechaPlaneada =
+          "La fecha fin no puede ser menor a la fecha de inicio.";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    try {
       const response = await api.post("http://localhost:8080/api/hitos", {
         ...milestone,
+        estado: "Activado",
+        fechaReal: milestone.fechaInicio, // Set fechaReal to fechaInicio
         proyecto: milestone.proyectoId
           ? { proyectoId: milestone.proyectoId }
           : null,
@@ -77,6 +101,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
       if (response.status === 200) {
         const createdMilestone = response.data;
         onCreate(createdMilestone);
+        if (setToast) setToast("Milestone creado exitosamente");
         onClose();
       } else {
         console.error("Failed to create milestone:", response.statusText);
@@ -109,6 +134,9 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-xl"
           />
+          {errors.nombre && (
+            <div className="text-red-500 text-sm">{errors.nombre}</div>
+          )}
           <textarea
             name="descripcion"
             placeholder="Description"
@@ -117,6 +145,9 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
             className="w-full px-4 py-2 border rounded-xl resize-none"
             rows={3}
           />
+          {errors.descripcion && (
+            <div className="text-red-500 text-sm">{errors.descripcion}</div>
+          )}
           <div className="flex gap-4">
             <div className="w-1/2 flex flex-col">
               <label
@@ -133,6 +164,9 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
                 onChange={handleChange}
                 className="px-4 py-2 border rounded-xl"
               />
+              {errors.fechaInicio && (
+                <div className="text-red-500 text-sm">{errors.fechaInicio}</div>
+              )}
             </div>
             <div className="w-1/2 flex flex-col">
               <label
@@ -149,6 +183,9 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
                 onChange={handleChange}
                 className="px-4 py-2 border rounded-xl"
               />
+              {errors.fechaPlaneada && (
+                <div className="text-red-500 text-sm">{errors.fechaPlaneada}</div>
+              )}
             </div>
           </div>
           <div className="border rounded-xl p-4 max-h-40 overflow-y-auto">
@@ -188,6 +225,9 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
                 </li>
               ))}
             </ul>
+            {errors.proyectoId && (
+              <div className="text-red-500 text-sm">{errors.proyectoId}</div>
+            )}
           </div>
         </div>
 

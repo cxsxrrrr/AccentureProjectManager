@@ -4,6 +4,8 @@ import TopControls from "../../components/common/TopControls";
 import NewMilestoneModal from "../../components/manager/modals/milestones/NewMilestoneModal";
 import UpdateMilestoneModal from "../../components/manager/modals/milestones/UpdateMilestoneModal";
 import DisableMilestoneModal from "../../components/manager/modals/milestones/DisableMilestoneModal";
+import Toast from "../../components/common/Toast";
+import api from "../../services/axios";
 import "../../stylesheets/page.css";
 
 function ProjectMilestones() {
@@ -14,108 +16,120 @@ function ProjectMilestones() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
 
+  const [projects, setProjects] = useState([]);
+  const [toast, setToast] = useState("");
+
   const selectedMilestone = milestones.find((m) => m.hitoId === selectedId) || {};
 
-  useEffect(() => {
-    const fetchMilestones = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/hitos", {
-          method: "GET",
-          headers: {
-            "Authorization": `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setMilestones(data);
-        } else {
-          console.error("Failed to fetch milestones. Status:", response.status, "Message:", response.statusText);
-        }
-      } catch (error) {
-        console.error("Error fetching milestones:", error);
-      }
-    };
+  // Trae hitos y proyectos juntos para recargar la lista correctamente
+  const fetchMilestonesAndProjects = async () => {
+    try {
+      const [hitosRes, projectsRes] = await Promise.all([
+        api.get("/hitos"),
+        api.get("/proyectos")
+      ]);
+      setMilestones(hitosRes.data);
+      setProjects(projectsRes.data);
+    } catch (error) {
+      console.error("Error fetching milestones or projects:", error);
+    }
+  };
 
-    fetchMilestones();
+  useEffect(() => {
+    fetchMilestonesAndProjects();
   }, []);
 
+  // Forzar recarga real de la lista tras crear un milestone
   const handleCreate = async (newMilestone) => {
+    // Optimistic UI: add fake milestone instantly
+    const tempId = `temp-${Date.now()}`;
+    const fakeMilestone = {
+      ...newMilestone,
+      hitoId: tempId,
+      estado: "Guardando...",
+      fechaReal: newMilestone.fechaInicio,
+      proyecto: projects.find(p => p.proyectoId === newMilestone.proyectoId) || {},
+    };
+    setMilestones((prev) => [fakeMilestone, ...prev]);
+    setIsNewModalOpen(false);
+    setTimeout(() => {
+      setMilestones((prev) =>
+        prev.map((m) =>
+          m.hitoId === tempId ? { ...m, estado: "Creado (sincronizando...)" } : m
+        )
+      );
+    }, 500);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(newMilestone),
-      });
-
-      if (response.ok) {
-        const createdMilestone = await response.json();
-        setMilestones((prev) => [...prev, createdMilestone]);
-        setIsNewModalOpen(false);
-      } else {
-        console.error("Failed to create milestone:", response.statusText);
-      }
+      const res = await api.post("/hitos", newMilestone);
+      // Replace fake with real
+      setMilestones((prev) => [res.data, ...prev.filter((m) => m.hitoId !== tempId)]);
+      await fetchMilestonesAndProjects();
+      setToast("Milestone creado exitosamente");
     } catch (error) {
+      // Remove fake if error
+      setMilestones((prev) => prev.filter((m) => m.hitoId !== tempId));
       console.error("Error creating milestone:", error);
     }
   };
 
   const handleUpdate = async (updatedMilestone) => {
+    // Optimistic UI update
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.hitoId === updatedMilestone.hitoId
+          ? { ...m, ...updatedMilestone, estado: "Actualizando..." }
+          : m
+      )
+    );
+    setIsEditModalOpen(false);
+    setTimeout(() => {
+      setMilestones((prev) =>
+        prev.map((m) =>
+          m.hitoId === updatedMilestone.hitoId ? { ...m, estado: "Actualizado (sincronizando...)" } : m
+        )
+      );
+    }, 500);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos/${updatedMilestone.hitoId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          ...updatedMilestone,
-          proyecto: updatedMilestone.proyectoId
-            ? { proyectoId: updatedMilestone.proyectoId }
-            : null,
-        }),
+      await api.patch(`/hitos/${updatedMilestone.hitoId}`, {
+        ...updatedMilestone,
+        proyecto: updatedMilestone.proyectoId
+          ? { proyectoId: updatedMilestone.proyectoId }
+          : null,
       });
-
-      if (response.ok) {
-        const updatedData = await response.json();
-        setMilestones((prev) =>
-          prev.map((m) => (m.hitoId === updatedData.hitoId ? updatedData : m))
-        );
-        setIsEditModalOpen(false);
-      } else {
-        console.error("Failed to update milestone:", response.statusText);
-      }
+      await fetchMilestonesAndProjects();
+      setToast("Milestone actualizado exitosamente");
     } catch (error) {
       console.error("Error updating milestone:", error);
+      // Optionally: revert optimistic update here if needed
     }
   };
 
   const handleDisable = async (disabledMilestone) => {
+    // Optimistic UI update
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.hitoId === disabledMilestone.hitoId
+          ? { ...m, estado: "Desactivando..." }
+          : m
+      )
+    );
+    setIsDisableModalOpen(false);
+    setTimeout(() => {
+      setMilestones((prev) =>
+        prev.map((m) =>
+          m.hitoId === disabledMilestone.hitoId ? { ...m, estado: "Desactivado (sincronizando...)" } : m
+        )
+      );
+    }, 500);
     try {
-      const response = await fetch(`${process.env.REACT_APP_BASE_URL}/api/hitos/${disabledMilestone.hitoId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify({
-          estado: "Desactivado",
-        }),
+      await api.patch(`/hitos/${disabledMilestone.hitoId}`, {
+        estado: "Desactivado",
       });
-
-      if (response.ok) {
-        const updatedData = await response.json();
-        setMilestones((prev) =>
-          prev.map((m) => (m.hitoId === updatedData.hitoId ? updatedData : m))
-        );
-        setIsDisableModalOpen(false);
-      } else {
-        console.error("Failed to disable milestone:", response.statusText);
-      }
+      await fetchMilestonesAndProjects();
+      setToast("Milestone desactivado exitosamente");
     } catch (error) {
       console.error("Error disabling milestone:", error);
+      // Optionally: revert optimistic update here if needed
     }
   };
 
@@ -161,9 +175,6 @@ function ProjectMilestones() {
                   Fecha Planeada
                 </th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider w-1/6">
-                  Fecha Real
-                </th>
-                <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider w-1/6">
                   Estado
                 </th>
                 <th className="px-6 py-4 text-left text-gray-500 font-bold uppercase tracking-wider w-1/6">
@@ -196,13 +207,10 @@ function ProjectMilestones() {
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
                     <label className="block text-gray-700 font-medium">Fecha Inicio</label>
-                    {m.fechaInicio || "-"}
+                    {m.fechaReal || "-"}
                   </td>
                   <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
                     <label className="block text-gray-700 font-medium">Fecha Planeada</label>
-                    {m.fechaPlaneada || "-"}
-                  </td>
-                  <td className="py-4 px-6 text-gray-700 w-1/6 whitespace-nowrap">
                     {m.fechaPlaneada || "-"}
                   </td>
                   <td className="py-4 px-6 w-1/6 whitespace-nowrap">
@@ -236,6 +244,7 @@ function ProjectMilestones() {
         isOpen={isNewModalOpen}
         onClose={() => setIsNewModalOpen(false)}
         onCreate={handleCreate}
+        setToast={setToast}
       />
 
       <UpdateMilestoneModal
@@ -243,6 +252,7 @@ function ProjectMilestones() {
         onClose={() => setIsEditModalOpen(false)}
         onUpdate={handleUpdate}
         milestone={selectedMilestone}
+        setToast={setToast}
       />
 
       <DisableMilestoneModal
@@ -250,7 +260,9 @@ function ProjectMilestones() {
         onClose={() => setIsDisableModalOpen(false)}
         onConfirm={handleDisable}
         milestone={selectedMilestone}
+        setToast={setToast}
       />
+      <Toast message={toast} onClose={() => setToast("")} />
     </div>
   );
 }

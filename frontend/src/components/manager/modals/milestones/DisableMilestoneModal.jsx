@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 
-function DisableMilestoneModal({ isOpen, onClose, onDisable, milestone }) {
+function DisableMilestoneModal({ isOpen, onClose, onDisable, milestone, setToast }) {
   useEffect(() => {
     if (isOpen && !milestone) {
       console.error("Milestone data is missing or invalid.");
@@ -46,6 +46,7 @@ function DisableMilestoneModal({ isOpen, onClose, onDisable, milestone }) {
         } else {
           console.warn("onDisable is not a function or is undefined.");
         }
+        if (setToast) setToast("Milestone desactivado exitosamente");
         onClose();
       } else {
         const errorText = await response.text();
