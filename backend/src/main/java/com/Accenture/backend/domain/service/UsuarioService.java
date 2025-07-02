@@ -263,4 +263,9 @@ public class UsuarioService {
         }
         return dto;
     }
+
+    // Envía un código de recuperación de contraseña
+    public void enviarCodigoRecuperacion(String email, String code) {
+        mailSender.enviarCodigoRecuperacion(email, code);
+    }
 }

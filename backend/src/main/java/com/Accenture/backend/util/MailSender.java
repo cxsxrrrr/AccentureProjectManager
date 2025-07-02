@@ -98,4 +98,48 @@ public class MailSender {
                 cedula, password
         );
     }
+    // Envía un código de recuperación de contraseña
+    public void enviarCodigoRecuperacion(String email, String code) {
+        String subject = "Código de recuperación de contraseña";
+        String html = String.format(
+            "<div style='font-family:Segoe UI,sans-serif;max-width:500px;margin:auto;padding:32px;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.08);'>" +
+            "<h2 style='color:#A100FF;text-align:center;'>Recuperación de contraseña</h2>" +
+            "<p>Tu código de recuperación es:</p>" +
+            "<div style='font-size:2rem;font-weight:bold;color:#A100FF;text-align:center;margin:24px 0;'>%s</div>" +
+            "<p>Ingresa este código en la plataforma para continuar con el proceso de recuperación.</p>" +
+            "<p style='color:#888;font-size:13px;text-align:center;'>Si no solicitaste este código, ignora este mensaje.</p>" +
+            "<div style='margin-top:32px;text-align:center;font-size:12px;color:#aaa;'>&copy; 2025 Accenture</div>" +
+            "</div>",
+            code
+        );
+        sendHtmlEmail(email, subject, html);
+    }
+
+    // Utilidad para enviar correos HTML genéricos
+    public void sendHtmlEmail(String email, String subject, String html) {
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "smtp.gmail.com");
+        props.put("mail.smtp.port", "587");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Session session = Session.getInstance(props, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(REMITENTE, APP_PASSWORD);
+            }
+        });
+
+        try {
+            Message mensaje = new MimeMessage(session);
+            mensaje.setFrom(new InternetAddress(REMITENTE));
+            mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(email));
+            mensaje.setSubject(subject);
+            mensaje.setContent(html, "text/html; charset=utf-8");
+            Transport.send(mensaje);
+            System.out.println("Correo de recuperación enviado a: " + email);
+        } catch (MessagingException e) {
+            System.err.println("Error al enviar el correo de recuperación: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

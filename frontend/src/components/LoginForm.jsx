@@ -156,7 +156,10 @@ export default function LoginForm() {
       </div>
 
       <div className="flex justify-end">
-        <a href="#" className="text-sm hover:underline">
+        <a
+          href="/recovery"
+          className="text-sm text-purple-600 hover:underline font-semibold"
+        >
           Forgot password?
         </a>
       </div>

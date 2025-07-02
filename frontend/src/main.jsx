@@ -6,6 +6,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 
 import Login from './pages/Login';
+import Recovery from './pages/Recovery';
 
 // Rutas por rol
 import AdminRoutes from './routes/AdminRoutes';
@@ -18,6 +19,7 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/recovery" element={<Recovery />} />
         {AdminRoutes()}
         {ManagerRoutes()}
         {TeamRoutes()}

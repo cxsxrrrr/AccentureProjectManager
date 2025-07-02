@@ -63,6 +63,16 @@ export default function Login() {
 
           <div className="mt-8 w-full">
             <LoginForm />
+            {/*
+            <div className="mt-4 text-right">
+              <a
+                href="/recovery"
+                className="text-purple-600 hover:underline font-semibold text-base"
+              >
+                ¿Olvidaste tu contraseña?
+              </a>
+            </div>
+            */}
           </div>
         </div>
       </div>
