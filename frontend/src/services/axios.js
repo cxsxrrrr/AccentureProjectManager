@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Configuración base de la API
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // URL del backend SIEMPRE
+  baseURL: 'https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api', // URL del backend SIEMPRE
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'

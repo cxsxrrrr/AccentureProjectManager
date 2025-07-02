@@ -24,7 +24,7 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
     }
 
     api
-      .get("http://localhost:8080/api/proyectos")
+      .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
       .then((res) => setProjects(res.data))
       .catch((err) => console.error("Error fetching projects:", err));
   }, [milestone]);
@@ -144,7 +144,7 @@ function UpdateMilestoneModal({ isOpen, onClose, milestone, onUpdate }) {
                   );
                 } else {
                   api
-                    .get("http://localhost:8080/api/proyectos")
+                    .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
                     .then((res) => setProjects(res.data))
                     .catch((err) => console.error("Error fetching projects:", err));
                 }

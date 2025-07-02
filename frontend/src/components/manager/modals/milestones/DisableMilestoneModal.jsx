@@ -23,7 +23,7 @@ function DisableMilestoneModal({ isOpen, onClose, onDisable, milestone }) {
       }
 
       console.log("Disabling milestone with ID:", milestone.hitoId);
-      const baseURL = window.REACT_APP_BASE_URL || "http://localhost:8080";
+      const baseURL = window.REACT_APP_BASE_URL || "https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/";
       console.log("Base URL:", baseURL);
       console.log("Request body:", JSON.stringify({ estado: "Completada" }));
 

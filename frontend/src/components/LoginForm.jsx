@@ -18,7 +18,7 @@ export default function LoginForm() {
     // Perform login and fetch user
     try {
       const loginRes = await api.post(
-        "http://localhost:8080/api/auth/login",
+        "https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/auth/login",
         { cedula, password }
       );
       const token = loginRes.data;
@@ -26,7 +26,7 @@ export default function LoginForm() {
 
       // Fetch user data
       const usuarioRes = await api.get(
-        `http://localhost:8080/api/usuario/cedula/${cedula}`
+        `https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/usuario/cedula/${cedula}`
       );
       const usuario = usuarioRes.data;
       localStorage.setItem("user", JSON.stringify(usuario));

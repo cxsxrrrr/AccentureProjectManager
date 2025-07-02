@@ -51,7 +51,7 @@ function AllocateResources() {
         throw new Error("No authenticated");
       }
 
-      const response = await api.get("http://localhost:8080/api/recursos");
+      const response = await api.get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos");
       const resourcesFromApi = response.data;
 
       const formattedResources = resourcesFromApi.map((r) => ({
@@ -117,7 +117,7 @@ function AllocateResources() {
         asignadoPor: userId,
       };
 
-      const response = await api.post("http://localhost:8080/api/recursos-proyecto", body);
+      const response = await api.post("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos-proyecto", body);
       if (response.status === 200 || response.status === 201) {
         alert("Resource assigned successfully.");
       } else {
@@ -143,7 +143,7 @@ function AllocateResources() {
         tipo: updatedResource.tipo,
       };
 
-      await api.put(`http://localhost:8080/api/recursos/${updatedResource.id}`, body);
+      await api.put(`https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos/${updatedResource.id}`, body);
 
       await loadResources();
       setUpdateOpen(false);
@@ -156,7 +156,7 @@ function AllocateResources() {
 
   const handleDisableResource = async (id) => {
     try {
-      await api.put(`http://localhost:8080/api/recursos/${id}`, {
+      await api.put(`https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos/${id}`, {
         estado: "Inactivo",
       });
       await loadResources();

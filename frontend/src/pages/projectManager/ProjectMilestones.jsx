@@ -19,7 +19,7 @@ function ProjectMilestones() {
   useEffect(() => {
     const fetchMilestones = async () => {
       try {
-        const response = await fetch("http://localhost:8080/api/hitos", {
+        const response = await fetch("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos", {
           method: "GET",
           headers: {
             "Authorization": `Bearer ${localStorage.getItem("token")}`,

@@ -39,7 +39,7 @@ function RoleManagement() {
     const fetchRoles = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get("http://localhost:8080/api/roles", {
+        const response = await axios.get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/roles", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -87,7 +87,7 @@ function RoleManagement() {
       setError(null);
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/roles",
+        "https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/roles",
         {
           nombre: roleData.name,
           descripcion: roleData.description,
@@ -122,7 +122,7 @@ function RoleManagement() {
       const token = localStorage.getItem("token");
 
       await axios.put(
-        `http://localhost:8080/api/roles/${updatedRole.id}`,
+        `https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/roles/${updatedRole.id}`,
         {
           nombre: updatedRole.nombre,
           descripcion: updatedRole.descripcion,

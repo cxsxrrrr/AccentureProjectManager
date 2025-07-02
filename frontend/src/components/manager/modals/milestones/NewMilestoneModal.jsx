@@ -14,13 +14,13 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
 
   useEffect(() => {
     api
-      .get("http://localhost:8080/api/proyectos")
+      .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
       .then((res) => setProjects(res.data))
       .catch((err) => console.error("Error fetching projects:", err));
 
     const fetchMilestones = async () => {
       try {
-        const response = await api.get("http://localhost:8080/api/hitos", {
+        const response = await api.get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "application/json",
@@ -66,13 +66,13 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
         return;
       }
 
-      const response = await api.post("http://localhost:8080/api/hitos", {
+      const response = await api.post("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos", {
         ...milestone,
         proyecto: milestone.proyectoId
           ? { proyectoId: milestone.proyectoId }
           : null,
       });
-      console.log("Request sent to endpoint: http://localhost:8080/api/hitos");
+      console.log("Request sent to endpoint: https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos");
 
       if (response.status === 200) {
         const createdMilestone = response.data;
@@ -149,7 +149,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate }) {
                   );
                 } else {
                   api
-                    .get("http://localhost:8080/api/proyectos")
+                    .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
                     .then((res) => setProjects(res.data))
                     .catch((err) => console.error("Error fetching projects:", err));
                 }
