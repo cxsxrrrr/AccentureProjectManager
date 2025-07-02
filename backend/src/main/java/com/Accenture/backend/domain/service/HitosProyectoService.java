@@ -118,21 +118,4 @@ public class HitosProyectoService {
         // Convertimos a DTO y retornamos
         return hitoMapper.toDTO(saved);
     }
-
-    public List<HitosProyectoDTO> obtenerTodosHitos() {
-        List<HitosProyecto> hitos = hitoRepository.findAll();
-        return hitos.stream().map(hitoMapper::toDTO).collect(Collectors.toList());
-    }
-
-    public HitosProyectoDTO actualizarParcialHitoById(Long id, HitosProyectoDTO dto) {
-        // Validamos que el hito exista y obtenemos la entidad
-        HitosProyecto existing = hitoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Hito no encontrado"));
-        // Actualizamos campos desde el DTO ignorando valores nulos
-        hitoMapper.updateHitoFromDto(dto, existing);
-        // Guardamos la entidad actualizada
-        HitosProyecto saved = hitoDAO.actualizarHito(existing);
-        // Convertimos a DTO y retornamos
-        return hitoMapper.toDTO(saved);
-    }
 }

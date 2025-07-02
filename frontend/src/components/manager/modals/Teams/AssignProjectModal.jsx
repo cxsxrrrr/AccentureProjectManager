@@ -18,11 +18,12 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
     }
   }, [isOpen]);
 
-  // Solo verificar si el modal debe mostrarse
   if (!isOpen || !user) return null;
 
-  // Verificar si ya tiene proyectos asignados
-  const alreadyAssigned = Array.isArray(user?.proyectosAsignados) && user.proyectosAsignados.length > 0;
+  // IDs de proyectos ya asignados al usuario
+  const assignedProjectIds = Array.isArray(user.proyectosAsignados)
+    ? user.proyectosAsignados.map(p => p.proyectoId || p.id || p._id)
+    : [];
 
   // Normalizar proyectos
   const normalizedProjects = Array.isArray(projects)
@@ -37,19 +38,20 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
         }))
     : [];
 
-  // Debug temporal - remover después de verificar
-  console.log("Modal Debug:", {
-    isOpen,
-    user,
-    projects,
-    normalizedProjects,
-    alreadyAssigned
-  });
+  // No permitir seleccionar proyectos ya asignados
+  const availableProjects = normalizedProjects.filter(
+    p => !assignedProjectIds.includes(p._id)
+  );
 
   const handleSelect = (projectId) => setSelectedProject(projectId);
 
   const handleAssign = async () => {
     if (!selectedProject || submitting) return;
+    // Validar que el proyecto no esté ya asignado
+    if (assignedProjectIds.includes(selectedProject)) {
+      setError("Este usuario ya tiene asignado este proyecto.");
+      return;
+    }
     setSubmitting(true);
     setError("");
     setSuccess(false);
@@ -71,14 +73,11 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
 
       await api.post("/miembros-proyectos", payload);
       setSuccess(true);
-      
       if (onAssign) onAssign(selectedProject);
-      
       setTimeout(() => {
         setSuccess(false);
         onClose();
       }, 1200);
-      
     } catch (err) {
       console.error("Error assigning project:", err);
       setError(err.response?.data?.message || "Error assigning user to project.");
@@ -108,14 +107,7 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
         </div>
 
-        {/* Warning if already assigned */}
-        {alreadyAssigned && (
-          <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
-            <p className="text-yellow-800 font-semibold">
-              ⚠️ This user already has projects assigned. Please unassign first.
-            </p>
-          </div>
-        )}
+        {/* No warning: ahora se pueden asignar múltiples proyectos */}
 
         {/* User Details */}
         <div className="bg-gray-50 rounded-xl px-6 py-4 mb-7 flex flex-wrap justify-between items-center">
@@ -162,13 +154,13 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </div>
           
           <div className="flex flex-col gap-3 max-h-52 overflow-y-auto pr-2">
-            {normalizedProjects.length === 0 ? (
+            {availableProjects.length === 0 ? (
               <div className="text-gray-400 text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                 <p className="font-semibold">No projects available</p>
-                <p className="text-sm mt-1">Please check if projects are loaded correctly</p>
+                <p className="text-sm mt-1">Todos los proyectos ya han sido asignados a este usuario.</p>
               </div>
             ) : (
-              normalizedProjects.map((project, idx) => (
+              availableProjects.map((project, idx) => (
                 <button
                   type="button"
                   key={project._id || idx}
@@ -179,10 +171,8 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
                       ? "bg-purple-100 border-purple-300 ring-2 ring-purple-200"
                       : "bg-white border-gray-300 hover:bg-gray-100"
                     }
-                    ${alreadyAssigned ? "opacity-50 cursor-not-allowed" : ""}
                   `}
-                  onClick={() => !alreadyAssigned && handleSelect(project._id)}
-                  disabled={alreadyAssigned}
+                  onClick={() => handleSelect(project._id)}
                 >
                   <span className="font-semibold">{project._nombre}</span>
                   <span className="text-xs text-gray-500 ml-2">{project._cliente}</span>
@@ -204,10 +194,10 @@ function AssignProjectModal({ isOpen, onClose, onAssign, user, projects = [] }) 
           </button>
           <button
             type="button"
-            disabled={!selectedProject || submitting || alreadyAssigned}
+            disabled={!selectedProject || submitting}
             onClick={handleAssign}
             className={`px-8 py-2 rounded-xl font-semibold transition
-              ${selectedProject && !submitting && !alreadyAssigned
+              ${selectedProject && !submitting
                 ? "bg-purple-600 text-white hover:bg-purple-700"
                 : "bg-purple-200 text-white cursor-not-allowed"
               }`}

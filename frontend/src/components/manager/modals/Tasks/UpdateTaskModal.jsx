@@ -334,8 +334,6 @@ function UpdateTaskModal({
             >
               Cancel
             </button>
-            <pre>proyectoId: {form.proyectoId}</pre>
-            <pre>errors: {JSON.stringify(errors, null, 2)}</pre>
             <button
               type="submit"
               className="px-6 py-2 rounded-xl bg-purple-600 text-white font-semibold hover:bg-purple-700 transition"
