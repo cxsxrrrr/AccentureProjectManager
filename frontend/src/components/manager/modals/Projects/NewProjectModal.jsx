@@ -57,11 +57,10 @@ function NewProjectModal({ isOpen, onClose, onSave, clients = [] }) {
       const projectRes = await api.post("/proyectos", payload);
       const proyectoId = projectRes.data.proyectoId || projectRes.data.id;
 
-      // 2. Relacionar proyecto con categoría seleccionada
-      await api.post("/proyectos-categorias", {
-        proyectoId,
-        categoriaId: Number(form.categoriaId),
-      });
+      // 2. Relacionar proyecto con categoría seleccionada usando el endpoint correcto
+      await api.post(
+        `/proyectos-categorias/asociar?proyectoId=${proyectoId}&categoriaId=${form.categoriaId}`
+      );
 
       if (onSave) onSave(projectRes.data);
       onClose();
