@@ -285,6 +285,116 @@ function GenerateReport() {
     }
   };
 
+  const handleGenerateAndSendReport = async () => {
+    if (!selectedProject) {
+      alert("Please select a project first.");
+      return;
+    }
+    try {
+      // Fetch project
+      const projectRes = await api.get(
+        `/proyectos/${selectedProject}`
+      );
+      // Fetch tasks
+      const tasksRes = await api.get(
+        `/tareas/proyecto/${selectedProject}`
+      );
+      // Fetch resources (ultrasimple)
+      const resourcesRes = await api.get(
+        `/recursos-proyecto/proyecto/${selectedProject}/ultrasimple`
+      );
+
+      const project = projectRes.data;
+      const tasks = tasksRes.data;
+      const resources = Array.isArray(resourcesRes.data)
+        ? resourcesRes.data.flat()
+        : [];
+
+      // KPIs
+      const completedTasks = tasks.filter(
+        (t) =>
+          t.estado &&
+          (t.estado.toLowerCase() === "completada" ||
+            t.estado.toLowerCase().includes("complet"))
+      ).length;
+      const pendingTasks = tasks.length - completedTasks;
+      const milestonesAchieved = tasks.length
+        ? Math.round((completedTasks / tasks.length) * 100)
+        : 0;
+      let estimatedTime = 0;
+      let realTime = 0;
+      if (project && project.fechaInicio && project.fechaFin) {
+        const start = String(project.fechaInicio).split('T')[0];
+        const end = String(project.fechaFin).split('T')[0];
+        const date1 = new Date(start + 'T00:00:00Z');
+        const date2 = new Date(end + 'T00:00:00Z');
+        estimatedTime = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+      }
+      if (project && project.fechaInicio && project.fechaFinReal) {
+        const start = String(project.fechaInicio).split('T')[0];
+        const end = String(project.fechaFinReal).split('T')[0];
+        const date1 = new Date(start + 'T00:00:00Z');
+        const date2 = new Date(end + 'T00:00:00Z');
+        realTime = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
+      }
+      let resourceUtilization = 0;
+      if (resources.length > 0) {
+        const active = resources.filter(
+          (r) =>
+            r.recurso &&
+            r.recurso.disponibilidad &&
+            r.recurso.disponibilidad.toLowerCase() !== "inactivo"
+        ).length;
+        resourceUtilization = (active / resources.length) * 100;
+      }
+
+      // Solo incluir los KPIs seleccionados
+      const parametros = {};
+      if (metrics.completedTasks) {
+        parametros.completedTasks = completedTasks;
+        parametros.pendingTasks = pendingTasks;
+      }
+      if (metrics.milestone) {
+        parametros.milestoneCompliance = milestonesAchieved;
+      }
+      if (metrics.estimatedVsReal) {
+        parametros.estimatedTime = estimatedTime;
+        parametros.realTime = realTime;
+      }
+      if (metrics.resourceUtil) {
+        parametros.resourceUtilization = Number(resourceUtilization.toFixed(1));
+      }
+
+      const body = {
+        nombre: `Reporte de Proyecto ${project.nombreProyecto}`,
+        tipoReporte: "Resumen Semanal",
+        generadoPorId: 1, // Puedes cambiar esto por el usuario logueado
+        proyectoId: project.proyectoId,
+        parametros: JSON.stringify(parametros),
+      };
+      console.log("[DEBUG] Reporte a enviar:", body);
+      // Primero crea el reporte
+      const createRes = await api.post("/reportes", body);
+      const reporteId = createRes.data && createRes.data.reporteId ? createRes.data.reporteId : createRes.data.id || createRes.data;
+      if (!reporteId) {
+        alert("No se pudo obtener el ID del reporte generado");
+        return;
+      }
+      // Luego descarga el PDF
+      const pdfRes = await api.get(`/reportes/${reporteId}/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([pdfRes.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', body.nombre + '.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert("Error generando o descargando el reporte PDF");
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Topbar title="Generate Report">
@@ -402,7 +512,7 @@ function GenerateReport() {
           </button>
           <button
             className="bg-white/80 text-purple-800 font-bold px-6 py-2 rounded-xl shadow hover:bg-white transition"
-            onClick={handleExportPdf}
+            onClick={handleGenerateAndSendReport}
           >
             Export PDF
           </button>
