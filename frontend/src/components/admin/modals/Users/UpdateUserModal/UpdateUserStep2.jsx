@@ -58,7 +58,24 @@ export default function UpdateUserStep2({
     );
   }, [local.categoria, activeCategories, skills]);
 
+
+  // Phone number input restriction: only numbers, max one '+' at the start, no spaces or other symbols
+  const handlePhoneInput = (e) => {
+    let value = e.target.value;
+    // Remove all characters except digits and '+'
+    value = value.replace(/[^\d+]/g, "");
+    // Only allow one '+' at the start
+    if (value.startsWith("+")) {
+      value = "+" + value.slice(1).replace(/\+/g, "");
+    } else {
+      value = value.replace(/\+/g, "");
+    }
+    setLocal((prev) => ({ ...prev, numeroTelefono: value }));
+  };
+
   const handleChange = (e) => {
+    // Prevent phone number from being changed here, use handlePhoneInput instead
+    if (e.target.name === "numeroTelefono") return;
     setLocal((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -133,9 +150,10 @@ export default function UpdateUserStep2({
           <input
             name="numeroTelefono"
             value={local.numeroTelefono}
-            onChange={handleChange}
+            onInput={handlePhoneInput}
             required
-            placeholder="+1 (555) 123-4456"
+            placeholder="+123456789"
+            maxLength={16}
             className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
           />
         </div>

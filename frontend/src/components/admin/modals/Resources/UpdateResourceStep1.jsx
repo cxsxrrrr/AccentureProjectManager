@@ -25,22 +25,21 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
       value = value.replace(/[^a-zA-Z0-9\-() ]/g, "");
     }
     if (name === "cost") {
-      // Solo números positivos, máximo 2 decimales, punto como separador
-      value = value.replace(/[^0-9.]/g, ""); // Solo dígitos y punto
+      // Permitir números y un solo punto decimal, pero permitir escribir el punto si hay al menos un dígito antes
+      value = value.replace(/[^0-9.]/g, "");
       // Solo un punto permitido
       const parts = value.split('.');
       if (parts.length > 2) value = parts[0] + '.' + parts.slice(1).join('');
-      // No permitir punto al inicio
-      if (value.startsWith('.')) value = '';
-      // No permitir más de un cero al inicio (excepto si es "0.")
-      if (/^0[0-9]+/.test(value)) value = value.replace(/^0+/, '');
-      // Si hay punto, debe haber al menos un dígito antes y después, y máximo 2 decimales
+      // No permitir punto al inicio (pero permitir "0.")
+      if (value.startsWith('.') && value.length === 1) value = '';
+      // Si hay punto, limitar a 2 decimales
       if (value.includes('.')) {
         let [intPart, decPart] = value.split('.');
-        // Si no hay dígito antes o después del punto, elimina el punto
-        if (intPart === '' || decPart === '') value = intPart;
+        // Permitir "0." pero no "."
+        if (intPart === '' && decPart !== undefined) intPart = '0';
         // Limita a 2 decimales
-        else value = intPart + '.' + decPart.slice(0, 2);
+        if (decPart !== undefined) decPart = decPart.slice(0, 2);
+        value = decPart !== undefined ? intPart + '.' + decPart : intPart;
       }
     }
     setLocal({ ...local, [name]: value });
@@ -84,7 +83,18 @@ const UpdateResourceStep1 = ({ values, onNext, onCancel }) => {
         placeholder="Enter a Cost"
         value={local.cost}
         onChange={handleChange}
+        onBlur={e => {
+          let value = e.target.value;
+          // Si termina en punto sin decimales, lo borra
+          if (/^\d+\.$/.test(value)) {
+            value = value.slice(0, -1);
+            setLocal(prev => ({ ...prev, cost: value }));
+          }
+        }}
         className="w-full mb-4 px-4 py-2 border rounded-lg text-base outline-none focus:ring-2 focus:ring-purple-400"
+        inputMode="decimal"
+        maxLength={12}
+        autoComplete="off"
       />
 
       {/* Resource Availability */}

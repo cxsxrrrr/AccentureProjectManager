@@ -112,10 +112,23 @@ export default function CreateUserStep2({
           <input
             name="numeroTelefono"
             value={local.numeroTelefono}
-            onChange={handleChange}
+            onInput={e => {
+              let val = e.target.value;
+              // Solo permitir un + al principio y solo números después, sin espacios
+              if (val.startsWith('+')) {
+                val = '+' + val.slice(1).replace(/[^\d]/g, '');
+              } else {
+                val = val.replace(/[^\d]/g, '');
+              }
+              setLocal(prev => ({ ...prev, numeroTelefono: val }));
+              if (e.target.value !== val) e.target.value = val;
+            }}
             required
-            placeholder="+1 (555) 123-4456"
+            placeholder="+584246783210"
             className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            inputMode="tel"
+            maxLength={16}
+            autoComplete="off"
           />
         </div>
       </div>

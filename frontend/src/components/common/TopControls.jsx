@@ -160,12 +160,12 @@ function TopControls({
   const renderFilters = () => {
     const inputClass = "topbar-search";
 
-    if (module === "employees") {
+    if (module === "employees" || module === "user") {
       return (
         <div className="flex gap-2 items-center">
           <input
             className={inputClass}
-            placeholder="Search Employees..."
+            placeholder={module === "user" ? "Search Users..." : "Search Employees..."}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

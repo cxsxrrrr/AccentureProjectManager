@@ -38,14 +38,9 @@ const UpdateResourceStep2 = ({ values, onBack, onSave, onCancel }) => {
         value={local.unit_measure}
         onChange={handleChange}
         className="w-full mb-4 px-4 py-2 border rounded-lg text-base outline-none focus:ring-2 focus:ring-purple-400"
-        type="number"
-        min={0}
-        max={9999999}
-        onInput={e => {
-          if (e.target.value.length > 7) {
-            e.target.value = e.target.value.slice(0, 7);
-          }
-        }}
+        inputMode="numeric"
+        maxLength={7}
+        autoComplete="off"
       />
 
       {/* Resource Description */}
