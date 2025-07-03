@@ -82,6 +82,10 @@ function GenerateReport() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredProjects, setFilteredProjects] = useState([]);
 
+  // Para guardar el proyecto y tareas seleccionados para el reporte
+  const [projectData, setProjectData] = useState(null);
+  const [tasksData, setTasksData] = useState([]);
+
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -129,6 +133,8 @@ function GenerateReport() {
       estimatedVsReal: "0 días",
       resourcesUsed: "0%",
     });
+    setProjectData(null);
+    setTasksData([]);
   }, [selectedProject, selectedCategory, selectedMember, dateRange]);
 
   const handleChangeMetric = (key) =>
@@ -139,32 +145,105 @@ function GenerateReport() {
     // Simulación simple: combinamos los KPIs seleccionados y los mostramos como filas en la tabla
     const data = [];
     if (metrics.completedTasks) {
-      data.push({ metric: "Completed Tasks", value: kpis.completedTasks });
+      data.push({ Métrica: "Completed Tasks", Valor: kpis.completedTasks });
     }
     if (metrics.milestone) {
       data.push({
-        metric: "Milestones Achieved",
-        value: kpis.milestonesAchieved,
+        Métrica: "Milestones Achieved",
+        Valor: kpis.milestonesAchieved,
       });
     }
     if (metrics.estimatedVsReal) {
       data.push({
-        metric: "Estimated vs Real time",
-        value: kpis.estimatedVsReal,
+        Métrica: "Estimated vs Real time",
+        Valor: kpis.estimatedVsReal,
       });
     }
     if (metrics.resourceUtil) {
-      data.push({ metric: "Resource Utilization", value: kpis.resourcesUsed });
+      data.push({ Métrica: "Resource Utilization", Valor: kpis.resourcesUsed });
     }
     return data;
   };
 
+  // Exportar a Excel con proyecto, tareas y métricas
   const handleExportExcel = () => {
-    const data = getReportData();
-    // SheetJS requiere un array de objetos
-    const ws = XLSX.utils.json_to_sheet(data);
+    if (!projectData) {
+      alert("Primero genera el reporte para obtener los datos.");
+      return;
+    }
+
+    // 1. Proyecto
+    const projectSheetData = [
+      ["Project Information", ""],
+      ["Project Name", projectData.nombreProyecto || ""],
+      ["Description", projectData.descripcionProyecto || ""],
+      ["Category", projectData.categoria || ""],
+      ["Status", projectData.estado || ""],
+      ["Start Date", projectData.fechaInicio ? String(projectData.fechaInicio).split("T")[0] : ""],
+      ["Planned End Date", projectData.fechaFin ? String(projectData.fechaFin).split("T")[0] : ""],
+      ["Real End Date", projectData.fechaFinReal ? String(projectData.fechaFinReal).split("T")[0] : ""],
+      ["Client", projectData.cliente?.nombre || ""],
+      ["Project Manager", projectData.gerenteProyecto?.nombre || ""],
+    ];
+
+    // 2. Tareas
+    const taskSheetData = [
+      [
+        "Task Name",
+        "Description",
+        "Status",
+        "Priority",
+        "Estimated Start",
+        "Estimated End",
+        "Weight",
+        "Category",
+      ],
+      ...tasksData.map((t) => [
+        t.nombre || "",
+        t.descripcion || "",
+        t.estado || "",
+        t.prioridad || "",
+        t.fechaInicioEstimada || t.fechaInicio || "",
+        t.fechaFinEstimada || t.fechaPlaneada || t.fechaFin || "",
+        t.peso || "",
+        t.categoria || "",
+      ]),
+    ];
+
+    // 3. Métricas
+    const metricsData = [
+      ["Metrics", "Value"],
+      ...getReportData().map((row) => [row.Métrica, row.Valor]),
+    ];
+
+    // Crear libro y hojas
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+
+    // Proyecto
+    const wsProject = XLSX.utils.aoa_to_sheet(projectSheetData);
+    wsProject["!cols"] = [{ wch: 22 }, { wch: 40 }];
+    XLSX.utils.book_append_sheet(wb, wsProject, "Project");
+
+    // Tareas
+    const wsTasks = XLSX.utils.aoa_to_sheet(taskSheetData);
+    wsTasks["!cols"] = [
+      { wch: 22 },
+      { wch: 40 },
+      { wch: 14 },
+      { wch: 12 },
+      { wch: 18 },
+      { wch: 18 },
+      { wch: 10 },
+      { wch: 18 },
+    ];
+    XLSX.utils.book_append_sheet(wb, wsTasks, "Tasks");
+
+    // Métricas
+    const wsMetrics = XLSX.utils.aoa_to_sheet(metricsData);
+    wsMetrics["!cols"] = [{ wch: 28 }, { wch: 20 }];
+    XLSX.utils.book_append_sheet(wb, wsMetrics, "Metrics");
+
+    // Descargar
     XLSX.writeFile(wb, "reporte.xlsx");
   };
 
@@ -180,9 +259,21 @@ function GenerateReport() {
     doc.autoTable({
       startY: 35,
       head: [["Métrica", "Valor"]],
-      body: data.map((row) => [row.metric, String(row.value)]),
+      body: data.map((row) => [row.Métrica, String(row.Valor)]),
       theme: "striped",
       styles: { fontSize: 12 },
+      headStyles: {
+        fillColor: [103, 58, 183], // morado para el header
+        textColor: [255, 255, 255], // texto blanco
+        fontStyle: 'bold',
+      },
+      columnStyles: {
+        0: { fillColor: [103, 58, 183], textColor: [255, 255, 255], fontStyle: 'bold' }, // primera columna morada, texto blanco
+        1: { fillColor: [245, 239, 255], textColor: [80, 0, 170] }, // segunda columna lila claro, texto morado oscuro
+      },
+      alternateRowStyles: { fillColor: [245, 239, 255] }, // filas alternas lila claro
+      tableLineColor: [80, 0, 170],
+      tableLineWidth: 0.2,
     });
 
     doc.save("reporte.pdf");
@@ -196,6 +287,8 @@ function GenerateReport() {
         estimatedVsReal: "0 días",
         resourcesUsed: "0%",
       });
+      setProjectData(null);
+      setTasksData([]);
       alert("Please select a project first.");
       return;
     }
@@ -215,6 +308,9 @@ function GenerateReport() {
 
       const project = projectRes.data;
       const tasks = tasksRes.data;
+      setProjectData(project);
+      setTasksData(tasks);
+
       // resourcesRes.data could be an array of arrays, flatten it
       const resources = Array.isArray(resourcesRes.data)
         ? resourcesRes.data.flat()
@@ -229,15 +325,10 @@ function GenerateReport() {
       ).length;
       const pendingTasks = tasks.length - completedTasks;
 
-      // Debug: Ver tareas y estados
-      console.log("[DEBUG] tasks:", tasks);
-      console.log("[DEBUG] completedTasks:", completedTasks, "pendingTasks:", pendingTasks);
-
       // Milestone compliance (percentage of completed tasks)
       const milestonesAchieved = tasks.length
         ? `${Math.round((completedTasks / tasks.length) * 100)}%`
         : "0%";
-      console.log("[DEBUG] milestonesAchieved:", milestonesAchieved);
 
       // Estimated vs Real time (diferencia entre fechaInicio y fechaFinReal del proyecto seleccionado)
       let estimatedVsReal = "0 días";
@@ -248,9 +339,6 @@ function GenerateReport() {
         const date2 = new Date(end + 'T00:00:00Z');
         const diff = Math.round((date2 - date1) / (1000 * 60 * 60 * 24));
         estimatedVsReal = `${diff} días`;
-        console.log('[DEBUG] estimatedVsReal (proyecto):', estimatedVsReal, 'fechaInicio:', project.fechaInicio, 'fechaFinReal:', project.fechaFinReal);
-      } else {
-        console.log('[DEBUG] No hay fechas válidas en el proyecto para estimatedVsReal:', project);
       }
 
       // Resource utilization: % of resources with disponibilidad !== "Inactivo"
@@ -264,8 +352,6 @@ function GenerateReport() {
         ).length;
         resourcesUsed = `${Math.round((active / resources.length) * 100)}%`;
       }
-      console.log("[DEBUG] resources:", resources);
-      console.log("[DEBUG] resourcesUsed:", resourcesUsed);
 
       setKpis({
         completedTasks,
@@ -280,6 +366,8 @@ function GenerateReport() {
         estimatedVsReal: "0 días",
         resourcesUsed: "0%",
       });
+      setProjectData(null);
+      setTasksData([]);
       alert("Error fetching report data. Check your backend.");
       console.error(error);
     }
@@ -372,7 +460,6 @@ function GenerateReport() {
         proyectoId: project.proyectoId,
         parametros: JSON.stringify(parametros),
       };
-      console.log("[DEBUG] Reporte a enviar:", body);
       // Primero crea el reporte
       const createRes = await api.post("/reportes", body);
       const reporteId = createRes.data && createRes.data.reporteId ? createRes.data.reporteId : createRes.data.id || createRes.data;
@@ -515,6 +602,12 @@ function GenerateReport() {
             onClick={handleGenerateAndSendReport}
           >
             Export PDF
+          </button>
+          <button
+            className="bg-white/80 text-purple-800 font-bold px-6 py-2 rounded-xl shadow hover:bg-white transition"
+            onClick={handleExportExcel}
+          >
+            Export Excel
           </button>
         </div>
       </div>
