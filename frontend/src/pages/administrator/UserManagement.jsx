@@ -22,6 +22,7 @@ const statusToEN = (estado) =>
   estado === "Activo" ? "Active" : estado === "Inactivo" ? "Inactive" : estado;
 
 function UserManagement() {
+
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,10 +31,23 @@ function UserManagement() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
+  // MODAL STATES (fix: add missing state for isCreateOpen)
   const [isCreateOpen, setCreateOpen] = useState(false);
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
   const [isDisableOpen, setIsDisableOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+
+  // Filtros dinámicos
+  const [roles, setRoles] = useState(["All"]);
+  const [categories, setCategories] = useState(["All"]);
+  const [role, setRole] = useState("All");
+  const [status, setStatus] = useState("All");
+  const [gender, setGender] = useState("All");
+  const [category, setCategory] = useState("All");
+  const [search, setSearch] = useState("");
+
+  const statuses = ["All", "Active", "Inactive"];
+  const genders = ["All", "M", "F"];
 
   useEffect(() => {
     if (!authService.isAuthenticated()) {
@@ -41,7 +55,29 @@ function UserManagement() {
       return;
     }
     loadUsers();
+    loadRoles();
+    loadCategories();
   }, []);
+
+  // Cargar roles desde el backend
+  const loadRoles = async () => {
+    try {
+      const res = await api.get('/roles');
+      setRoles(["All", ...res.data.map(r => r.nombre)]);
+    } catch {
+      setRoles(["All"]);
+    }
+  };
+
+  // Cargar categorías desde el backend
+  const loadCategories = async () => {
+    try {
+      const res = await api.get('/category');
+      setCategories(["All", ...res.data.map(c => c.nombre)]);
+    } catch {
+      setCategories(["All"]);
+    }
+  };
 
   const handleOpenCreateModal = () => setCreateOpen(true);
   const handleCloseCreateModal = () => setCreateOpen(false);
@@ -91,22 +127,43 @@ function UserManagement() {
       if (!authService.isAuthenticated()) throw new Error('No authenticated');
 
       const response = await api.get('/usuario');
-      const usersFromApi = response.data;
+      const usersFromApi = Array.isArray(response.data) ? response.data : [response.data];
 
-      const formattedUsers = usersFromApi.map((u) => ({
-        id: u.usuarioId,
-        nombre: u.nombre,
-        apellido: u.apellido,
-        email: u.email,
-        numeroTelefono: u.numeroTelefono,
-        cedula: u.cedula,
-        genero: u.genero,
-        fechaNacimiento: u.fechaNacimiento,
-        estado: u.estado,
-        fechaCreacion: u.fechaCreacion,
-        ultimoAcceso: u.ultimoAcceso,
-        rol: u.rol || u.rolUsuario || null,
-      }));
+      // Mapear categorías y skills para cada usuario
+      const formattedUsers = await Promise.all(
+        usersFromApi.map(async (u) => {
+          // Obtener categoría
+          let category = "";
+          try {
+            const categoryRes = await api.get(`/category/user/${u.usuarioId}`);
+            category = categoryRes.data[0]?.nombre || "";
+          } catch {}
+
+          // Obtener skills
+          let skills = [];
+          try {
+            const skillsRes = await api.get(`/skills/usuario/${u.usuarioId}`);
+            skills = skillsRes.data.map(skill => skill.nombre);
+          } catch {}
+
+          return {
+            id: u.usuarioId,
+            nombre: u.nombre,
+            apellido: u.apellido,
+            email: u.email,
+            numeroTelefono: u.numeroTelefono,
+            cedula: u.cedula,
+            genero: u.genero,
+            fechaNacimiento: u.fechaNacimiento,
+            estado: u.estado,
+            fechaCreacion: u.fechaCreacion,
+            ultimoAcceso: u.ultimoAcceso,
+            rol: u.rol || u.rolUsuario || null,
+            category,
+            skills,
+          };
+        })
+      );
 
       setUsers(formattedUsers);
     } catch (err) {
@@ -193,6 +250,29 @@ function UserManagement() {
     setSelectedUserId(user.id);
   };
 
+  // Filtrado según los select y el search
+  const filtered = users.filter((user) => {
+    const fullName = `${user.nombre} ${user.apellido}`.toLowerCase();
+    const roleName = user.rol?.nombre || "";
+    const translatedRole = roleToEN(roleName);
+    const translatedStatus = statusToEN(user.estado);
+
+    const roleMatch = role === "All" || roleName === role || translatedRole === role;
+    const categoryMatch = category === "All" || user.category === category;
+
+    return (
+      roleMatch &&
+      (status === "All" || translatedStatus === status) &&
+      (gender === "All" || user.genero === gender) &&
+      categoryMatch &&
+      (
+        fullName.includes(search.toLowerCase()) ||
+        user.email.toLowerCase().includes(search.toLowerCase()) ||
+        user.cedula.toString().includes(search.toLowerCase())
+      )
+    );
+  });
+
   // Función para verificar si se puede desactivar el usuario seleccionado
   const canDisableUser = () => {
     return selectedUser && selectedUser.estado === "Activo";
@@ -206,11 +286,24 @@ function UserManagement() {
       <Topbar title="User Management">
         <TopControls
           module="user"
+          search={search}
+          setSearch={setSearch}
+          role={role}
+          setRole={setRole}
+          roles={roles}
+          status={status}
+          setStatus={setStatus}
+          statuses={statuses}
+          gender={gender}
+          setGender={setGender}
+          genders={genders}
+          category={category}
+          setCategory={setCategory}
+          categories={categories}
           onCreate={handleOpenCreateModal}
           onUpdate={() => selectedUser && openUpdateModal(selectedUser)}
           onDisable={() => selectedUser && openDisableModal(selectedUser)}
           onRefresh={handleRefresh}
-          // Pasar información sobre si se puede desactivar el usuario
           canDisable={canDisableUser()}
           selectedUser={selectedUser}
         />
@@ -276,7 +369,7 @@ function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user, idx) => (
+                {filtered.map((user, idx) => (
                   <tr 
                     key={user.id} 
                     onClick={() => handleUserSelection(user)}
@@ -327,7 +420,7 @@ function UserManagement() {
                     </td>
                   </tr>
                 ))}
-                {users.length === 0 && !isLoading && !error && (
+                {filtered.length === 0 && !isLoading && !error && (
                   <tr>
                     <td colSpan={7} className="text-center py-10 text-gray-400">
                       <div className="flex flex-col items-center gap-2">

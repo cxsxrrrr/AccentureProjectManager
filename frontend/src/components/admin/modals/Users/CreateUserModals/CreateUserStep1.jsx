@@ -121,11 +121,14 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
           <input
             name="cedula"
             value={local.cedula}
+            onInput={handleSizeValue}
             onChange={handleSizeValue}
             required
-            placeholder="Enter document number"
+            placeholder="Ingrese cédula (6-8 dígitos)"
             className="mb-2 border rounded w-full px-3 py-2"
-            type="number"
+            inputMode="numeric"
+            maxLength={8}
+            autoComplete="off"
           />
           <label className="block text-sm font-medium mb-1">Password *</label>
           <div className="relative">
