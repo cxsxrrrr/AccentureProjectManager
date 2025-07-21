@@ -89,7 +89,7 @@ function GenerateReport() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await api.get("http://localhost:8080/api/proyectos");
+        const response = await api.get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos");
         if (response.status === 200) {
           setProyectos(response.data);
           setFilteredProjects(response.data);
@@ -295,15 +295,15 @@ function GenerateReport() {
     try {
       // Fetch project
       const projectRes = await api.get(
-        `http://localhost:8080/api/proyectos/${selectedProject}`
+        `https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos/${selectedProject}`
       );
       // Fetch tasks
       const tasksRes = await api.get(
-        `http://localhost:8080/api/tareas/proyecto/${selectedProject}`
+        `https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/tareas/proyecto/${selectedProject}`
       );
       // Fetch resources (ultrasimple)
       const resourcesRes = await api.get(
-        `http://localhost:8080/api/recursos-proyecto/proyecto/${selectedProject}/ultrasimple`
+        `https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos-proyecto/proyecto/${selectedProject}/ultrasimple`
       );
 
       const project = projectRes.data;

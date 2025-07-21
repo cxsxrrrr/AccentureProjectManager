@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 
 const STATUS_OPTIONS = [
-  { value: "Pendiente", label: "Pendiente" },
-  { value: "En progreso", label: "En progreso" },
+  { value: "NO INICIADA", label: "No Iniciada" },
+  { value: "EN_PROGRESO", label: "En progreso" },
   { value: "Completada", label: "Completada" },
 ];
 
 function UpdateStatusModal({ isOpen, onClose, onUpdate, task }) {
-  const [status, setStatus] = useState(task?.estado || "Pendiente");
+  const [status, setStatus] = useState(task?.estado || "No_iniciada");
 
   useEffect(() => {
-    setStatus(task?.estado || "Pendiente");
+    setStatus(task?.estado || "No_iniciada");
   }, [task, isOpen]);
 
   if (!isOpen || !task) return null;

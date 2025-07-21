@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Crear instancia de Axios con la URL base del backend
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // URL del backend
+  baseURL: 'https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api', // URL del backend
 });
 
 // Servicio de autenticación

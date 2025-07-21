@@ -15,13 +15,13 @@ function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
 
   useEffect(() => {
     api
-      .get("http://localhost:8080/api/proyectos")
+      .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
       .then((res) => setProjects(res.data))
       .catch((err) => console.error("Error fetching projects:", err));
 
     const fetchMilestones = async () => {
       try {
-        const response = await api.get("http://localhost:8080/api/hitos", {
+        const response = await api.get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos", {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
             "Content-Type": "application/json",
@@ -88,7 +88,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
   const handleSubmit = async () => {
     if (!validate()) return;
     try {
-      const response = await api.post("http://localhost:8080/api/hitos", {
+      const response = await api.post("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos", {
         ...milestone,
         estado: "Activo",
         fechaReal: milestone.fechaInicio, // Set fechaReal to fechaInicio
@@ -96,7 +96,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
           ? { proyectoId: milestone.proyectoId }
           : null,
       });
-      console.log("Request sent to endpoint: http://localhost:8080/api/hitos");
+      console.log("Request sent to endpoint: https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/hitos");
 
       if (response.status === 200) {
         const createdMilestone = response.data;
@@ -204,7 +204,7 @@ function NewMilestoneModal({ isOpen, onClose, onCreate, setToast }) {
                   );
                 } else {
                   api
-                    .get("http://localhost:8080/api/proyectos")
+                    .get("https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/proyectos")
                     .then((res) => setProjects(res.data))
                     .catch((err) => console.error("Error fetching projects:", err));
                 }

@@ -62,7 +62,7 @@ const AssignResourceModal = ({ isOpen, onClose, onAssign, resources, setResource
         proyectoId: selectedProject.id,
         asignadoPor: user.usuarioId
       };
-      const response = await api.post('http://localhost:8080/api/recursos-proyecto', body);
+      const response = await api.post('https://8080-cxsxrrrr-accentureproje-sa6dzqb8gkh.ws-us120.gitpod.io/api/recursos-proyecto', body);
       if (response.status === 200 || response.status === 201) {
         await api.put(`/recursos/${selectedResourceId}`, { estado: "Inactive" });
         if (setResources) {
