@@ -20,7 +20,9 @@ export default function CreateUserStep2({
     rol: values.rol || "",
   });
   const [phoneError, setPhoneError] = useState("");
+
   const [emailError, setEmailError] = useState("");
+
 
   // Si el padre actualiza values (ej: back), sincroniza local
   useEffect(() => {
@@ -82,6 +84,7 @@ export default function CreateUserStep2({
       }
       return;
     }
+
     if (name === "email") {
       // Validar email con regex
       if (!/^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$/.test(value)) {
@@ -90,6 +93,7 @@ export default function CreateUserStep2({
         setEmailError("");
       }
     }
+
     setLocal((prev) => ({
       ...prev,
       [name]: value,

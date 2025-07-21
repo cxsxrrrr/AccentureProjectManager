@@ -36,7 +36,6 @@ api.interceptors.response.use(
       localStorage.removeItem('username');
       localStorage.removeItem('roleName');
       window.dispatchEvent(new Event('authChange'));
-      window.location.href = '/';
     }
     return Promise.reject(error);
   }

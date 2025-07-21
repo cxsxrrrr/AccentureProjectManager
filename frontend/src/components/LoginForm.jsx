@@ -52,16 +52,16 @@ export default function LoginForm() {
       // Redirige según el rol
       switch (roleId) {
         case 1:
-          window.location.replace('/admin');
+          navigate('/admin', { replace: true });
           break;
         case 2:
-          window.location.replace('/manager');
+          navigate('/manager', { replace: true });
           break;
         case 3:
-          window.location.replace('/team');
+          navigate('/team', { replace: true });
           break;
         case 4:
-          window.location.replace('/client');
+          navigate('/client', { replace: true });
           break;
         default:
           setError("Rol no reconocido. Acceso denegado.");
