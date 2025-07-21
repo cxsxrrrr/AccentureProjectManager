@@ -31,6 +31,7 @@ export default function CreateUserModal({
     fechaCreacion: new Date().toISOString(),
     ultimoAcceso: new Date().toISOString(),
   });
+  const [validationError, setValidationError] = useState(null);
 
 
   useEffect(() => {
@@ -108,6 +109,23 @@ export default function CreateUserModal({
   };
 
   const handleNext = (data) => {
+    // Validar nombre y apellido (solo letras, espacios y tildes)
+    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/;
+    if (!nameRegex.test(data.nombre)) {
+      setValidationError("El nombre solo puede contener letras y espacios.");
+      return;
+    }
+    if (!nameRegex.test(data.apellido)) {
+      setValidationError("El apellido solo puede contener letras y espacios.");
+      return;
+    }
+    // Validar cédula (solo números)
+    const cedulaRegex = /^\d+$/;
+    if (!cedulaRegex.test(data.cedula)) {
+      setValidationError("La cédula solo puede contener números.");
+      return;
+    }
+    setValidationError(null);
     setForm((prev) => ({ ...prev, ...data }));
     setStep(2);
   };
@@ -200,7 +218,23 @@ export default function CreateUserModal({
 
   const handleSave = async (data) => {
     const finalUser = { ...form, ...data };
-
+    // Validar nombre y apellido (solo letras, espacios y tildes)
+    const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü\s]+$/;
+    if (!nameRegex.test(finalUser.nombre)) {
+      setValidationError("El nombre solo puede contener letras y espacios.");
+      return;
+    }
+    if (!nameRegex.test(finalUser.apellido)) {
+      setValidationError("El apellido solo puede contener letras y espacios.");
+      return;
+    }
+    // Validar cédula (solo números)
+    const cedulaRegex = /^\d+$/;
+    if (!cedulaRegex.test(finalUser.cedula)) {
+      setValidationError("La cédula solo puede contener números.");
+      return;
+    }
+    setValidationError(null);
     try {
       setIsLoadingData(true);
       await createUserWithAssociations(finalUser, finalUser.categoria, finalUser.habilidades, categories);
@@ -236,6 +270,15 @@ export default function CreateUserModal({
               >
                 Retry
               </button>
+            </div>
+          </div>
+        )}
+
+        {validationError && (
+          <div className="p-4 bg-yellow-50 border-b border-yellow-200">
+            <div className="flex items-center gap-2 text-yellow-700">
+              <span className="material-icons text-sm">warning</span>
+              <span className="text-sm font-medium">{validationError}</span>
             </div>
           </div>
         )}

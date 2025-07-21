@@ -17,6 +17,8 @@ export default function UpdateUserStep2({
     habilidades: [],
     rol: "", // <-- aquí el nombre del rol
   });
+  const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   // Precargar datos cuando abres la modal (body en español)
   useEffect(() => {
@@ -62,13 +64,18 @@ export default function UpdateUserStep2({
   // Phone number input restriction: only numbers, max one '+' at the start, no spaces or other symbols
   const handlePhoneInput = (e) => {
     let value = e.target.value;
-    // Remove all characters except digits and '+'
+    // Solo permitir formato internacional: + seguido de 10 a 15 dígitos
     value = value.replace(/[^\d+]/g, "");
-    // Only allow one '+' at the start
     if (value.startsWith("+")) {
       value = "+" + value.slice(1).replace(/\+/g, "");
     } else {
       value = value.replace(/\+/g, "");
+    }
+    // Validar formato: + seguido de 10 a 15 dígitos
+    if (!/^\+\d{10,15}$/.test(value) && value.length > 0) {
+      setPhoneError("Format: +584125296432 (10-15 digits after '+')");
+    } else {
+      setPhoneError("");
     }
     setLocal((prev) => ({ ...prev, numeroTelefono: value }));
   };
@@ -76,6 +83,15 @@ export default function UpdateUserStep2({
   const handleChange = (e) => {
     // Prevent phone number from being changed here, use handlePhoneInput instead
     if (e.target.name === "numeroTelefono") return;
+    if (e.target.name === "email") {
+      const value = e.target.value;
+      // Validar email con regex
+      if (!/^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$/.test(value)) {
+        setEmailError("Invalid email format");
+      } else {
+        setEmailError("");
+      }
+    }
     setLocal((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
@@ -94,7 +110,10 @@ export default function UpdateUserStep2({
 
   const isFormValid =
     local.email &&
-    local.numeroTelefono &&
+    !emailError &&
+    /^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$/.test(local.email) &&
+    /^\+\d{10,15}$/.test(local.numeroTelefono) &&
+    !phoneError &&
     local.categoria &&
     local.habilidades.length > 0;
 
@@ -144,18 +163,24 @@ export default function UpdateUserStep2({
             onChange={handleChange}
             required
             placeholder="example@correo.com"
-            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={`mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${emailError ? "border-red-400" : ""}`}
+            pattern="^[a-zA-Z0-9_\-.+]+@[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,}$"
+            title="Enter a valid email address"
           />
+          {emailError && <div className="text-red-500 text-xs -mt-2 mb-2">{emailError}</div>}
           <label className="font-semibold text-sm">Phone number *</label>
           <input
             name="numeroTelefono"
             value={local.numeroTelefono}
             onInput={handlePhoneInput}
             required
-            placeholder="+123456789"
+            placeholder="+584125296432"
             maxLength={16}
-            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={`mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${phoneError ? "border-red-400" : ""}`}
+            pattern="^\+\d{10,15}$"
+            title="Format: +584125296432 (10-15 digits after '+')"
           />
+          {phoneError && <div className="text-red-500 text-xs -mt-2 mb-2">{phoneError}</div>}
         </div>
       </div>
       {/* Rol del usuario */}

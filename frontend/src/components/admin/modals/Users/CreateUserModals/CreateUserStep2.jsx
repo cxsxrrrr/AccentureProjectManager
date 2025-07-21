@@ -19,6 +19,8 @@ export default function CreateUserStep2({
     habilidades: values.habilidades || [],
     rol: values.rol || "",
   });
+  const [phoneError, setPhoneError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   // Si el padre actualiza values (ej: back), sincroniza local
   useEffect(() => {
@@ -60,10 +62,38 @@ export default function CreateUserStep2({
   }, [local.categoria, activeCategories, skills]);
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === "numeroTelefono") {
+      // Permitir solo formato internacional: +[código][número], sin espacios
+      let val = value.replace(/[^+\d]/g, "");
+      // Solo un + al inicio
+      if (val.startsWith("+")) {
+        val = "+" + val.slice(1).replace(/[^\d]/g, "");
+      } else {
+        val = val.replace(/[^\d]/g, "");
+      }
+      setLocal((prev) => ({ ...prev, numeroTelefono: val }));
+      // Validar formato
+      const phoneRegex = /^\+\d{10,15}$/;
+      if (val && !phoneRegex.test(val)) {
+        setPhoneError("Formato inválido. Ejemplo: +584125296432");
+      } else {
+        setPhoneError("");
+      }
+      return;
+    }
+    if (name === "email") {
+      // Validar email con regex
+      if (!/^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$/.test(value)) {
+        setEmailError("Formato de email inválido");
+      } else {
+        setEmailError("");
+      }
+    }
     setLocal((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value,
-      ...(e.target.name === "categoria" ? { habilidades: [] } : {}),
+      [name]: value,
+      ...(name === "categoria" ? { habilidades: [] } : {}),
     }));
   };
 
@@ -77,9 +107,13 @@ export default function CreateUserStep2({
   };
 
 
+  const phoneRegex = /^\+\d{10,15}$/;
   const isFormValid =
     local.email &&
+    !emailError &&
+    /^([a-zA-Z0-9_\-.+]+)@([a-zA-Z0-9\-.]+)\.([a-zA-Z]{2,})$/.test(local.email) &&
     local.numeroTelefono &&
+    phoneRegex.test(local.numeroTelefono) &&
     local.categoria &&
     local.habilidades.length > 0 &&
     local.rol;
@@ -87,6 +121,12 @@ export default function CreateUserStep2({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validar formato telefónico antes de guardar
+    if (!phoneRegex.test(local.numeroTelefono)) {
+      setPhoneError("Formato inválido. Ejemplo: +584125296432");
+      return;
+    }
+    setPhoneError("");
     onSave(local);
   };
 
@@ -106,30 +146,29 @@ export default function CreateUserStep2({
             onChange={handleChange}
             required
             placeholder="example@correo.com"
-            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className={`mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${emailError ? 'border-red-400' : ''}`}
+            pattern="^[a-zA-Z0-9_\-.+]+@[a-zA-Z0-9\-.]+\.[a-zA-Z]{2,}$"
+            title="Ingresa un email válido"
           />
+          {emailError && (
+            <div className="text-red-500 text-xs -mt-2 mb-2">{emailError}</div>
+          )}
           <label className="font-semibold text-sm">Phone number *</label>
           <input
             name="numeroTelefono"
             value={local.numeroTelefono}
-            onInput={e => {
-              let val = e.target.value;
-              // Solo permitir un + al principio y solo números después, sin espacios
-              if (val.startsWith('+')) {
-                val = '+' + val.slice(1).replace(/[^\d]/g, '');
-              } else {
-                val = val.replace(/[^\d]/g, '');
-              }
-              setLocal(prev => ({ ...prev, numeroTelefono: val }));
-              if (e.target.value !== val) e.target.value = val;
-            }}
+            onChange={handleChange}
             required
-            placeholder="+584246783210"
-            className="mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="+584125296432"
+            className={`mb-2 border rounded w-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 ${phoneError ? 'border-red-400' : ''}`}
             inputMode="tel"
             maxLength={16}
             autoComplete="off"
+            pattern="\+\d{10,15}"
           />
+          {phoneError && (
+            <div className="text-red-500 text-xs -mt-2 mb-2">{phoneError}</div>
+          )}
         </div>
       </div>
 

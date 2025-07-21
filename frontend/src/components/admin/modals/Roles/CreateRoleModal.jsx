@@ -12,7 +12,14 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = "Role name is required";
+    // Solo letras y espacios, longitud máxima 30
+    if (!form.name.trim()) {
+      errs.name = "Role name is required";
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(form.name)) {
+      errs.name = "Only letters and spaces are allowed";
+    } else if (form.name.length > 30) {
+      errs.name = "Role name must be 30 characters or less";
+    }
     if (!form.description.trim()) errs.description = "Description is required";
     if (!form.status.trim()) errs.status = "Status is required";
     setErrors(errs);
@@ -61,6 +68,9 @@ export default function CreateRoleModal({ isOpen, toggle, onCreate }) {
                 errors.name ? "border-red-400" : ""
               }`}
               autoFocus
+              maxLength={30}
+              pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]*"
+              title="Only letters and spaces allowed, max 30 characters"
             />
             {errors.name && (
               <div className="text-red-500 mt-1 text-sm">{errors.name}</div>

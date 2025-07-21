@@ -23,7 +23,14 @@ export default function UpdateRoleModal({ isOpen, toggle, role, onUpdate }) {
 
   const validate = () => {
     const errs = {};
-    if (!form.name.trim()) errs.name = "Role name is required";
+    // Solo letras y espacios, longitud máxima 30
+    if (!form.name.trim()) {
+      errs.name = "Role name is required";
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(form.name)) {
+      errs.name = "Only letters and spaces are allowed";
+    } else if (form.name.length > 30) {
+      errs.name = "Role name must be 30 characters or less";
+    }
     if (!form.description.trim()) errs.description = "Description is required";
     if (!form.estado) errs.estado = "State is required";
     setErrors(errs);
@@ -84,6 +91,9 @@ export default function UpdateRoleModal({ isOpen, toggle, role, onUpdate }) {
               className={`mt-1 w-full rounded border px-4 py-3 text-lg focus:ring-2 focus:ring-purple-500 ${errors.name && "border-red-400"}`}
               autoFocus
               disabled={isSubmitting}
+              maxLength={30}
+              pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]*"
+              title="Only letters and spaces allowed, max 30 characters"
             />
             {errors.name && <div className="text-red-500 mt-1 text-sm">{errors.name}</div>}
           </div>

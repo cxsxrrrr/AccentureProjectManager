@@ -46,13 +46,12 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
     onNext(local);
   };
 
-  // Validacion de cifras mayores a 8
+  // Validación: solo permitir números y máximo 8 dígitos
   const handleSizeValue = (e) => {
-    const val = e.target.value.replace(/\D/g, "");
-    if (val.length < 9) {
-      handleChange(e); // Tu función normal
-    }
-  }
+    let val = e.target.value.replace(/\D/g, "");
+    if (val.length > 8) val = val.slice(0, 8);
+    setLocal((prev) => ({ ...prev, cedula: val }));
+  };
 
   return (
     <form onSubmit={handleSubmit} className="p-8 space-y-4">
@@ -129,6 +128,7 @@ export default function CreateUserStep1({ values, onNext, onCancel }) {
             inputMode="numeric"
             maxLength={8}
             autoComplete="off"
+            pattern="\d*"
           />
           <label className="block text-sm font-medium mb-1">Password *</label>
           <div className="relative">

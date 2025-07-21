@@ -12,6 +12,9 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
 
   const [showPassword, setShowPassword] = useState(false);
   const [birthError, setBirthError] = useState("");
+  const [nameError, setNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
+  const [cedulaError, setCedulaError] = useState("");
 
   // Calcula el máximo para el date input (hoy menos 18 años)
   const today = new Date();
@@ -22,6 +25,27 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === "nombre") {
+      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/.test(value)) {
+        setNameError("Only letters and spaces allowed");
+      } else {
+        setNameError("");
+      }
+    }
+    if (name === "apellido") {
+      if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]*$/.test(value)) {
+        setLastNameError("Only letters and spaces allowed");
+      } else {
+        setLastNameError("");
+      }
+    }
+    if (name === "cedula") {
+      if (!/^\d*$/.test(value)) {
+        setCedulaError("Only numbers allowed");
+      } else {
+        setCedulaError("");
+      }
+    }
     // Validación para la fecha de nacimiento
     if (name === "fechaNacimiento") {
       if (value > maxDate) {
@@ -35,13 +59,30 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Validación final antes de enviar
+    let valid = true;
+    // Validación nombre
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(local.nombre)) {
+      setNameError("Only letters and spaces allowed");
+      valid = false;
+    }
+    // Validación apellido
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ ]+$/.test(local.apellido)) {
+      setLastNameError("Only letters and spaces allowed");
+      valid = false;
+    }
+    // Validación cédula
+    if (!/^\d+$/.test(local.cedula)) {
+      setCedulaError("Only numbers allowed");
+      valid = false;
+    }
+    // Validación fecha nacimiento
     if (!local.fechaNacimiento || local.fechaNacimiento > maxDate) {
       setBirthError(
         "The user must be at least 18 years old and date cannot be in the future."
       );
-      return;
+      valid = false;
     }
+    if (!valid) return;
     setBirthError("");
     onNext(local);
   };
@@ -86,8 +127,12 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
             onChange={handleChange}
             required
             placeholder="Enter first name"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className={`mb-2 border rounded w-full px-3 py-2 ${nameError ? "border-red-400" : ""}`}
+            maxLength={30}
+            pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]*"
+            title="Only letters and spaces allowed"
           />
+          {nameError && <div className="text-red-500 text-xs -mt-2 mb-2">{nameError}</div>}
           <label className="font-semibold text-sm">Last Name *</label>
           <input
             name="apellido"
@@ -95,8 +140,12 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
             onChange={handleChange}
             required
             placeholder="Enter last name"
-            className="mb-2 border rounded w-full px-3 py-2"
+            className={`mb-2 border rounded w-full px-3 py-2 ${lastNameError ? "border-red-400" : ""}`}
+            maxLength={30}
+            pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]*"
+            title="Only letters and spaces allowed"
           />
+          {lastNameError && <div className="text-red-500 text-xs -mt-2 mb-2">{lastNameError}</div>}
           <label className="font-semibold text-sm">Birth date *</label>
           <input
             type="date"
@@ -139,12 +188,16 @@ export default function UpdateUserStep1({ values, onNext, onCancel }) {
           <input
             name="cedula"
             value={local.cedula}
-            onChange={handleSizeValue}
+            onChange={handleChange}
             required
             placeholder="Enter document number"
-            className="mb-2 border rounded w-full px-3 py-2"
-            type="number"
+            className={`mb-2 border rounded w-full px-3 py-2 ${cedulaError ? "border-red-400" : ""}`}
+            maxLength={15}
+            pattern="\d*"
+            title="Only numbers allowed"
+            inputMode="numeric"
           />
+          {cedulaError && <div className="text-red-500 text-xs -mt-2 mb-2">{cedulaError}</div>}
           <label className="block text-sm font-medium mb-1">
             New Password (Leave empty to keep current)
           </label>

@@ -3,6 +3,9 @@ import { FiSearch, FiCheck } from "react-icons/fi";
 
 export default function CreateSkillModal({ isOpen, toggle, categories = [], onCreate }) {
   const [nombre, setNombre] = useState("");
+  const maxNameLength = 40;
+  // Solo letras, números, espacios y tildes
+  const allowedRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñÜü0-9\s]+$/;
   const [catSearch, setCatSearch] = useState("");
   const [categoriaId, setCategoriaId] = useState(null);
   const [touched, setTouched] = useState(false);
@@ -30,12 +33,28 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
   );
 
 
-  const valid = nombre.trim() && categoriaId;
+  const validName = nombre.trim() && allowedRegex.test(nombre.trim()) && nombre.trim().length <= maxNameLength;
+  const valid = validName && categoriaId;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setTouched(true);
-    if (!valid) return;
+    if (!nombre.trim()) {
+      window.alert("El nombre de la habilidad es obligatorio.");
+      return;
+    }
+    if (nombre.trim().length > maxNameLength) {
+      window.alert(`El nombre no puede exceder ${maxNameLength} caracteres.`);
+      return;
+    }
+    if (!allowedRegex.test(nombre.trim())) {
+      window.alert("El nombre solo puede contener letras, números y espacios.");
+      return;
+    }
+    if (!categoriaId) {
+      window.alert("Debes seleccionar una categoría.");
+      return;
+    }
     // Busca la categoría seleccionada para enviar el id correcto
     const selectedCat = normalizedCategories.find(c => c.id === categoriaId);
     onCreate && onCreate({
@@ -75,11 +94,19 @@ export default function CreateSkillModal({ isOpen, toggle, categories = [], onCr
               className="w-full rounded-lg border border-gray-300 px-5 py-3 text-lg focus:outline-none focus:ring-2 focus:ring-purple-400 mb-4"
               placeholder="Escribe el nombre de la habilidad"
               value={nombre}
-              onChange={e => setNombre(e.target.value)}
+              onChange={e => setNombre(e.target.value.slice(0, maxNameLength))}
+              maxLength={maxNameLength}
               autoFocus
             />
+            <div className="text-xs text-gray-400 mb-1 text-right">{nombre.length}/{maxNameLength}</div>
             {touched && !nombre.trim() && (
               <div className="text-red-500 text-sm mb-2">El nombre es obligatorio.</div>
+            )}
+            {touched && nombre.trim() && !allowedRegex.test(nombre.trim()) && (
+              <div className="text-red-500 text-sm mb-2">Solo se permiten letras, números y espacios.</div>
+            )}
+            {nombre.trim().length > maxNameLength && (
+              <div className="text-red-500 text-sm mb-2">Máximo {maxNameLength} caracteres.</div>
             )}
           </div>
           <div>

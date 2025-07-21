@@ -103,8 +103,15 @@ function CategoriesandSkills() {
     try {
       await api.delete(`/category/${categoryId}`);
       setCategories(prev => prev.filter(c => c.id !== categoryId));
-    } catch {
-      alert("Error al eliminar la categoría");
+    } catch (error) {
+      if (
+        error?.response?.status === 409 ||
+        error?.response?.data?.message?.toLowerCase?.().includes("asociad")
+      ) {
+        alert("Error al eliminar la categoría ya que está asociada a una o más skills");
+      } else {
+        alert("Error al eliminar la categoría");
+      }
     } finally {
       setDisableCategoryOpen(false);
     }

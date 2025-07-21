@@ -81,6 +81,11 @@ public class SkillsService {
     public void eliminarSkillById(Long id) {
         Skills existing = skillsRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Skill no encontrado"));
+        // Eliminar asociaciones SkillsUsuario
+        List<com.Accenture.backend.model.SkillsUsuario> asociaciones = skillsUsuarioRepository.findAllBySkill_SkillId(id);
+        if (asociaciones != null && !asociaciones.isEmpty()) {
+            skillsUsuarioRepository.deleteAll(asociaciones);
+        }
         skillsDAO.eliminarSkill(existing);
     }
 
