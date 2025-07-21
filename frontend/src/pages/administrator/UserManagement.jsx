@@ -203,9 +203,9 @@ function UserManagement() {
     try {
       setIsLoading(true);
       setError(null);
-      // PATCH solo el campo estado
-      const response = await api.patch(`/usuario/${selectedUser.id}`, { estado: "Inactivo" });
-      // Actualizar localmente
+      // PUT: enviar el usuario completo con estado actualizado
+      const updatedUser = { ...selectedUser, estado: "Inactivo" };
+      await api.put(`/usuario/${selectedUser.id}`, updatedUser);
       setUsers(prevUsers => prevUsers.map(u => u.id === selectedUser.id ? { ...u, estado: "Inactivo" } : u));
       await loadUsers();
       closeDisableModal();
