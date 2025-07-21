@@ -244,7 +244,7 @@ function ResourcesManagement() {
         onClose={() => setDisableOpen(false)}
         onDisable={handleDisableResource}
       />
-
+      // Fin de modales CRUD
       {/* Filtros */}
       <div className="flex items-center justify-between mt-4 mb-2 px-2 flex-wrap gap-4">
         <span className="text-purple-600 text-lg font-semibold cursor-pointer hover:underline">
